@@ -188,7 +188,7 @@
         </div>
     </div>
 
-    <!-- Menu QR Code (fixed) -->
+    <!-- Menu QR Code (FIXED) -->
     <div class="card">
         <h3>📱 QR Menu</h3>
         <button class="btn-primary" id="qrBtn">Generate QR Code</button>
@@ -262,6 +262,9 @@
         // ========== YOUR UPI ID ==========
         const UPI_ID = '9103173043@omni';
 
+        // ========== HARDCODED CORRECT BASE URL FOR MENU QR ==========
+        const BASE_URL = 'https://zakiewillplay-cmyk.github.io/menu/menu.html?id=';
+
         const init = () => {
             if (typeof supabase === 'undefined') { setTimeout(init, 100); return; }
             window.client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -328,7 +331,6 @@
             };
             await loadSubscription();
 
-            // Show UPI QR code with unique payment link
             showUpiQRBtn.addEventListener('click', () => {
                 const amount = '200.00';
                 const note = `SUB_${user.id.substring(0, 8)}`;
@@ -380,7 +382,7 @@
             const itemDesc = document.getElementById('itemDesc');
             const itemPrice = document.getElementById('itemPrice');
             const itemCategory = document.getElementById('itemCategory');
-            const qrContainerEl = document.getElementById('qrcode'); // different from upiQR
+            const qrContainerEl = document.getElementById('qrcode');
             const qrLinkDisplay = document.getElementById('qrLinkDisplay');
             const bulkTextarea = document.getElementById('bulkTextarea');
             const bulkMessage = document.getElementById('bulkMessage');
@@ -423,9 +425,9 @@
                 alert('Logo updated!');
             });
 
-            // ----- FIXED MENU QR CODE GENERATION -----
+            // ----- MENU QR CODE GENERATION (PERMANENTLY FIXED) -----
             document.getElementById('qrBtn').addEventListener('click', () => {
-                const menuUrl = window.location.href.replace(/dashboard\.html.*/, 'menu.html?id=' + cafe.id);
+                const menuUrl = BASE_URL + cafe.id;
                 qrContainerEl.innerHTML = '';
                 new QRCode(qrContainerEl, {
                     text: menuUrl,
@@ -435,10 +437,10 @@
                     colorLight: '#ffffff',
                 });
                 qrLinkDisplay.textContent = menuUrl;
-                navigator.clipboard.writeText(menuUrl).then(() => alert('Link copied!')).catch(() => {});
+                navigator.clipboard.writeText(menuUrl).then(() => alert('Menu link copied!')).catch(() => {});
             });
 
-            // Smart Menu Builder logic (unchanged, included for completeness)
+            // Smart Menu Builder (unchanged)
             const cameraInput = document.getElementById('cameraInput');
             const galleryInput = document.getElementById('galleryInput');
             const imagePreview = document.getElementById('imagePreview');
