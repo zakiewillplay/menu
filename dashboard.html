@@ -122,8 +122,6 @@
         .image-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
         footer { text-align: center; margin-top: 2rem; opacity: 0.5; font-size: 0.8rem; }
         #imagePreview { max-width: 100%; max-height: 300px; border-radius: 12px; margin: 1rem 0; display: none; }
-
-        /* Off‑screen file inputs – visible to browser but not on screen */
         .visually-hidden {
             position: absolute;
             width: 1px;
@@ -141,6 +139,22 @@
         <h1>☕ Dashboard</h1>
         <button class="btn-logout" id="logoutBtn">Logout</button>
     </header>
+
+    <!-- Subscription Card -->
+    <div class="card" id="subscriptionCard">
+        <h3>💳 Subscription</h3>
+        <div id="subStatus"><p>Loading...</p></div>
+        <div id="subAction" style="display:none;">
+            <button class="btn-primary" id="subscribeBtn">Subscribe Now (₹200/month)</button>
+            <p class="note" id="upiNote" style="display:none;"></p>
+        </div>
+        <div id="txnInput" style="display:none; margin-top:1rem;">
+            <label>Enter UPI Transaction ID:</label>
+            <input type="text" id="txnId" placeholder="e.g., 1234567890" />
+            <button class="btn-primary" id="submitTxnBtn">Submit for Verification</button>
+            <p class="note" id="txnMessage"></p>
+        </div>
+    </div>
 
     <!-- Settings -->
     <div class="card">
@@ -171,7 +185,7 @@
         <div id="qrContainer"><div id="qrcode"></div><div id="qrLinkDisplay"></div></div>
     </div>
 
-    <!-- SMART MENU BUILDER (camera + gallery + OCR) -->
+    <!-- SMART MENU BUILDER -->
     <div class="card">
         <h3>📸 Smart Menu Builder</h3>
         <p class="note">Snap a photo or pick one from your gallery – we'll read the items and prices.</p>
@@ -232,6 +246,9 @@
         const SUPABASE_URL = 'https://phunzwqocgtgnpsgvsyv.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBodW56d3FvY2d0Z25wc2d2c3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MTQ2ODIsImV4cCI6MjA5NDA5MDY4Mn0.gWJ_NORZxMWz0EPJ425gDZew7MJUxWdo6L67snAE0dI';
 
+        // ========== YOUR UPI ID – ALREADY SET ==========
+        const UPI_ID = '9103173043@omni';
+
         const init = () => {
             if (typeof supabase === 'undefined') { setTimeout(init, 100); return; }
             window.client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -253,7 +270,80 @@
                 return;
             }
 
-            // DOM refs
+            // ================== SUBSCRIPTION LOGIC ==================
+            const subStatus = document.getElementById('subStatus');
+            const subAction = document.getElementById('subAction');
+            const subscribeBtn = document.getElementById('subscribeBtn');
+            const txnInput = document.getElementById('txnInput');
+            const txnId = document.getElementById('txnId');
+            const submitTxnBtn = document.getElementById('submitTxnBtn');
+            const txnMessage = document.getElementById('txnMessage');
+            const upiNote = document.getElementById('upiNote');
+
+            const loadSubscription = async () => {
+                const { data: sub, error } = await client.from('subscriptions').select('*').eq('owner_id', user.id).single();
+                if (error) {
+                    subStatus.innerHTML = '<p>Error loading subscription</p>';
+                    return;
+                }
+                const now = new Date();
+                const trialEnd = sub.trial_ends_at ? new Date(sub.trial_ends_at) : null;
+                const paidUntil = sub.paid_until ? new Date(sub.paid_until) : null;
+
+                if (paidUntil && paidUntil > now) {
+                    const daysLeft = Math.ceil((paidUntil - now) / (1000 * 60 * 60 * 24));
+                    subStatus.innerHTML = `<p>✅ Active until <strong>${paidUntil.toLocaleDateString()}</strong> (${daysLeft} day${daysLeft>1?'s':''} left)</p>`;
+                    subAction.style.display = 'none';
+                    txnInput.style.display = 'none';
+                } else if (trialEnd && trialEnd > now) {
+                    const daysLeft = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
+                    subStatus.innerHTML = `<p>🆓 Free trial: <strong>${daysLeft} day${daysLeft>1?'s':''} remaining</strong></p>`;
+                    subAction.style.display = 'block';
+                    subscribeBtn.textContent = 'Subscribe Now (₹200/month)';
+                    upiNote.innerHTML = '';
+                    txnInput.style.display = 'none';
+                } else {
+                    subStatus.innerHTML = '<p>❌ Trial expired. Please subscribe to continue.</p>';
+                    subAction.style.display = 'block';
+                    subscribeBtn.textContent = 'Renew Subscription (₹200/month)';
+                    upiNote.innerHTML = '';
+                    txnInput.style.display = 'none';
+                }
+            };
+            await loadSubscription();
+
+            subscribeBtn.addEventListener('click', () => {
+                const amount = '200.00';
+                const note = `SUB_${user.id.substring(0, 8)}`;
+                const upiLink = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=CafeBoss&am=${amount}&tn=${encodeURIComponent(note)}`;
+                upiNote.innerHTML = `<a href="${upiLink}" class="btn-primary" style="display:inline-block; margin-top:0.5rem;">Pay ₹200 via UPI</a>
+                    <p class="note" style="margin-top:0.5rem;">After payment, copy the transaction ID from your UPI app and paste it below.</p>`;
+                upiNote.style.display = 'block';
+                txnInput.style.display = 'block';
+            });
+
+            submitTxnBtn.addEventListener('click', async () => {
+                const txn = txnId.value.trim();
+                if (!txn) {
+                    txnMessage.textContent = 'Please enter the transaction ID.';
+                    return;
+                }
+                const { error } = await client.from('payment_requests').insert({
+                    owner_id: user.id,
+                    amount: 200.00,
+                    upi_transaction_id: txn,
+                    status: 'pending'
+                });
+                if (error) {
+                    txnMessage.textContent = 'Error: ' + error.message;
+                } else {
+                    txnMessage.textContent = 'Transaction ID submitted! Admin will verify soon.';
+                    txnId.value = '';
+                    setTimeout(() => { txnInput.style.display = 'none'; }, 2000);
+                }
+            });
+
+            // ================== REST OF DASHBOARD ==================
             const cafeName = document.getElementById('cafeName');
             const whatsapp = document.getElementById('whatsapp');
             const desc = document.getElementById('description');
@@ -271,7 +361,6 @@
             const bulkTextarea = document.getElementById('bulkTextarea');
             const bulkMessage = document.getElementById('bulkMessage');
 
-            // Populate settings
             cafeName.value = cafe.cafe_name || '';
             whatsapp.value = cafe.whatsapp || '';
             desc.value = cafe.description || '';
@@ -295,7 +384,6 @@
                 else alert('Settings saved!');
             });
 
-            // Logo upload
             document.getElementById('selectLogoBtn').addEventListener('click', () => document.getElementById('logoFile').click());
             document.getElementById('uploadLogoBtn').addEventListener('click', async () => {
                 const file = document.getElementById('logoFile').files[0];
@@ -310,7 +398,6 @@
                 alert('Logo updated!');
             });
 
-            // QR code – FIXED: uses current URL to build the menu path inside /menu/
             document.getElementById('qrBtn').addEventListener('click', () => {
                 const menuUrl = window.location.href.replace(/dashboard\.html.*/, 'menu.html?id=' + cafe.id);
                 qrContainer.innerHTML = '';
@@ -325,7 +412,7 @@
                 navigator.clipboard.writeText(menuUrl).then(() => alert('Link copied!')).catch(() => {});
             });
 
-            // SMART MENU BUILDER (camera + gallery)
+            // Smart Menu Builder
             const cameraInput = document.getElementById('cameraInput');
             const galleryInput = document.getElementById('galleryInput');
             const imagePreview = document.getElementById('imagePreview');
@@ -417,13 +504,13 @@
                     `;
                     scanResult.appendChild(div);
                 });
-                scanResult.querySelectorAll('.item-name-edit').forEach((inp, idx) => {
+                document.querySelectorAll('.item-name-edit').forEach((inp, idx) => {
                     inp.addEventListener('input', (e) => { extractedItems[idx].name = e.target.value; });
                 });
-                scanResult.querySelectorAll('.item-price-edit').forEach((inp, idx) => {
+                document.querySelectorAll('.item-price-edit').forEach((inp, idx) => {
                     inp.addEventListener('input', (e) => { extractedItems[idx].price = e.target.value; });
                 });
-                scanResult.querySelectorAll('.remove-extracted-btn').forEach(btn => {
+                document.querySelectorAll('.remove-extracted-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const index = parseInt(e.target.dataset.index);
                         extractedItems.splice(index, 1);
@@ -465,7 +552,7 @@
                 }
             });
 
-            // Bulk paste add
+            // Bulk paste
             document.getElementById('bulkAddBtn').addEventListener('click', async () => {
                 const raw = bulkTextarea.value.trim();
                 if (!raw) return;
@@ -501,7 +588,7 @@
                 }
             });
 
-            // Load & display current menu items
+            // Load items
             const loadItems = async () => {
                 const { data, error } = await client.from('menu_items').select('*').eq('cafe_id', cafe.id).order('created_at');
                 if (error) return;
@@ -522,7 +609,6 @@
             };
             await loadItems();
 
-            // Item actions (toggle, delete, edit)
             menuList.addEventListener('click', async (e) => {
                 const id = e.target.dataset.id;
                 if (e.target.classList.contains('toggle-avail')) {
@@ -549,7 +635,6 @@
                 }
             });
 
-            // Single item form (add/edit)
             document.getElementById('menuForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const id = editId.value;
