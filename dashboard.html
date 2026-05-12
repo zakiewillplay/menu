@@ -34,9 +34,9 @@
         input, textarea, select { width: 100%; padding: 0.7rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: #1e1e1e; color: var(--cream); font-size: 0.95rem; }
         button { background: var(--primary); color: white; border: none; padding: 0.7rem 1.5rem; border-radius: 30px; font-weight: 600; cursor: pointer; margin-top: 0.5rem; }
         .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 0.5rem 1.2rem; border-radius: 30px; }
-        .btn-danger { background: #c0392b; padding: 0.4rem 0.8rem; border-radius: 8px; }
+        .btn-danger { background: #c0392b; padding: 0.4rem 0.8rem; border-radius: 8px; color: white; border: none; cursor: pointer; }
         .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
-        .variant-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+        .variant-row { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.5rem; }
         .variant-row input { flex: 1; }
         .toggle-avail { background: #555; border: none; color: white; padding: 0.3rem 0.7rem; border-radius: 20px; cursor: pointer; }
         .toggle-avail.available { background: #27ae60; }
@@ -101,10 +101,10 @@
         </div>
     </div>
 
-    <!-- Smart Menu Builder (Camera / Gallery) -->
+    <!-- Smart Menu Builder (fixed OCR) -->
     <div class="card">
         <h3>📸 Smart Menu Builder</h3>
-        <p class="note">Snap a photo or pick one from your gallery – we'll read the items and prices.</p>
+        <p class="note">Snap a photo or pick one from your gallery – only lines with prices are kept.</p>
         <div class="image-actions" style="display:flex; gap:0.5rem; margin-top:0.5rem;">
             <button class="btn-outline" id="openCameraBtn">📷 Camera</button>
             <button class="btn-outline" id="openGalleryBtn">🖼️ Gallery</button>
@@ -141,7 +141,7 @@
             <input type="hidden" id="editId" />
             <div class="form-group"><label>Name</label><input type="text" id="itemName" required /></div>
             <div class="form-group"><label>Description (plain, without variants)</label><input type="text" id="itemDesc" /></div>
-            <div class="form-group"><label>Price (₹, default if no variants)</label><input type="number" id="itemPrice" step="0.01" required /></div>
+            <div class="form-group"><label>Price (₹, leave blank if variants provided)</label><input type="number" id="itemPrice" step="0.01" /></div>
             <div class="form-group"><label>Category</label><input type="text" id="itemCategory" required /></div>
             <div class="form-group"><label>Variants (e.g., Small=150|Large=250)</label>
                 <div id="variantsContainer">
@@ -151,7 +151,7 @@
                     </div>
                 </div>
                 <button type="button" id="addVariantBtn" class="btn-outline">+ Add Variant</button>
-                <p class="note" style="font-size:0.8rem; opacity:0.6;">Leave variants empty if item has single price.</p>
+                <small style="opacity:0.6;">Leave variants empty if item has single price.</small>
             </div>
             <div class="form-group"><label>Image (optional)</label><input type="file" id="itemImage" accept="image/*" class="visually-hidden" /></div>
             <button type="submit" id="saveItemBtn">Add Item</button>
@@ -195,7 +195,7 @@
                 return;
             }
 
-            // ---------- Subscription logic ----------
+            // ---------- Subscription ----------
             const subStatus = document.getElementById('subStatus');
             const subAction = document.getElementById('subAction');
             const showUpiQRBtn = document.getElementById('showUpiQRBtn');
@@ -213,26 +213,25 @@
                 const trialEnd = sub.trial_ends_at ? new Date(sub.trial_ends_at) : null;
                 const paidUntil = sub.paid_until ? new Date(sub.paid_until) : null;
                 if (paidUntil && paidUntil > now) {
-                    const daysLeft = Math.ceil((paidUntil - now) / (1000 * 60 * 60 * 24));
-                    subStatus.innerHTML = `<p>✅ Active until <strong>${paidUntil.toLocaleDateString()}</strong> (${daysLeft} day${daysLeft>1?'s':''} left)</p>`;
+                    const days = Math.ceil((paidUntil - now) / (1000 * 60 * 60 * 24));
+                    subStatus.innerHTML = `<p>✅ Active until ${paidUntil.toLocaleDateString()} (${days} days)</p>`;
                     subAction.style.display = 'none';
                 } else if (trialEnd && trialEnd > now) {
-                    const daysLeft = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
-                    subStatus.innerHTML = `<p>🆓 Free trial: <strong>${daysLeft} day${daysLeft>1?'s':''} remaining</strong></p>`;
+                    const days = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
+                    subStatus.innerHTML = `<p>🆓 Trial: ${days} days left</p>`;
                     subAction.style.display = 'block';
                     showUpiQRBtn.textContent = 'Subscribe Now (₹200/month)';
                 } else {
-                    subStatus.innerHTML = '<p>❌ Trial expired. Please subscribe.</p>';
+                    subStatus.innerHTML = '<p>❌ Trial expired</p>';
                     subAction.style.display = 'block';
-                    showUpiQRBtn.textContent = 'Renew Subscription (₹200/month)';
+                    showUpiQRBtn.textContent = 'Renew (₹200/month)';
                 }
             };
             await loadSubscription();
 
             showUpiQRBtn.addEventListener('click', () => {
-                const amount = '200.00';
                 const note = `SUB_${user.id.substring(0,8)}`;
-                const upiLink = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=CafeBoss&am=${amount}&tn=${encodeURIComponent(note)}`;
+                const upiLink = `upi://pay?pa=${UPI_ID}&pn=CafeBoss&am=200.00&tn=${note}`;
                 upiQR.innerHTML = '';
                 new QRCode(upiQR, { text: upiLink, width: 160, height: 160, colorDark: '#000', colorLight: '#fff' });
                 upiQRContainer.style.display = 'block';
@@ -241,16 +240,13 @@
 
             submitTxnBtn.addEventListener('click', async () => {
                 const txn = txnId.value.trim();
-                if (!txn) { txnMessage.textContent = 'Please enter the transaction ID.'; return; }
+                if (!txn) { txnMessage.textContent = 'Enter transaction ID'; return; }
                 const { error } = await client.from('payment_requests').insert({
-                    owner_id: user.id,
-                    amount: 200.00,
-                    upi_transaction_id: txn,
-                    status: 'pending'
+                    owner_id: user.id, amount: 200.00, upi_transaction_id: txn, status: 'pending'
                 });
                 if (error) txnMessage.textContent = 'Error: ' + error.message;
                 else {
-                    txnMessage.textContent = 'Transaction ID submitted!';
+                    txnMessage.textContent = 'Submitted!';
                     txnId.value = '';
                     setTimeout(() => { txnInput.style.display = 'none'; }, 2000);
                 }
@@ -260,38 +256,35 @@
             const cafeNameInp = document.getElementById('cafeName');
             const whatsappInp = document.getElementById('whatsapp');
             const descInp = document.getElementById('description');
-            const primaryColorInp = document.getElementById('primaryColor');
-            const accentColorInp = document.getElementById('accentColor');
+            const primaryInp = document.getElementById('primaryColor');
+            const accentInp = document.getElementById('accentColor');
             const logoPreview = document.getElementById('logoPreview');
 
             cafeNameInp.value = cafe.cafe_name || '';
             whatsappInp.value = cafe.whatsapp || '';
             descInp.value = cafe.description || '';
-            primaryColorInp.value = cafe.primary_color || '#FF6B35';
-            accentColorInp.value = cafe.accent_color || '#2F3E46';
-            if (cafe.logo_url) {
-                logoPreview.src = cafe.logo_url;
-                logoPreview.style.display = 'block';
-            }
+            primaryInp.value = cafe.primary_color || '#FF6B35';
+            accentInp.value = cafe.accent_color || '#2F3E46';
+            if (cafe.logo_url) { logoPreview.src = cafe.logo_url; logoPreview.style.display = 'block'; }
 
             document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
                 const updates = {
                     cafe_name: cafeNameInp.value,
                     whatsapp: whatsappInp.value.replace(/\D/g, ''),
                     description: descInp.value,
-                    primary_color: primaryColorInp.value,
-                    accent_color: accentColorInp.value,
+                    primary_color: primaryInp.value,
+                    accent_color: accentInp.value,
                 };
                 const { error } = await client.from('cafes').update(updates).eq('owner_id', user.id);
                 if (error) alert('Error: ' + error.message);
                 else alert('Settings saved!');
             });
 
-            // Logo upload
+            // Logo
             document.getElementById('selectLogoBtn').addEventListener('click', () => document.getElementById('logoFile').click());
             document.getElementById('uploadLogoBtn').addEventListener('click', async () => {
                 const file = document.getElementById('logoFile').files[0];
-                if (!file) return alert('Choose an image first');
+                if (!file) return alert('Choose an image');
                 const path = `${user.id}/logos/${Date.now()}_${file.name}`;
                 const { error } = await client.storage.from('menu-items').upload(path, file);
                 if (error) return alert('Upload failed: ' + error.message);
@@ -302,22 +295,18 @@
                 alert('Logo updated!');
             });
 
-            // QR code generation (hardcoded correct URL)
+            // QR
             document.getElementById('qrBtn').addEventListener('click', () => {
-                const menuUrl = BASE_URL + cafe.id;
+                const url = BASE_URL + cafe.id;
                 document.getElementById('qrcode').innerHTML = '';
                 new QRCode(document.getElementById('qrcode'), {
-                    text: menuUrl,
-                    width: 150,
-                    height: 150,
-                    colorDark: '#2F3E46',
-                    colorLight: '#ffffff',
+                    text: url, width: 150, height: 150, colorDark: '#2F3E46', colorLight: '#fff'
                 });
-                document.getElementById('qrLinkDisplay').textContent = menuUrl;
-                navigator.clipboard.writeText(menuUrl).then(() => alert('Menu link copied!')).catch(() => {});
+                document.getElementById('qrLinkDisplay').textContent = url;
+                navigator.clipboard.writeText(url).then(() => alert('Copied!')).catch(() => {});
             });
 
-            // ---------- Smart Menu Builder ----------
+            // ---------- SMART MENU BUILDER (fixed OCR) ----------
             const cameraInput = document.getElementById('cameraInput');
             const galleryInput = document.getElementById('galleryInput');
             const imagePreview = document.getElementById('imagePreview');
@@ -326,12 +315,13 @@
             const ocrBar = document.getElementById('ocrBar');
             const ocrStatus = document.getElementById('ocrStatus');
             const scanResult = document.getElementById('scanResult');
-            const categoryAssign = document.getElementById('categoryAssign');
-            const globalCategory = document.getElementById('globalCategory');
+            const catAssign = document.getElementById('categoryAssign');
+            const globalCat = document.getElementById('globalCategory');
             const addAllBtn = document.getElementById('addAllBtn');
+
             let extractedItems = [];
 
-            function handleImageSelection(file) {
+            function handleImage(file) {
                 if (!file) return;
                 const reader = new FileReader();
                 reader.onload = ev => {
@@ -340,38 +330,41 @@
                     scanBtn.style.display = 'inline-block';
                     extractedItems = [];
                     scanResult.innerHTML = '';
-                    categoryAssign.style.display = 'none';
+                    catAssign.style.display = 'none';
                 };
                 reader.readAsDataURL(file);
             }
 
             document.getElementById('openCameraBtn').addEventListener('click', () => cameraInput.click());
             document.getElementById('openGalleryBtn').addEventListener('click', () => galleryInput.click());
-            cameraInput.addEventListener('change', e => { if (e.target.files[0]) handleImageSelection(e.target.files[0]); });
-            galleryInput.addEventListener('change', e => { if (e.target.files[0]) handleImageSelection(e.target.files[0]); });
+            cameraInput.addEventListener('change', e => { if(e.target.files[0]) handleImage(e.target.files[0]); });
+            galleryInput.addEventListener('change', e => { if(e.target.files[0]) handleImage(e.target.files[0]); });
 
             scanBtn.addEventListener('click', async () => {
                 if (!imagePreview.src) return;
                 scanBtn.disabled = true;
                 ocrProgress.style.display = 'block';
                 ocrBar.value = 0;
-                ocrStatus.textContent = 'Recognizing text...';
+                ocrStatus.textContent = 'Reading text...';
                 try {
                     const { data: { text } } = await Tesseract.recognize(imagePreview.src, 'eng', {
                         logger: m => {
                             if (m.status === 'recognizing text') {
                                 ocrBar.value = Math.round(m.progress * 100);
-                                ocrStatus.textContent = `Recognizing... ${Math.round(m.progress * 100)}%`;
+                                ocrStatus.textContent = `Reading... ${Math.round(m.progress*100)}%`;
                             }
                         }
                     });
                     const lines = text.split('\n').filter(l => l.trim());
-                    extractedItems = lines.map(line => {
-                        const m = line.match(/(.*[^\d₹])\s*[₹]?(\d+\.?\d*)\s*$/);
-                        return m ? { name: m[1].trim(), price: m[2] } : { name: line.trim(), price: '' };
-                    });
+                    // Keep only lines with a price at the end (digits, optional ₹)
+                    extractedItems = lines
+                        .map(line => {
+                            const m = line.match(/(.+?)\s*[₹]?(\d+\.?\d*)\s*$/);
+                            return m ? { name: m[1].trim(), price: m[2] } : null;
+                        })
+                        .filter(item => item !== null);
                     displayExtractedItems();
-                    categoryAssign.style.display = 'block';
+                    catAssign.style.display = 'block';
                 } catch (err) {
                     alert('OCR failed: ' + err.message);
                 } finally {
@@ -384,7 +377,7 @@
                 scanResult.innerHTML = '';
                 extractedItems.forEach((item, idx) => {
                     const div = document.createElement('div');
-                    div.style.cssText = 'display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;';
+                    div.style.cssText = 'display:flex; gap:0.5rem; margin-bottom:0.5rem; align-items:center;';
                     div.innerHTML = `
                         <input type="text" class="item-name-edit" value="${item.name}" style="flex:2" />
                         <input type="number" class="item-price-edit" step="0.01" value="${item.price}" style="flex:1" />
@@ -399,24 +392,24 @@
                         const idx = +e.target.dataset.index;
                         extractedItems.splice(idx, 1);
                         displayExtractedItems();
-                        if (!extractedItems.length) categoryAssign.style.display = 'none';
+                        if (!extractedItems.length) catAssign.style.display = 'none';
                     });
                 });
             }
 
             addAllBtn.addEventListener('click', async () => {
-                const cat = globalCategory.value.trim() || 'Uncategorized';
-                const items = extractedItems.filter(i => i.name && !isNaN(parseFloat(i.price))).map(i => ({
-                    cafe_id: cafe.id, name: i.name, price: parseFloat(i.price), category: cat, description: '', available: true
-                }));
-                if (!items.length) return alert('No valid items.');
-                const { error } = await client.from('menu_items').insert(items);
+                const cat = globalCat.value.trim() || 'Uncategorized';
+                const toInsert = extractedItems
+                    .filter(i => i.name && !isNaN(parseFloat(i.price)))
+                    .map(i => ({ cafe_id: cafe.id, name: i.name, price: parseFloat(i.price), category: cat, description: '', available: true }));
+                if (!toInsert.length) return alert('No valid items');
+                const { error } = await client.from('menu_items').insert(toInsert);
                 if (error) alert('Error: ' + error.message);
                 else {
-                    alert(`Added ${items.length} items!`);
+                    alert(`Added ${toInsert.length} items!`);
                     extractedItems = [];
                     scanResult.innerHTML = '';
-                    categoryAssign.style.display = 'none';
+                    catAssign.style.display = 'none';
                     imagePreview.style.display = 'none';
                     scanBtn.style.display = 'none';
                     cameraInput.value = galleryInput.value = '';
@@ -430,12 +423,15 @@
                 if (!raw) return;
                 const lines = raw.split('\n').filter(l => l.trim());
                 const items = [];
-                for (const line of lines) {
-                    const [name, price, category] = line.split(',').map(s => s.trim());
-                    if (!name || isNaN(parseFloat(price))) continue;
-                    items.push({ cafe_id: cafe.id, name, price: parseFloat(price), category: category || 'Uncategorized', description: '', available: true });
-                }
-                if (!items.length) return document.getElementById('bulkMessage').textContent = 'No valid items.';
+                lines.forEach(line => {
+                    const parts = line.split(',');
+                    if (parts.length < 2) return;
+                    const name = parts[0].trim();
+                    const price = parseFloat(parts[1].trim());
+                    const cat = parts[2] ? parts[2].trim() : 'Uncategorized';
+                    if (name && !isNaN(price)) items.push({ cafe_id: cafe.id, name, price, category: cat, description: '', available: true });
+                });
+                if (!items.length) { document.getElementById('bulkMessage').textContent = 'No valid items'; return; }
                 const { error } = await client.from('menu_items').insert(items);
                 if (error) document.getElementById('bulkMessage').textContent = 'Error: ' + error.message;
                 else {
@@ -445,7 +441,7 @@
                 }
             });
 
-            // ---------- Menu items loading & variant editing ----------
+            // ---------- Menu Items Loading & Variant Editing ----------
             const loadItems = async () => {
                 const { data, error } = await client.from('menu_items').select('*').eq('cafe_id', cafe.id).order('created_at');
                 if (error) return;
@@ -453,23 +449,23 @@
                 menuList.innerHTML = '';
                 data.forEach(item => {
                     const hasVariants = item.description && item.description.startsWith('VAR::');
-                    let variantsDisplay = '';
+                    let display = `<strong>${item.name}</strong> `;
                     if (hasVariants) {
-                        const vStr = item.description.replace('VAR::', '');
-                        const pairs = vStr.split('|');
-                        variantsDisplay = ' (' + pairs.map(p => {
-                            const [n, pr] = p.split('=');
-                            return `${n} ₹${pr}`;
-                        }).join(', ') + ')';
+                        const variants = item.description.replace('VAR::', '').split('|').map(v => {
+                            const [n, p] = v.split('=');
+                            return `${n} ₹${p}`;
+                        }).join(', ');
+                        display += `(${variants})`;
+                    } else {
+                        display += `· ₹${item.price}`;
                     }
+                    display += ` <small>(${item.category})</small>`;
                     const div = document.createElement('div');
                     div.className = 'menu-item';
                     div.innerHTML = `
+                        <div>${display}</div>
                         <div>
-                            <strong>${item.name}</strong> ${hasVariants ? variantsDisplay : '· ₹' + item.price} (${item.category})
-                        </div>
-                        <div>
-                            <button class="toggle-avail ${item.available ? 'available' : ''}" data-id="${item.id}" data-avail="${item.available}">${item.available ? 'On' : 'Off'}</button>
+                            <button class="toggle-avail ${item.available?'available':''}" data-id="${item.id}" data-avail="${item.available}">${item.available?'On':'Off'}</button>
                             <button class="edit-btn" data-id="${item.id}">Edit</button>
                             <button class="del-btn" data-id="${item.id}">Del</button>
                         </div>
@@ -503,32 +499,31 @@
                         if (!data) return;
                         document.getElementById('editId').value = data.id;
                         document.getElementById('itemName').value = data.name;
-                        document.getElementById('itemDesc').value = data.description && !data.description.startsWith('VAR::') ? data.description : '';
+                        document.getElementById('itemDesc').value = (data.description && !data.description.startsWith('VAR::')) ? data.description : '';
                         document.getElementById('itemPrice').value = data.price;
                         document.getElementById('itemCategory').value = data.category;
-                        // Populate variants
-                        const container = document.getElementById('variantsContainer');
-                        container.innerHTML = '';
+
+                        const vContainer = document.getElementById('variantsContainer');
+                        vContainer.innerHTML = '';
                         if (data.description && data.description.startsWith('VAR::')) {
                             const vStr = data.description.replace('VAR::', '');
                             vStr.split('|').forEach(p => {
-                                const [name, price] = p.split('=');
+                                const [n, pr] = p.split('=');
                                 const row = document.createElement('div');
                                 row.className = 'variant-row';
                                 row.innerHTML = `
-                                    <input type="text" class="vname" value="${name}" />
-                                    <input type="number" class="vprice" step="0.01" value="${price}" />
+                                    <input type="text" class="vname" value="${n}" />
+                                    <input type="number" class="vprice" step="0.01" value="${pr}" />
                                     <button type="button" class="btn-danger remove-variant-btn">✕</button>
                                 `;
-                                container.appendChild(row);
+                                vContainer.appendChild(row);
                                 row.querySelector('.remove-variant-btn').addEventListener('click', () => row.remove());
                             });
                         } else {
-                            // default empty row
                             const row = document.createElement('div');
                             row.className = 'variant-row';
                             row.innerHTML = `<input type="text" class="vname" placeholder="Variant name" /><input type="number" class="vprice" step="0.01" placeholder="Price" />`;
-                            container.appendChild(row);
+                            vContainer.appendChild(row);
                         }
                         document.getElementById('saveItemBtn').textContent = 'Update Item';
                     });
@@ -536,7 +531,7 @@
             }
 
             document.getElementById('addVariantBtn').addEventListener('click', () => {
-                const container = document.getElementById('variantsContainer');
+                const vContainer = document.getElementById('variantsContainer');
                 const row = document.createElement('div');
                 row.className = 'variant-row';
                 row.innerHTML = `
@@ -544,16 +539,17 @@
                     <input type="number" class="vprice" step="0.01" placeholder="Price" />
                     <button type="button" class="btn-danger remove-variant-btn">✕</button>
                 `;
-                container.appendChild(row);
+                vContainer.appendChild(row);
                 row.querySelector('.remove-variant-btn').addEventListener('click', () => row.remove());
             });
 
+            // Save item (handles optional default price)
             document.getElementById('menuForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const id = document.getElementById('editId').value;
                 const name = document.getElementById('itemName').value;
-                const descPlain = document.getElementById('itemDesc').value;
-                const price = parseFloat(document.getElementById('itemPrice').value);
+                const descPlain = document.getElementById('itemDesc').value.trim();
+                let price = parseFloat(document.getElementById('itemPrice').value);
                 const category = document.getElementById('itemCategory').value;
 
                 const vNames = Array.from(document.querySelectorAll('.vname')).map(inp => inp.value.trim());
@@ -564,13 +560,22 @@
                         variantString += (variantString ? '|' : '') + `${vNames[i]}=${vPrices[i]}`;
                     }
                 }
-                const description = variantString ? 'VAR::' + variantString : descPlain;
+                const hasVariants = variantString.length > 0;
+                const description = hasVariants ? 'VAR::' + variantString : descPlain;
+
+                // If variants present, set price to 0 (or ignore default price field)
+                if (hasVariants) {
+                    price = 0;
+                } else if (isNaN(price) || price <= 0) {
+                    alert('Please enter a valid price or add variants.');
+                    return;
+                }
 
                 const payload = {
                     cafe_id: cafe.id,
                     name,
                     description,
-                    price: variantString ? 0 : price,
+                    price,
                     category,
                 };
 
