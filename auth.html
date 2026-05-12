@@ -226,7 +226,7 @@
                 resetSuccess.style.display = 'none';
                 try {
                     const { error } = await client.auth.resetPasswordForEmail(resetEmail.value.trim(), {
-                        redirectTo: window.location.origin + '/auth.html?type=recovery',
+                        redirectTo: window.location.href.replace(/auth\.html.*/, 'auth.html?type=recovery'),
                     });
                     if (error) throw error;
                     resetSuccess.textContent = 'Reset link sent! Check your email.';
