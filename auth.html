@@ -72,7 +72,7 @@
 </head>
 <body>
     <div class="card">
-        <!-- Normal View -->
+        <!-- Normal Login / Signup View -->
         <div id="normalView">
             <h2>Welcome</h2>
             <div class="tabs">
@@ -95,7 +95,7 @@
             <div class="back-link"><a href="index.html">← Back to home</a></div>
         </div>
 
-        <!-- Reset Request -->
+        <!-- Password Reset Request View -->
         <div id="resetRequestView" class="hidden">
             <h2>Reset Password</h2>
             <p class="form-message">Enter your email and we’ll send you a reset link.</p>
@@ -111,7 +111,7 @@
             <div class="back-link"><a id="backToLoginLink">← Back to Login</a></div>
         </div>
 
-        <!-- New Password -->
+        <!-- Set New Password View (after clicking reset link) -->
         <div id="newPasswordView" class="hidden">
             <h2>New Password</h2>
             <form id="newPasswordForm">
@@ -129,11 +129,16 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module">
+        // ==================== YOUR SUPABASE CREDENTIALS ====================
         const SUPABASE_URL = 'https://phunzwqocgtgnpsgvsyv.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBodW56d3FvY2d0Z25wc2d2c3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MTQ2ODIsImV4cCI6MjA5NDA5MDY4Mn0.gWJ_NORZxMWz0EPJ425gDZew7MJUxWdo6L67snAE0dI';
 
+        // Wait for supabase library to load, then boot
         const init = () => {
-            if (typeof supabase === 'undefined') { setTimeout(init, 100); return; }
+            if (typeof supabase === 'undefined') {
+                setTimeout(init, 100);
+                return;
+            }
             window.client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             main();
         };
@@ -142,12 +147,14 @@
         function main() {
             const client = window.client;
             const urlParams = new URLSearchParams(window.location.search);
+            // true if we came from a password reset email
             const isRecovery = urlParams.get('type') === 'recovery';
 
             const normalView = document.getElementById('normalView');
             const resetRequestView = document.getElementById('resetRequestView');
             const newPasswordView = document.getElementById('newPasswordView');
 
+            // Show the correct view
             if (isRecovery) {
                 normalView.classList.add('hidden');
                 resetRequestView.classList.add('hidden');
@@ -158,7 +165,7 @@
                 newPasswordView.classList.add('hidden');
             }
 
-            // Normal login/signup
+            // ==================== 1. NORMAL LOGIN / SIGNUP ====================
             const form = document.getElementById('authForm');
             const emailInp = document.getElementById('email');
             const passInp = document.getElementById('password');
@@ -184,12 +191,17 @@
                 errorEl.style.display = 'none';
                 const email = emailInp.value.trim();
                 const password = passInp.value;
+
                 try {
                     if (mode === 'signup') {
                         const { data, error } = await client.auth.signUp({ email, password });
                         if (error) throw error;
                         if (data.user) {
-                            const { error: insertErr } = await client.from('cafes').insert({ owner_id: data.user.id });
+                            // Create the cafe row for this owner
+                            const { error: insertErr } = await client
+                                .from('cafes')
+                                .insert({ owner_id: data.user.id });
+                            // If row already exists (duplicate key), ignore that error
                             if (insertErr && insertErr.code !== '23505') throw insertErr;
                             window.location.href = 'dashboard.html';
                         }
@@ -204,11 +216,12 @@
                 }
             });
 
-            // Forgot password link
+            // ==================== 2. FORGOT PASSWORD LINK ====================
             document.getElementById('forgotPasswordLink').addEventListener('click', () => {
                 normalView.classList.add('hidden');
                 resetRequestView.classList.remove('hidden');
             });
+
             document.getElementById('backToLoginLink').addEventListener('click', (e) => {
                 e.preventDefault();
                 normalView.classList.remove('hidden');
@@ -224,9 +237,15 @@
                 e.preventDefault();
                 resetError.style.display = 'none';
                 resetSuccess.style.display = 'none';
+                const email = resetEmail.value.trim();
+
                 try {
-                    const { error } = await client.auth.resetPasswordForEmail(resetEmail.value.trim(), {
-                        redirectTo: window.location.href.replace(/auth\.html.*/, 'auth.html?type=recovery'),
+                    // 🔁 Build the redirect URL dynamically from the current page URL,
+                    // so it works in any subdirectory (like /menu/)
+                    const redirectURL = window.location.href.replace(/auth\.html.*/, 'auth.html?type=recovery');
+
+                    const { error } = await client.auth.resetPasswordForEmail(email, {
+                        redirectTo: redirectURL,
                     });
                     if (error) throw error;
                     resetSuccess.textContent = 'Reset link sent! Check your email.';
@@ -237,7 +256,7 @@
                 }
             });
 
-            // New password form
+            // ==================== 3. NEW PASSWORD (RECOVERY) ====================
             const newPasswordForm = document.getElementById('newPasswordForm');
             const newPass = document.getElementById('newPassword');
             const newPassErr = document.getElementById('newPasswordError');
@@ -252,14 +271,16 @@
                     if (error) throw error;
                     newPassOk.textContent = 'Password updated! Redirecting…';
                     newPassOk.style.display = 'block';
-                    setTimeout(() => { window.location.href = 'auth.html'; }, 2000);
+                    setTimeout(() => {
+                        window.location.href = 'auth.html';
+                    }, 2000);
                 } catch (err) {
                     newPassErr.textContent = err.message;
                     newPassErr.style.display = 'block';
                 }
             });
 
-            // Redirect if already logged in
+            // If already logged in (and not in recovery flow), redirect to dashboard
             if (!isRecovery) {
                 client.auth.getSession().then(({ data }) => {
                     if (data.session) window.location.href = 'dashboard.html';
