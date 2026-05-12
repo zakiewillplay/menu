@@ -32,9 +32,8 @@
             z-index: 0;
         }
 
-        /* ========== ENTRANCE ANIMATION ========== */
-        /* Full‑screen overlay that reveals the menu */
-        .reveal-overlay {
+        /* ========== FOOD ANIMATION OVERLAY ========== */
+        .food-reveal {
             position: fixed;
             inset: 0;
             z-index: 100;
@@ -42,66 +41,94 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.6s ease, visibility 0.6s ease;
+            transition: opacity 0.5s ease 0.8s, visibility 0.5s ease 0.8s;
+            overflow: hidden;
         }
-        .reveal-overlay.hidden {
+        .food-reveal.hidden {
             opacity: 0;
             visibility: hidden;
         }
-        .curtain {
-            width: 100%;
-            height: 100%;
-            display: flex;
-        }
-        .curtain-left, .curtain-right {
-            flex: 1;
-            background: radial-gradient(circle at center, var(--burgundy) 0%, var(--dark) 90%);
-            transform: scaleX(1);
-            transition: transform 0.8s cubic-bezier(0.77, 0, 0.18, 1);
+        .scene {
             position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
         }
-        .curtain-left {
-            border-right: 2px solid var(--gold);
-            transform-origin: left;
-        }
-        .curtain-right {
-            border-left: 2px solid var(--gold);
-            transform-origin: right;
-        }
-        .reveal-overlay.hidden .curtain-left {
-            transform: scaleX(0);
-        }
-        .reveal-overlay.hidden .curtain-right {
-            transform: scaleX(0);
-        }
-        .crown-icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 4rem;
-            color: var(--gold);
-            z-index: 101;
-            animation: pulse-crown 1.5s infinite;
-            text-shadow: 0 0 20px var(--gold);
-        }
-        @keyframes pulse-crown {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.1); }
-        }
-        /* Particles */
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: var(--gold);
+        /* Plate */
+        .plate {
+            width: 160px;
+            height: 30px;
+            background: radial-gradient(circle at 50% 30%, #f0f0f0, #c0c0c0);
             border-radius: 50%;
-            animation: floatUp 2s linear infinite;
-            opacity: 0;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-100px) scale(0); opacity: 0; }
+        /* Food emoji on plate */
+        .food-emoji {
+            position: absolute;
+            top: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+            z-index: 3;
+            animation: steam 1s infinite alternate;
+        }
+        @keyframes steam {
+            0% { transform: translateX(-50%) translateY(0); opacity: 1; }
+            100% { transform: translateX(-50%) translateY(-8px); opacity: 0.7; }
+        }
+        /* Cloche (cover) */
+        .cloche {
+            position: absolute;
+            top: -90px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 130px;
+            height: 90px;
+            background: radial-gradient(ellipse at 50% 20%, #e0e0e0, #a0a0a0);
+            border-radius: 100px 100px 0 0;
+            border: 2px solid #888;
+            z-index: 4;
+            transition: transform 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .cloche-handle {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle at 30% 30%, #d0d0d0, #888);
+            border-radius: 50%;
+            border: 2px solid #666;
+            z-index: 5;
+            transition: transform 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        .food-reveal.hidden .cloche {
+            transform: translateX(-50%) translateY(-160px);
+        }
+        .food-reveal.hidden .cloche-handle {
+            transform: translateX(-50%) translateY(-180px);
+        }
+        /* Steam particles */
+        .steam-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 50%;
+            animation: rise 2s linear infinite;
+            bottom: 30px;
+            left: 50%;
+        }
+        @keyframes rise {
+            0% { transform: translate(-50%, 0) scale(0.5); opacity: 0.8; }
+            100% { transform: translate(-50%, -60px) scale(1.2); opacity: 0; }
         }
 
         /* Main container */
@@ -272,15 +299,18 @@
     </style>
 </head>
 <body>
-    <!-- Entrance Animation Overlay -->
-    <div class="reveal-overlay" id="revealOverlay">
-        <div class="curtain">
-            <div class="curtain-left"></div>
-            <div class="curtain-right"></div>
+    <!-- Food Reveal Animation Overlay -->
+    <div class="food-reveal" id="foodReveal">
+        <div class="scene">
+            <div class="cloche"></div>
+            <div class="cloche-handle"></div>
+            <div class="food-emoji">🍲</div>
+            <div class="plate"></div>
+            <!-- Steam particles -->
+            <div class="steam-particle" style="left:45%; animation-delay:0s;"></div>
+            <div class="steam-particle" style="left:55%; animation-delay:0.5s;"></div>
+            <div class="steam-particle" style="left:50%; animation-delay:1s;"></div>
         </div>
-        <div class="crown-icon">👑</div>
-        <!-- Generate a few gold particles -->
-        <div id="particlesContainer" style="position:absolute; inset:0; overflow:hidden;"></div>
     </div>
 
     <div class="container" id="menuContent">
@@ -305,25 +335,13 @@
         <button id="orderBtn">Order via WhatsApp</button>
     </div>
 
-    <!-- Entrance animation script -->
+    <!-- Animation trigger -->
     <script>
-        // Create floating gold particles
-        const particlesContainer = document.getElementById('particlesContainer');
-        for (let i = 0; i < 30; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.top = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 2 + 's';
-            particlesContainer.appendChild(particle);
-        }
-
-        // After 2.5 seconds, hide the overlay and show the menu
         window.addEventListener('load', () => {
             setTimeout(() => {
-                document.getElementById('revealOverlay').classList.add('hidden');
+                document.getElementById('foodReveal').classList.add('hidden');
                 document.getElementById('menuContent').classList.add('visible');
-            }, 2500); // adjust time as needed
+            }, 2500); // shows animation for 2.5 seconds
         });
     </script>
 
