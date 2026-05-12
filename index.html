@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Cafe Boss - Digital QR Menus</title>
+    <style>
+        :root {
+            --primary: #FF6B35;
+            --accent: #2F3E46;
+            --cream: #FDFCDC;
+            --bg: #1a1c1d;
+            --text: #f0f0f0;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 { font-size: 2.5rem; margin: 1rem 0; color: var(--primary); }
+        .subtitle { color: var(--cream); margin-bottom: 2rem; }
+        .cta {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .features {
+            display: grid;
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+        .feature {
+            background: #2a2a2c;
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+        .feature h3 { color: var(--primary); margin-bottom: 0.5rem; }
+        footer { margin-top: 3rem; font-size: 0.9rem; opacity: 0.7; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>☕ Cafe Boss</h1>
+        <p class="subtitle">Digital QR Menus that boost your cafe's sales</p>
+        <a href="auth.html" class="cta">Get Started Free</a>
+
+        <div class="features">
+            <div class="feature">
+                <h3>🚀 Instant Setup</h3>
+                <p>Create your digital menu in minutes, no coding needed.</p>
+            </div>
+            <div class="feature">
+                <h3>📱 QR Ordering</h3>
+                <p>Customers scan, browse, and order via WhatsApp.</p>
+            </div>
+            <div class="feature">
+                <h3>🎨 Your Brand</h3>
+                <p>Custom colors and logo to match your cafe's vibe.</p>
+            </div>
+        </div>
+
+        <footer>© 2026 Cafe Boss. Built for cafe owners.</footer>
+    </div>
+</body>
+</html>

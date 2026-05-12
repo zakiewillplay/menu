@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Cafe Boss - Login</title>
+    <style>
+        :root {
+            --primary: #FF6B35;
+            --accent: #2F3E46;
+            --cream: #FDFCDC;
+            --bg: #1a1c1d;
+            --text: #f0f0f0;
+            --card-bg: #2a2a2c;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 2rem 1.8rem;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            font-size: 1.6rem;
+            margin-bottom: 1.5rem;
+        }
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            background: #1e1e1e;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .tab {
+            flex:1;
+            text-align: center;
+            padding: 0.7rem;
+            cursor: pointer;
+            color: #aaa;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            border: 1px solid #444;
+            background: #1e1e1e;
+            color: var(--cream);
+            font-size: 1rem;
+            transition: border 0.2s;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        button {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.8rem;
+            transition: background 0.2s, transform 0.1s;
+        }
+        button:hover {
+            background: #e85d2a;
+            transform: translateY(-1px);
+        }
+        .error {
+            color: #ff4d4d;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 1.2rem;
+            font-size: 0.85rem;
+        }
+        .back-link a { color: var(--primary); text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Welcome Back</h2>
+        <div class="tabs">
+            <div class="tab active" id="loginTab">Login</div>
+            <div class="tab" id="signupTab">Sign Up</div>
+        </div>
+        <form id="authForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" required placeholder="you@example.com"/>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required placeholder="••••••••" minlength="6"/>
+            </div>
+            <p class="error" id="errorMsg"></p>
+            <button type="submit" id="submitBtn">Log in</button>
+        </form>
+        <div class="back-link"><a href="index.html">← Back to home</a></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        const SUPABASE_URL = 'https://phunzwqocgtgnpsgvsyv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBodW56d3FvY2d0Z25wc2d2c3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MTQ2ODIsImV4cCI6MjA5NDA5MDY4Mn0.gWJ_NORZxMWz0EPJ425gDZew7MJUxWdo6L67snAE0dI';
+
+        const initSupabase = () => {
+            if (typeof supabase === 'undefined') {
+                setTimeout(initSupabase, 100);
+                return;
+            }
+            window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            main();
+        };
+
+        const main = () => {
+            const client = window.supabaseClient;
+            const form = document.getElementById('authForm');
+            const emailInp = document.getElementById('email');
+            const passInp = document.getElementById('password');
+            const errorEl = document.getElementById('errorMsg');
+            const loginTab = document.getElementById('loginTab');
+            const signupTab = document.getElementById('signupTab');
+            const submitBtn = document.getElementById('submitBtn');
+            let mode = 'login';
+
+            loginTab.addEventListener('click', () => switchMode('login'));
+            signupTab.addEventListener('click', () => switchMode('signup'));
+
+            function switchMode(m) {
+                mode = m;
+                loginTab.classList.toggle('active', m === 'login');
+                signupTab.classList.toggle('active', m === 'signup');
+                submitBtn.textContent = m === 'login' ? 'Log in' : 'Sign Up';
+                errorEl.style.display = 'none';
+            }
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                errorEl.style.display = 'none';
+                const email = emailInp.value.trim();
+                const password = passInp.value;
+
+                try {
+                    if (mode === 'signup') {
+                        const { data, error } = await client.auth.signUp({ email, password });
+                        if (error) throw error;
+                        if (data.user) {
+                            const { error: insertErr } = await client
+                                .from('cafes')
+                                .insert({ owner_id: data.user.id });
+                            if (insertErr && insertErr.code !== '23505') throw insertErr;
+                            window.location.href = 'dashboard.html';
+                        }
+                    } else {
+                        const { data, error } = await client.auth.signInWithPassword({ email, password });
+                        if (error) throw error;
+                        window.location.href = 'dashboard.html';
+                    }
+                } catch (err) {
+                    errorEl.textContent = err.message;
+                    errorEl.style.display = 'block';
+                }
+            });
+
+            client.auth.getSession().then(({ data }) => {
+                if (data.session) window.location.href = 'dashboard.html';
+            });
+        };
+
+        initSupabase();
+    </script>
+</body>
+</html>

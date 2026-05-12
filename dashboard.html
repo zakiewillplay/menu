@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Cafe Boss - Dashboard</title>
+    <!-- QR Code library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Tesseract.js for OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        :root {
+            --primary: #FF6B35;
+            --accent: #2F3E46;
+            --cream: #FDFCDC;
+            --bg: #1a1c1d;
+            --text: #f0f0f0;
+            --card-bg: #2a2a2c;
+            --border: #3a3a3c;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 1rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        h1 { color: var(--primary); font-size: 1.5rem; }
+        .logout-btn {
+            background: none;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .logout-btn:hover { background: var(--primary); color: white; }
+        .card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .card h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-size: 0.85rem; margin-bottom: 0.3rem; opacity: 0.8; }
+        input, textarea, select {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #1e1e1e;
+            color: var(--cream);
+            font-size: 0.95rem;
+        }
+        input:focus, textarea:focus { outline: none; border-color: var(--primary); }
+        .color-picker-row {
+            display: flex;
+            gap: 1rem;
+        }
+        .color-picker-row .form-group { flex:1; }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn-primary:hover { background: #e85d2a; transform: translateY(-1px); }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-outline:hover { background: var(--primary); color: white; }
+        .btn-danger {
+            background: #c0392b;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .logo-upload {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        #logoPreview {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+            display: none;
+        }
+        #qrContainer {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        #qrcode {
+            display: inline-block;
+            padding: 0.8rem;
+            background: white;
+            border-radius: 12px;
+            margin-top: 0.5rem;
+        }
+        #qrLinkDisplay {
+            font-size: 0.8rem;
+            word-break: break-all;
+            opacity: 0.7;
+            margin-top: 0.5rem;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #333;
+            padding: 0.8rem;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .menu-item-info { flex:1; }
+        .menu-item-actions {
+            display: flex;
+            gap: 0.3rem;
+        }
+        .toggle-avail {
+            background: #555;
+            border: none;
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .toggle-avail.available { background: #27ae60; }
+        .edit-btn, .del-btn {
+            background: transparent;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.3rem 0.6rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .edit-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .del-btn:hover { border-color: #c0392b; color: #c0392b; }
+        /* Smart Menu Builder */
+        #smartSection {
+            border: 2px dashed var(--primary);
+            border-radius: 20px;
+            padding: 1rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        #cameraInput {
+            display: none;
+        }
+        #imagePreview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+            margin: 1rem 0;
+            display: none;
+        }
+        #scanResult {
+            margin-top: 1rem;
+            text-align: left;
+        }
+        .extracted-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #1e1e1e;
+            padding: 0.6rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        .extracted-item input {
+            width: auto;
+            flex: 1;
+            min-width: 60px;
+            padding: 0.4rem;
+            font-size: 0.85rem;
+        }
+        .extracted-item .price-input {
+            width: 80px;
+            text-align: right;
+        }
+        footer { text-align: center; margin-top: 2rem; opacity: 0.5; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>☕ Dashboard</h1>
+        <button class="logout-btn" id="logoutBtn">Logout</button>
+    </header>
+
+    <!-- Settings Card -->
+    <div class="card">
+        <h3>⚙️ Cafe Settings</h3>
+        <div class="form-group"><label>Cafe Name</label><input type="text" id="cafeName" /></div>
+        <div class="form-group"><label>WhatsApp (no +)</label><input type="text" id="whatsapp" placeholder="1234567890" /></div>
+        <div class="form-group"><label>Description</label><textarea id="description" rows="2"></textarea></div>
+        <div class="color-picker-row">
+            <div class="form-group"><label>Primary</label><input type="color" id="primaryColor" /></div>
+            <div class="form-group"><label>Accent</label><input type="color" id="accentColor" /></div>
+        </div>
+        <button class="btn-primary" id="saveSettingsBtn">Save Settings</button>
+    </div>
+
+    <!-- Logo Card -->
+    <div class="card">
+        <h3>🖼️ Logo</h3>
+        <div class="logo-upload">
+            <img id="logoPreview" src="" alt="Logo" />
+            <input type="file" id="logoFile" accept="image/*" style="display:none" />
+            <button class="btn-outline" id="selectLogoBtn">Choose Image</button>
+            <button class="btn-primary" id="uploadLogoBtn">Upload</button>
+        </div>
+    </div>
+
+    <!-- QR Card -->
+    <div class="card">
+        <h3>📱 QR Menu</h3>
+        <button class="btn-primary" id="qrBtn">Generate QR Code</button>
+        <div id="qrContainer"><div id="qrcode"></div><div id="qrLinkDisplay"></div></div>
+    </div>
+
+    <!-- SMART MENU BUILDER (camera + OCR) -->
+    <div class="card">
+        <h3>📸 Smart Menu Builder</h3>
+        <p style="font-size:0.85rem; opacity:0.7;">Snap a photo of your physical menu — the app will read the items and prices for you.</p>
+        <button class="btn-outline" id="openCameraBtn">📷 Take Photo</button>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" />
+        <img id="imagePreview" alt="Captured menu" />
+        <br/>
+        <button class="btn-primary" id="scanBtn" style="display:none;">🔍 Scan & Extract</button>
+        <div id="scanResult"></div>
+        <!-- Progress bar -->
+        <div id="ocrProgress" style="display:none; margin-top:1rem;">
+            <progress id="ocrBar" value="0" max="100" style="width:100%;"></progress>
+            <p id="ocrStatus">Recognizing text...</p>
+        </div>
+        <div id="categoryAssign" style="display:none; margin-top:1rem;">
+            <label>Assign all items to category:</label>
+            <input type="text" id="globalCategory" placeholder="e.g., Coffee" style="margin-bottom:0.5rem;" />
+            <button class="btn-primary" id="addAllBtn">Add All to Menu</button>
+        </div>
+    </div>
+
+    <!-- Manual Menu Manager -->
+    <div class="card">
+        <h3>📋 Manual Entry</h3>
+        <form id="menuForm">
+            <input type="hidden" id="editId" />
+            <div class="form-group"><label>Item Name</label><input type="text" id="itemName" required placeholder="e.g., Latte" /></div>
+            <div class="form-group"><label>Description</label><input type="text" id="itemDesc" placeholder="Optional" /></div>
+            <div class="form-group"><label>Price ($)</label><input type="number" id="itemPrice" step="0.01" required placeholder="4.50" /></div>
+            <div class="form-group"><label>Category</label><input type="text" id="itemCategory" required placeholder="e.g., Coffee" /></div>
+            <div class="form-group"><label>Image (optional)</label><input type="file" id="itemImage" accept="image/*" /></div>
+            <button type="submit" class="btn-primary" id="saveItemBtn">Add Item</button>
+        </form>
+        <h4 style="margin:1.5rem 0 0.8rem;">Current Items</h4>
+        <div id="menuList"></div>
+    </div>
+
+    <footer>Cafe Boss © 2026</footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        const SUPABASE_URL = 'https://phunzwqocgtgnpsgvsyv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBodW56d3FvY2d0Z25wc2d2c3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MTQ2ODIsImV4cCI6MjA5NDA5MDY4Mn0.gWJ_NORZxMWz0EPJ425gDZew7MJUxWdo6L67snAE0dI';
+
+        const initSupabase = () => {
+            if (typeof supabase === 'undefined') {
+                setTimeout(initSupabase, 100);
+                return;
+            }
+            window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            main();
+        };
+
+        const main = async () => {
+            const client = window.supabaseClient;
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) { window.location.href = 'auth.html'; return; }
+            const user = session.user;
+
+            const { data: cafe, error: cafeErr } = await client
+                .from('cafes')
+                .select('*')
+                .eq('owner_id', user.id)
+                .single();
+            if (cafeErr || !cafe) {
+                alert('Cafe not found. Please sign up again.');
+                await client.auth.signOut();
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            // ---------- DOM references ----------
+            const cafeNameInp = document.getElementById('cafeName');
+            const whatsappInp = document.getElementById('whatsapp');
+            const descInp = document.getElementById('description');
+            const primaryInp = document.getElementById('primaryColor');
+            const accentInp = document.getElementById('accentColor');
+            const logoPreview = document.getElementById('logoPreview');
+            const menuList = document.getElementById('menuList');
+            const editId = document.getElementById('editId');
+            const itemName = document.getElementById('itemName');
+            const itemDesc = document.getElementById('itemDesc');
+            const itemPrice = document.getElementById('itemPrice');
+            const itemCategory = document.getElementById('itemCategory');
+            const qrContainer = document.getElementById('qrcode');
+            const qrLinkDisplay = document.getElementById('qrLinkDisplay');
+
+            // Populate settings
+            cafeNameInp.value = cafe.cafe_name || '';
+            whatsappInp.value = cafe.whatsapp || '';
+            descInp.value = cafe.description || '';
+            primaryInp.value = cafe.primary_color || '#FF6B35';
+            accentInp.value = cafe.accent_color || '#2F3E46';
+            if (cafe.logo_url) {
+                logoPreview.src = cafe.logo_url;
+                logoPreview.style.display = 'block';
+            }
+
+            document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+                const updates = {
+                    cafe_name: cafeNameInp.value,
+                    whatsapp: whatsappInp.value,
+                    description: descInp.value,
+                    primary_color: primaryInp.value,
+                    accent_color: accentInp.value,
+                };
+                const { error } = await client.from('cafes').update(updates).eq('owner_id', user.id);
+                if (error) alert('Error: ' + error.message);
+                else alert('Settings saved!');
+            });
+
+            // Logo
+            document.getElementById('selectLogoBtn').addEventListener('click', () => document.getElementById('logoFile').click());
+            document.getElementById('uploadLogoBtn').addEventListener('click', async () => {
+                const file = document.getElementById('logoFile').files[0];
+                if (!file) return alert('Select an image first.');
+                const filePath = `${user.id}/logos/${Date.now()}_${file.name}`;
+                const { error: uploadErr } = await client.storage.from('menu-items').upload(filePath, file);
+                if (uploadErr) return alert('Upload failed: ' + uploadErr.message);
+                const { data: { publicUrl } } = client.storage.from('menu-items').getPublicUrl(filePath);
+                await client.from('cafes').update({ logo_url: publicUrl }).eq('owner_id', user.id);
+                logoPreview.src = publicUrl;
+                logoPreview.style.display = 'block';
+                alert('Logo updated!');
+            });
+
+            // QR
+            document.getElementById('qrBtn').addEventListener('click', () => {
+                const menuUrl = `${window.location.origin}/menu.html?id=${cafe.id}`;
+                qrContainer.innerHTML = '';
+                new QRCode(qrContainer, {
+                    text: menuUrl,
+                    width: 150,
+                    height: 150,
+                    colorDark: '#2F3E46',
+                    colorLight: '#ffffff',
+                });
+                qrLinkDisplay.textContent = menuUrl;
+                navigator.clipboard.writeText(menuUrl).then(() => alert('Menu link copied!')).catch(() => {});
+            });
+
+            // ---------- SMART MENU BUILDER ----------
+            let extractedItems = [];
+            const cameraInput = document.getElementById('cameraInput');
+            const imagePreview = document.getElementById('imagePreview');
+            const scanBtn = document.getElementById('scanBtn');
+            const ocrProgress = document.getElementById('ocrProgress');
+            const ocrBar = document.getElementById('ocrBar');
+            const ocrStatus = document.getElementById('ocrStatus');
+            const scanResult = document.getElementById('scanResult');
+            const categoryAssign = document.getElementById('categoryAssign');
+            const globalCategory = document.getElementById('globalCategory');
+            const addAllBtn = document.getElementById('addAllBtn');
+
+            // Open camera
+            document.getElementById('openCameraBtn').addEventListener('click', () => {
+                cameraInput.click();
+            });
+
+            // When a photo is taken
+            cameraInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    imagePreview.src = ev.target.result;
+                    imagePreview.style.display = 'block';
+                    scanBtn.style.display = 'inline-block';
+                    // Reset previous results
+                    extractedItems = [];
+                    scanResult.innerHTML = '';
+                    categoryAssign.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Scan & Extract using Tesseract
+            scanBtn.addEventListener('click', async () => {
+                if (!imagePreview.src) return;
+                scanBtn.disabled = true;
+                ocrProgress.style.display = 'block';
+                ocrBar.value = 0;
+                ocrStatus.textContent = 'Recognizing text... (this may take a few seconds)';
+                
+                try {
+                    const { data: { text } } = await Tesseract.recognize(
+                        imagePreview.src,
+                        'eng',
+                        {
+                            logger: m => {
+                                if (m.status === 'recognizing text') {
+                                    ocrBar.value = Math.round(m.progress * 100);
+                                    ocrStatus.textContent = `Recognizing... ${Math.round(m.progress * 100)}%`;
+                                }
+                            }
+                        }
+                    );
+                    
+                    // Parse extracted text into items
+                    const lines = text.split('\n').filter(line => line.trim() !== '');
+                    extractedItems = [];
+                    lines.forEach(line => {
+                        // Try to separate a price at the end (e.g., "Latte 4.50" or "Espresso $3.99")
+                        const priceMatch = line.match(/(.*[^\d\$])\s*[\$]?(\d+\.?\d*)\s*$/);
+                        if (priceMatch) {
+                            extractedItems.push({
+                                name: priceMatch[1].trim(),
+                                price: parseFloat(priceMatch[2]).toFixed(2)
+                            });
+                        } else {
+                            // No price found – keep full line as name, price empty
+                            extractedItems.push({
+                                name: line.trim(),
+                                price: ''
+                            });
+                        }
+                    });
+
+                    // Display in editable form
+                    displayExtractedItems();
+                    categoryAssign.style.display = 'block';
+                } catch (err) {
+                    alert('OCR failed: ' + err.message);
+                } finally {
+                    ocrProgress.style.display = 'none';
+                    scanBtn.disabled = false;
+                }
+            });
+
+            function displayExtractedItems() {
+                scanResult.innerHTML = '';
+                extractedItems.forEach((item, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'extracted-item';
+                    div.innerHTML = `
+                        <input type="text" class="item-name-edit" value="${item.name}" placeholder="Item name" />
+                        <input type="number" class="price-input item-price-edit" step="0.01" value="${item.price}" placeholder="Price" />
+                        <button class="btn-danger remove-extracted-btn" data-index="${idx}">✕</button>
+                    `;
+                    scanResult.appendChild(div);
+                });
+
+                // Update extractedItems when editing
+                scanResult.querySelectorAll('.item-name-edit').forEach((inp, idx) => {
+                    inp.addEventListener('input', (e) => {
+                        extractedItems[idx].name = e.target.value;
+                    });
+                });
+                scanResult.querySelectorAll('.item-price-edit').forEach((inp, idx) => {
+                    inp.addEventListener('input', (e) => {
+                        extractedItems[idx].price = e.target.value;
+                    });
+                });
+                scanResult.querySelectorAll('.remove-extracted-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const index = parseInt(e.target.dataset.index);
+                        extractedItems.splice(index, 1);
+                        displayExtractedItems();
+                        if (extractedItems.length === 0) {
+                            categoryAssign.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Add all extracted items to menu
+            addAllBtn.addEventListener('click', async () => {
+                const category = globalCategory.value.trim() || 'Uncategorized';
+                const itemsToInsert = extractedItems
+                    .filter(item => item.name.trim() !== '' && !isNaN(parseFloat(item.price)))
+                    .map(item => ({
+                        cafe_id: cafe.id,
+                        name: item.name,
+                        price: parseFloat(item.price),
+                        category: category,
+                        description: '',
+                        available: true
+                    }));
+                
+                if (itemsToInsert.length === 0) {
+                    alert('No valid items to add (each needs a name and price).');
+                    return;
+                }
+
+                const { error } = await client.from('menu_items').insert(itemsToInsert);
+                if (error) {
+                    alert('Error adding items: ' + error.message);
+                } else {
+                    alert(`Added ${itemsToInsert.length} items to "${category}"!`);
+                    // Reset smart builder
+                    extractedItems = [];
+                    scanResult.innerHTML = '';
+                    categoryAssign.style.display = 'none';
+                    imagePreview.style.display = 'none';
+                    scanBtn.style.display = 'none';
+                    cameraInput.value = '';
+                    loadItems(); // refresh manual list
+                }
+            });
+
+            // ---------- MANUAL MENU ITEMS ----------
+            const loadItems = async () => {
+                const { data, error } = await client.from('menu_items').select('*').eq('cafe_id', cafe.id).order('created_at');
+                if (error) return;
+                menuList.innerHTML = '';
+                data.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'menu-item';
+                    div.innerHTML = `
+                        <div class="menu-item-info">
+                            <strong>${item.name}</strong> · $${item.price}<br>
+                            <small>${item.category}</small>
+                        </div>
+                        <div class="menu-item-actions">
+                            <button class="toggle-avail ${item.available ? 'available' : ''}" data-id="${item.id}" data-avail="${item.available}">${item.available ? 'On' : 'Off'}</button>
+                            <button class="edit-btn" data-id="${item.id}">Edit</button>
+                            <button class="del-btn" data-id="${item.id}">Del</button>
+                        </div>
+                    `;
+                    menuList.appendChild(div);
+                });
+            };
+            await loadItems();
+
+            menuList.addEventListener('click', async (e) => {
+                const id = e.target.dataset.id;
+                if (e.target.classList.contains('toggle-avail')) {
+                    const current = e.target.dataset.avail === 'true';
+                    await client.from('menu_items').update({ available: !current }).eq('id', id);
+                    loadItems();
+                }
+                if (e.target.classList.contains('del-btn')) {
+                    if (confirm('Delete item?')) {
+                        await client.from('menu_items').delete().eq('id', id);
+                        loadItems();
+                    }
+                }
+                if (e.target.classList.contains('edit-btn')) {
+                    const { data } = await client.from('menu_items').select('*').eq('id', id).single();
+                    if (data) {
+                        editId.value = data.id;
+                        itemName.value = data.name;
+                        itemDesc.value = data.description || '';
+                        itemPrice.value = data.price;
+                        itemCategory.value = data.category;
+                        document.getElementById('saveItemBtn').textContent = 'Update Item';
+                    }
+                }
+            });
+
+            document.getElementById('menuForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = editId.value;
+                const payload = {
+                    cafe_id: cafe.id,
+                    name: itemName.value,
+                    description: itemDesc.value,
+                    price: parseFloat(itemPrice.value),
+                    category: itemCategory.value,
+                };
+                const imageFile = document.getElementById('itemImage').files[0];
+                if (imageFile) {
+                    const filePath = `${user.id}/menu_${Date.now()}_${imageFile.name}`;
+                    const { error: uploadErr } = await client.storage.from('menu-items').upload(filePath, imageFile);
+                    if (uploadErr) return alert('Image upload failed: ' + uploadErr.message);
+                    const { data: { publicUrl } } = client.storage.from('menu-items').getPublicUrl(filePath);
+                    payload.image_url = publicUrl;
+                }
+
+                const { error } = id
+                    ? await client.from('menu_items').update(payload).eq('id', id)
+                    : await client.from('menu_items').insert(payload);
+                if (error) alert('Error: ' + error.message);
+                else {
+                    editId.value = '';
+                    itemName.value = ''; itemDesc.value = ''; itemPrice.value = ''; itemCategory.value = '';
+                    document.getElementById('itemImage').value = '';
+                    document.getElementById('saveItemBtn').textContent = 'Add Item';
+                    loadItems();
+                }
+            });
+
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                await client.auth.signOut();
+                window.location.href = 'index.html';
+            });
+        };
+
+        initSupabase();
+    </script>
+</body>
+</html>
