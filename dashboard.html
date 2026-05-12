@@ -4,10 +4,7 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Cafe Boss - Dashboard</title>
-    <!-- QR Code library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- Tesseract.js for OCR -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
             --primary: #FF6B35;
@@ -34,16 +31,15 @@
             margin-bottom: 2rem;
         }
         h1 { color: var(--primary); font-size: 1.5rem; }
-        .logout-btn {
+        .btn-logout {
             background: none;
             border: 1px solid var(--primary);
             color: var(--primary);
             padding: 0.5rem 1rem;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 0.9rem;
         }
-        .logout-btn:hover { background: var(--primary); color: white; }
+        .btn-logout:hover { background: var(--primary); color: white; }
         .card {
             background: var(--card-bg);
             padding: 1.5rem;
@@ -51,14 +47,7 @@
             margin-bottom: 1.5rem;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
-        .card h3 {
-            color: var(--primary);
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+        .card h3 { color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem; }
         .form-group { margin-bottom: 1rem; }
         label { display: block; font-size: 0.85rem; margin-bottom: 0.3rem; opacity: 0.8; }
         input, textarea, select {
@@ -71,11 +60,6 @@
             font-size: 0.95rem;
         }
         input:focus, textarea:focus { outline: none; border-color: var(--primary); }
-        .color-picker-row {
-            display: flex;
-            gap: 1rem;
-        }
-        .color-picker-row .form-group { flex:1; }
         .btn-primary {
             background: var(--primary);
             color: white;
@@ -85,9 +69,9 @@
             font-weight: 600;
             cursor: pointer;
             font-size: 0.9rem;
-            transition: background 0.2s, transform 0.1s;
+            transition: background 0.2s;
         }
-        .btn-primary:hover { background: #e85d2a; transform: translateY(-1px); }
+        .btn-primary:hover { background: #e85d2a; }
         .btn-outline {
             background: transparent;
             border: 1px solid var(--primary);
@@ -107,36 +91,16 @@
             cursor: pointer;
             font-size: 0.8rem;
         }
-        .logo-upload {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
         #logoPreview {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            object-fit: cover;
+            width: 70px; height: 70px;
+            border-radius: 50%; object-fit: cover;
             border: 2px solid var(--primary);
             display: none;
         }
-        #qrContainer {
-            margin-top: 1rem;
-            text-align: center;
-        }
-        #qrcode {
-            display: inline-block;
-            padding: 0.8rem;
-            background: white;
-            border-radius: 12px;
-            margin-top: 0.5rem;
-        }
-        #qrLinkDisplay {
-            font-size: 0.8rem;
-            word-break: break-all;
-            opacity: 0.7;
-            margin-top: 0.5rem;
-        }
+        .logo-upload { display: flex; align-items: center; gap: 1rem; }
+        #qrContainer { margin-top: 1rem; text-align: center; }
+        #qrcode { display: inline-block; padding: 0.8rem; background: white; border-radius: 12px; }
+        #qrLinkDisplay { font-size: 0.8rem; word-break: break-all; opacity: 0.7; margin-top: 0.5rem; }
         .menu-item {
             display: flex;
             align-items: center;
@@ -148,125 +112,66 @@
             flex-wrap: wrap;
             gap: 0.5rem;
         }
-        .menu-item-info { flex:1; }
-        .menu-item-actions {
-            display: flex;
-            gap: 0.3rem;
-        }
-        .toggle-avail {
-            background: #555;
-            border: none;
-            color: white;
-            padding: 0.3rem 0.7rem;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.75rem;
-        }
+        .toggle-avail { background: #555; border: none; color: white; padding: 0.3rem 0.7rem; border-radius: 20px; cursor: pointer; }
         .toggle-avail.available { background: #27ae60; }
-        .edit-btn, .del-btn {
-            background: transparent;
-            border: 1px solid #555;
-            color: #ccc;
-            padding: 0.3rem 0.6rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.75rem;
-        }
+        .edit-btn, .del-btn { background: transparent; border: 1px solid #555; color: #ccc; padding: 0.3rem 0.6rem; border-radius: 8px; cursor: pointer; font-size: 0.75rem; }
         .edit-btn:hover { border-color: var(--primary); color: var(--primary); }
         .del-btn:hover { border-color: #c0392b; color: #c0392b; }
-        /* Smart Menu Builder */
-        #smartSection {
-            border: 2px dashed var(--primary);
-            border-radius: 20px;
-            padding: 1rem;
-            margin-top: 1rem;
-            text-align: center;
-        }
-        #cameraInput {
-            display: none;
-        }
-        #imagePreview {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 12px;
-            margin: 1rem 0;
-            display: none;
-        }
-        #scanResult {
-            margin-top: 1rem;
-            text-align: left;
-        }
-        .extracted-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #1e1e1e;
-            padding: 0.6rem;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-        }
-        .extracted-item input {
-            width: auto;
-            flex: 1;
-            min-width: 60px;
-            padding: 0.4rem;
-            font-size: 0.85rem;
-        }
-        .extracted-item .price-input {
-            width: 80px;
-            text-align: right;
-        }
+        #bulkTextarea { width: 100%; height: 150px; resize: vertical; }
+        .note { font-size: 0.8rem; opacity: 0.6; margin-top: 0.5rem; }
+        .image-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
         footer { text-align: center; margin-top: 2rem; opacity: 0.5; font-size: 0.8rem; }
+        #imagePreview { max-width: 100%; max-height: 300px; border-radius: 12px; margin: 1rem 0; display: none; }
     </style>
 </head>
 <body>
     <header>
         <h1>☕ Dashboard</h1>
-        <button class="logout-btn" id="logoutBtn">Logout</button>
+        <button class="btn-logout" id="logoutBtn">Logout</button>
     </header>
 
-    <!-- Settings Card -->
+    <!-- Settings -->
     <div class="card">
         <h3>⚙️ Cafe Settings</h3>
         <div class="form-group"><label>Cafe Name</label><input type="text" id="cafeName" /></div>
-        <div class="form-group"><label>WhatsApp (no +)</label><input type="text" id="whatsapp" placeholder="1234567890" /></div>
+        <div class="form-group"><label>WhatsApp (digits only)</label><input type="text" id="whatsapp" placeholder="1234567890" /></div>
         <div class="form-group"><label>Description</label><textarea id="description" rows="2"></textarea></div>
-        <div class="color-picker-row">
-            <div class="form-group"><label>Primary</label><input type="color" id="primaryColor" /></div>
-            <div class="form-group"><label>Accent</label><input type="color" id="accentColor" /></div>
-        </div>
+        <div class="form-group"><label>Primary Color</label><input type="color" id="primaryColor" /></div>
+        <div class="form-group"><label>Accent Color</label><input type="color" id="accentColor" /></div>
         <button class="btn-primary" id="saveSettingsBtn">Save Settings</button>
     </div>
 
-    <!-- Logo Card -->
+    <!-- Logo -->
     <div class="card">
         <h3>🖼️ Logo</h3>
         <div class="logo-upload">
             <img id="logoPreview" src="" alt="Logo" />
             <input type="file" id="logoFile" accept="image/*" style="display:none" />
-            <button class="btn-outline" id="selectLogoBtn">Choose Image</button>
+            <button class="btn-outline" id="selectLogoBtn">Choose</button>
             <button class="btn-primary" id="uploadLogoBtn">Upload</button>
         </div>
     </div>
 
-    <!-- QR Card -->
+    <!-- QR -->
     <div class="card">
         <h3>📱 QR Menu</h3>
         <button class="btn-primary" id="qrBtn">Generate QR Code</button>
         <div id="qrContainer"><div id="qrcode"></div><div id="qrLinkDisplay"></div></div>
     </div>
 
-    <!-- SMART MENU BUILDER (camera + OCR) -->
+    <!-- SMART MENU BUILDER (camera + gallery + OCR) -->
     <div class="card">
         <h3>📸 Smart Menu Builder</h3>
-        <p style="font-size:0.85rem; opacity:0.7;">Snap a photo of your physical menu — the app will read the items and prices for you.</p>
-        <button class="btn-outline" id="openCameraBtn">📷 Take Photo</button>
-        <input type="file" id="cameraInput" accept="image/*" capture="environment" />
-        <img id="imagePreview" alt="Captured menu" />
-        <br/>
+        <p class="note">Snap a photo or pick one from your gallery – we'll read the items and prices.</p>
+        <div class="image-actions">
+            <button class="btn-outline" id="openCameraBtn">📷 Camera</button>
+            <button class="btn-outline" id="openGalleryBtn">🖼️ Gallery</button>
+        </div>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" />
+        <input type="file" id="galleryInput" accept="image/*" style="display:none" />
+        <img id="imagePreview" alt="Selected menu" />
         <button class="btn-primary" id="scanBtn" style="display:none;">🔍 Scan & Extract</button>
         <div id="scanResult"></div>
-        <!-- Progress bar -->
         <div id="ocrProgress" style="display:none; margin-top:1rem;">
             <progress id="ocrBar" value="0" max="100" style="width:100%;"></progress>
             <p id="ocrStatus">Recognizing text...</p>
@@ -278,62 +183,70 @@
         </div>
     </div>
 
-    <!-- Manual Menu Manager -->
+    <!-- BULK PASTE (super easy) -->
     <div class="card">
-        <h3>📋 Manual Entry</h3>
+        <h3>📋 Paste Multiple Items</h3>
+        <p class="note">Paste each item on a new line: <code>Item name,Price,Category</code><br>e.g. <code>Latte,150,Coffee</code></p>
+        <textarea id="bulkTextarea" placeholder="Latte,150,Coffee&#10;Croissant,90,Pastry&#10;..."></textarea>
+        <button class="btn-primary" id="bulkAddBtn" style="margin-top:0.8rem;">Add All Items</button>
+        <p id="bulkMessage" class="note"></p>
+    </div>
+
+    <!-- Single item manual editor -->
+    <div class="card">
+        <h3>✏️ Single Item (edit)</h3>
         <form id="menuForm">
             <input type="hidden" id="editId" />
-            <div class="form-group"><label>Item Name</label><input type="text" id="itemName" required placeholder="e.g., Latte" /></div>
-            <div class="form-group"><label>Description</label><input type="text" id="itemDesc" placeholder="Optional" /></div>
-            <div class="form-group"><label>Price ($)</label><input type="number" id="itemPrice" step="0.01" required placeholder="4.50" /></div>
-            <div class="form-group"><label>Category</label><input type="text" id="itemCategory" required placeholder="e.g., Coffee" /></div>
+            <div class="form-group"><label>Name</label><input type="text" id="itemName" required /></div>
+            <div class="form-group"><label>Description</label><input type="text" id="itemDesc" /></div>
+            <div class="form-group"><label>Price (₹)</label><input type="number" id="itemPrice" step="0.01" required /></div>
+            <div class="form-group"><label>Category</label><input type="text" id="itemCategory" required /></div>
             <div class="form-group"><label>Image (optional)</label><input type="file" id="itemImage" accept="image/*" /></div>
             <button type="submit" class="btn-primary" id="saveItemBtn">Add Item</button>
         </form>
-        <h4 style="margin:1.5rem 0 0.8rem;">Current Items</h4>
+    </div>
+
+    <!-- Current Items List -->
+    <div class="card">
+        <h3>📃 Current Menu</h3>
         <div id="menuList"></div>
     </div>
 
     <footer>Cafe Boss © 2026</footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script type="module">
         const SUPABASE_URL = 'https://phunzwqocgtgnpsgvsyv.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBodW56d3FvY2d0Z25wc2d2c3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MTQ2ODIsImV4cCI6MjA5NDA5MDY4Mn0.gWJ_NORZxMWz0EPJ425gDZew7MJUxWdo6L67snAE0dI';
 
-        const initSupabase = () => {
-            if (typeof supabase === 'undefined') {
-                setTimeout(initSupabase, 100);
-                return;
-            }
-            window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const init = () => {
+            if (typeof supabase === 'undefined') { setTimeout(init, 100); return; }
+            window.client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             main();
         };
+        init();
 
-        const main = async () => {
-            const client = window.supabaseClient;
+        async function main() {
+            const client = window.client;
             const { data: { session } } = await client.auth.getSession();
             if (!session) { window.location.href = 'auth.html'; return; }
             const user = session.user;
 
-            const { data: cafe, error: cafeErr } = await client
-                .from('cafes')
-                .select('*')
-                .eq('owner_id', user.id)
-                .single();
+            const { data: cafe, error: cafeErr } = await client.from('cafes').select('*').eq('owner_id', user.id).single();
             if (cafeErr || !cafe) {
-                alert('Cafe not found. Please sign up again.');
+                alert('Cafe not found. Please re-signup.');
                 await client.auth.signOut();
                 window.location.href = 'auth.html';
                 return;
             }
 
-            // ---------- DOM references ----------
-            const cafeNameInp = document.getElementById('cafeName');
-            const whatsappInp = document.getElementById('whatsapp');
-            const descInp = document.getElementById('description');
-            const primaryInp = document.getElementById('primaryColor');
-            const accentInp = document.getElementById('accentColor');
+            // DOM refs
+            const cafeName = document.getElementById('cafeName');
+            const whatsapp = document.getElementById('whatsapp');
+            const desc = document.getElementById('description');
+            const primaryColor = document.getElementById('primaryColor');
+            const accentColor = document.getElementById('accentColor');
             const logoPreview = document.getElementById('logoPreview');
             const menuList = document.getElementById('menuList');
             const editId = document.getElementById('editId');
@@ -343,13 +256,15 @@
             const itemCategory = document.getElementById('itemCategory');
             const qrContainer = document.getElementById('qrcode');
             const qrLinkDisplay = document.getElementById('qrLinkDisplay');
+            const bulkTextarea = document.getElementById('bulkTextarea');
+            const bulkMessage = document.getElementById('bulkMessage');
 
             // Populate settings
-            cafeNameInp.value = cafe.cafe_name || '';
-            whatsappInp.value = cafe.whatsapp || '';
-            descInp.value = cafe.description || '';
-            primaryInp.value = cafe.primary_color || '#FF6B35';
-            accentInp.value = cafe.accent_color || '#2F3E46';
+            cafeName.value = cafe.cafe_name || '';
+            whatsapp.value = cafe.whatsapp || '';
+            desc.value = cafe.description || '';
+            primaryColor.value = cafe.primary_color || '#FF6B35';
+            accentColor.value = cafe.accent_color || '#2F3E46';
             if (cafe.logo_url) {
                 logoPreview.src = cafe.logo_url;
                 logoPreview.style.display = 'block';
@@ -357,33 +272,33 @@
 
             document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
                 const updates = {
-                    cafe_name: cafeNameInp.value,
-                    whatsapp: whatsappInp.value,
-                    description: descInp.value,
-                    primary_color: primaryInp.value,
-                    accent_color: accentInp.value,
+                    cafe_name: cafeName.value,
+                    whatsapp: whatsapp.value.replace(/\D/g, ''),
+                    description: desc.value,
+                    primary_color: primaryColor.value,
+                    accent_color: accentColor.value,
                 };
                 const { error } = await client.from('cafes').update(updates).eq('owner_id', user.id);
                 if (error) alert('Error: ' + error.message);
                 else alert('Settings saved!');
             });
 
-            // Logo
+            // Logo upload
             document.getElementById('selectLogoBtn').addEventListener('click', () => document.getElementById('logoFile').click());
             document.getElementById('uploadLogoBtn').addEventListener('click', async () => {
                 const file = document.getElementById('logoFile').files[0];
-                if (!file) return alert('Select an image first.');
-                const filePath = `${user.id}/logos/${Date.now()}_${file.name}`;
-                const { error: uploadErr } = await client.storage.from('menu-items').upload(filePath, file);
-                if (uploadErr) return alert('Upload failed: ' + uploadErr.message);
-                const { data: { publicUrl } } = client.storage.from('menu-items').getPublicUrl(filePath);
+                if (!file) return alert('Choose an image first');
+                const path = `${user.id}/logos/${Date.now()}_${file.name}`;
+                const { error } = await client.storage.from('menu-items').upload(path, file);
+                if (error) return alert('Upload failed: ' + error.message);
+                const { data: { publicUrl } } = client.storage.from('menu-items').getPublicUrl(path);
                 await client.from('cafes').update({ logo_url: publicUrl }).eq('owner_id', user.id);
                 logoPreview.src = publicUrl;
                 logoPreview.style.display = 'block';
                 alert('Logo updated!');
             });
 
-            // QR
+            // QR code
             document.getElementById('qrBtn').addEventListener('click', () => {
                 const menuUrl = `${window.location.origin}/menu.html?id=${cafe.id}`;
                 qrContainer.innerHTML = '';
@@ -395,12 +310,12 @@
                     colorLight: '#ffffff',
                 });
                 qrLinkDisplay.textContent = menuUrl;
-                navigator.clipboard.writeText(menuUrl).then(() => alert('Menu link copied!')).catch(() => {});
+                navigator.clipboard.writeText(menuUrl).then(() => alert('Link copied!')).catch(() => {});
             });
 
-            // ---------- SMART MENU BUILDER ----------
-            let extractedItems = [];
+            // ----- SMART MENU BUILDER (camera + gallery) -----
             const cameraInput = document.getElementById('cameraInput');
+            const galleryInput = document.getElementById('galleryInput');
             const imagePreview = document.getElementById('imagePreview');
             const scanBtn = document.getElementById('scanBtn');
             const ocrProgress = document.getElementById('ocrProgress');
@@ -410,72 +325,65 @@
             const categoryAssign = document.getElementById('categoryAssign');
             const globalCategory = document.getElementById('globalCategory');
             const addAllBtn = document.getElementById('addAllBtn');
+            let extractedItems = [];
 
-            // Open camera
-            document.getElementById('openCameraBtn').addEventListener('click', () => {
-                cameraInput.click();
-            });
-
-            // When a photo is taken
-            cameraInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
+            // Helper to handle image selection from both camera and gallery
+            function handleImageSelection(file) {
                 if (!file) return;
                 const reader = new FileReader();
                 reader.onload = function(ev) {
                     imagePreview.src = ev.target.result;
                     imagePreview.style.display = 'block';
                     scanBtn.style.display = 'inline-block';
-                    // Reset previous results
                     extractedItems = [];
                     scanResult.innerHTML = '';
                     categoryAssign.style.display = 'none';
+                    ocrProgress.style.display = 'none';
                 };
                 reader.readAsDataURL(file);
+            }
+
+            // Camera button
+            document.getElementById('openCameraBtn').addEventListener('click', () => cameraInput.click());
+            // Gallery button
+            document.getElementById('openGalleryBtn').addEventListener('click', () => galleryInput.click());
+
+            cameraInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) handleImageSelection(e.target.files[0]);
+            });
+            galleryInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) handleImageSelection(e.target.files[0]);
             });
 
-            // Scan & Extract using Tesseract
+            // Scan & Extract
             scanBtn.addEventListener('click', async () => {
                 if (!imagePreview.src) return;
                 scanBtn.disabled = true;
                 ocrProgress.style.display = 'block';
                 ocrBar.value = 0;
-                ocrStatus.textContent = 'Recognizing text... (this may take a few seconds)';
-                
+                ocrStatus.textContent = 'Recognizing text...';
                 try {
-                    const { data: { text } } = await Tesseract.recognize(
-                        imagePreview.src,
-                        'eng',
-                        {
-                            logger: m => {
-                                if (m.status === 'recognizing text') {
-                                    ocrBar.value = Math.round(m.progress * 100);
-                                    ocrStatus.textContent = `Recognizing... ${Math.round(m.progress * 100)}%`;
-                                }
+                    const { data: { text } } = await Tesseract.recognize(imagePreview.src, 'eng', {
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                ocrBar.value = Math.round(m.progress * 100);
+                                ocrStatus.textContent = `Recognizing... ${Math.round(m.progress * 100)}%`;
                             }
                         }
-                    );
-                    
-                    // Parse extracted text into items
+                    });
                     const lines = text.split('\n').filter(line => line.trim() !== '');
                     extractedItems = [];
                     lines.forEach(line => {
-                        // Try to separate a price at the end (e.g., "Latte 4.50" or "Espresso $3.99")
-                        const priceMatch = line.match(/(.*[^\d\$])\s*[\$]?(\d+\.?\d*)\s*$/);
+                        const priceMatch = line.match(/(.*[^\d₹])\s*[₹]?(\d+\.?\d*)\s*$/);
                         if (priceMatch) {
                             extractedItems.push({
                                 name: priceMatch[1].trim(),
                                 price: parseFloat(priceMatch[2]).toFixed(2)
                             });
                         } else {
-                            // No price found – keep full line as name, price empty
-                            extractedItems.push({
-                                name: line.trim(),
-                                price: ''
-                            });
+                            extractedItems.push({ name: line.trim(), price: '' });
                         }
                     });
-
-                    // Display in editable form
                     displayExtractedItems();
                     categoryAssign.style.display = 'block';
                 } catch (err) {
@@ -491,15 +399,17 @@
                 extractedItems.forEach((item, idx) => {
                     const div = document.createElement('div');
                     div.className = 'extracted-item';
+                    div.style.display = 'flex';
+                    div.style.alignItems = 'center';
+                    div.style.gap = '0.5rem';
+                    div.style.marginBottom = '0.5rem';
                     div.innerHTML = `
-                        <input type="text" class="item-name-edit" value="${item.name}" placeholder="Item name" />
-                        <input type="number" class="price-input item-price-edit" step="0.01" value="${item.price}" placeholder="Price" />
+                        <input type="text" class="item-name-edit" value="${item.name}" placeholder="Name" style="flex:2" />
+                        <input type="number" class="price-input item-price-edit" step="0.01" value="${item.price}" placeholder="₹" style="flex:1" />
                         <button class="btn-danger remove-extracted-btn" data-index="${idx}">✕</button>
                     `;
                     scanResult.appendChild(div);
                 });
-
-                // Update extractedItems when editing
                 scanResult.querySelectorAll('.item-name-edit').forEach((inp, idx) => {
                     inp.addEventListener('input', (e) => {
                         extractedItems[idx].name = e.target.value;
@@ -515,14 +425,11 @@
                         const index = parseInt(e.target.dataset.index);
                         extractedItems.splice(index, 1);
                         displayExtractedItems();
-                        if (extractedItems.length === 0) {
-                            categoryAssign.style.display = 'none';
-                        }
+                        if (extractedItems.length === 0) categoryAssign.style.display = 'none';
                     });
                 });
             }
 
-            // Add all extracted items to menu
             addAllBtn.addEventListener('click', async () => {
                 const category = globalCategory.value.trim() || 'Uncategorized';
                 const itemsToInsert = extractedItems
@@ -535,29 +442,63 @@
                         description: '',
                         available: true
                     }));
-                
                 if (itemsToInsert.length === 0) {
-                    alert('No valid items to add (each needs a name and price).');
+                    alert('No valid items (each needs name and price).');
                     return;
                 }
-
                 const { error } = await client.from('menu_items').insert(itemsToInsert);
                 if (error) {
-                    alert('Error adding items: ' + error.message);
+                    alert('Error: ' + error.message);
                 } else {
-                    alert(`Added ${itemsToInsert.length} items to "${category}"!`);
-                    // Reset smart builder
+                    alert(`Added ${itemsToInsert.length} items in "${category}"!`);
                     extractedItems = [];
                     scanResult.innerHTML = '';
                     categoryAssign.style.display = 'none';
                     imagePreview.style.display = 'none';
                     scanBtn.style.display = 'none';
                     cameraInput.value = '';
-                    loadItems(); // refresh manual list
+                    galleryInput.value = '';
+                    loadItems();
                 }
             });
 
-            // ---------- MANUAL MENU ITEMS ----------
+            // Bulk paste add
+            document.getElementById('bulkAddBtn').addEventListener('click', async () => {
+                const raw = bulkTextarea.value.trim();
+                if (!raw) return;
+                const lines = raw.split('\n').filter(line => line.trim() !== '');
+                const itemsToInsert = [];
+                for (let line of lines) {
+                    const parts = line.split(',').map(p => p.trim());
+                    if (parts.length < 2) continue;
+                    const name = parts[0];
+                    const price = parseFloat(parts[1]);
+                    const category = parts[2] || 'Uncategorized';
+                    if (!name || isNaN(price)) continue;
+                    itemsToInsert.push({
+                        cafe_id: cafe.id,
+                        name,
+                        price,
+                        category,
+                        description: '',
+                        available: true
+                    });
+                }
+                if (itemsToInsert.length === 0) {
+                    bulkMessage.textContent = 'No valid items. Use: Name,Price,Category';
+                    return;
+                }
+                const { error } = await client.from('menu_items').insert(itemsToInsert);
+                if (error) {
+                    bulkMessage.textContent = 'Error: ' + error.message;
+                } else {
+                    bulkMessage.textContent = `Added ${itemsToInsert.length} items!`;
+                    bulkTextarea.value = '';
+                    loadItems();
+                }
+            });
+
+            // Load & display current menu items
             const loadItems = async () => {
                 const { data, error } = await client.from('menu_items').select('*').eq('cafe_id', cafe.id).order('created_at');
                 if (error) return;
@@ -566,11 +507,8 @@
                     const div = document.createElement('div');
                     div.className = 'menu-item';
                     div.innerHTML = `
-                        <div class="menu-item-info">
-                            <strong>${item.name}</strong> · $${item.price}<br>
-                            <small>${item.category}</small>
-                        </div>
-                        <div class="menu-item-actions">
+                        <div><strong>${item.name}</strong> · ₹${item.price} (${item.category})</div>
+                        <div>
                             <button class="toggle-avail ${item.available ? 'available' : ''}" data-id="${item.id}" data-avail="${item.available}">${item.available ? 'On' : 'Off'}</button>
                             <button class="edit-btn" data-id="${item.id}">Edit</button>
                             <button class="del-btn" data-id="${item.id}">Del</button>
@@ -581,6 +519,7 @@
             };
             await loadItems();
 
+            // Item actions (toggle, delete, edit)
             menuList.addEventListener('click', async (e) => {
                 const id = e.target.dataset.id;
                 if (e.target.classList.contains('toggle-avail')) {
@@ -589,7 +528,7 @@
                     loadItems();
                 }
                 if (e.target.classList.contains('del-btn')) {
-                    if (confirm('Delete item?')) {
+                    if (confirm('Delete?')) {
                         await client.from('menu_items').delete().eq('id', id);
                         loadItems();
                     }
@@ -607,6 +546,7 @@
                 }
             });
 
+            // Single item form submit (add/edit)
             document.getElementById('menuForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const id = editId.value;
@@ -617,15 +557,14 @@
                     price: parseFloat(itemPrice.value),
                     category: itemCategory.value,
                 };
-                const imageFile = document.getElementById('itemImage').files[0];
-                if (imageFile) {
-                    const filePath = `${user.id}/menu_${Date.now()}_${imageFile.name}`;
-                    const { error: uploadErr } = await client.storage.from('menu-items').upload(filePath, imageFile);
+                const file = document.getElementById('itemImage').files[0];
+                if (file) {
+                    const path = `${user.id}/menu_${Date.now()}_${file.name}`;
+                    const { error: uploadErr } = await client.storage.from('menu-items').upload(path, file);
                     if (uploadErr) return alert('Image upload failed: ' + uploadErr.message);
-                    const { data: { publicUrl } } = client.storage.from('menu-items').getPublicUrl(filePath);
+                    const { data: { publicUrl } } = client.storage.from('menu-items').getPublicUrl(path);
                     payload.image_url = publicUrl;
                 }
-
                 const { error } = id
                     ? await client.from('menu_items').update(payload).eq('id', id)
                     : await client.from('menu_items').insert(payload);
@@ -643,9 +582,7 @@
                 await client.auth.signOut();
                 window.location.href = 'index.html';
             });
-        };
-
-        initSupabase();
+        }
     </script>
 </body>
 </html>
