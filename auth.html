@@ -93,29 +93,21 @@
             <div class="forgot-link"><a id="forgotPasswordLink">Forgot Password?</a></div>
             <div class="back-link"><a href="index.html">← Back to home</a></div>
         </div>
-
         <div id="resetRequestView" class="hidden">
             <h2>Reset Password</h2>
-            <p class="form-message">Enter your email and we’ll send you a reset link.</p>
+            <p class="form-message">Enter your email and we'll send you a reset link.</p>
             <form id="resetForm">
-                <div class="form-group">
-                    <label for="resetEmail">Email</label>
-                    <input type="email" id="resetEmail" required placeholder="you@example.com"/>
-                </div>
+                <div class="form-group"><label for="resetEmail">Email</label><input type="email" id="resetEmail" required placeholder="you@example.com"/></div>
                 <p class="error" id="resetError"></p>
                 <p class="success" id="resetSuccess"></p>
                 <button type="submit">Send Reset Link</button>
             </form>
             <div class="back-link"><a id="backToLoginLink">← Back to Login</a></div>
         </div>
-
         <div id="newPasswordView" class="hidden">
             <h2>New Password</h2>
             <form id="newPasswordForm">
-                <div class="form-group">
-                    <label for="newPassword">Password</label>
-                    <input type="password" id="newPassword" required minlength="6" placeholder="••••••••"/>
-                </div>
+                <div class="form-group"><label for="newPassword">Password</label><input type="password" id="newPassword" required minlength="6" placeholder="••••••••"/></div>
                 <p class="error" id="newPasswordError"></p>
                 <p class="success" id="newPasswordSuccess"></p>
                 <button type="submit">Update Password</button>
@@ -128,23 +120,19 @@
     <script type="module">
         const SUPABASE_URL = 'https://phunzwqocgtgnpsgvsyv.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBodW56d3FvY2d0Z25wc2d2c3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MTQ2ODIsImV4cCI6MjA5NDA5MDY4Mn0.gWJ_NORZxMWz0EPJ425gDZew7MJUxWdo6L67snAE0dI';
-
         const init = () => {
             if (typeof supabase === 'undefined') { setTimeout(init, 100); return; }
             window.client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             main();
         };
         init();
-
         function main() {
             const client = window.client;
             const urlParams = new URLSearchParams(window.location.search);
             const isRecovery = urlParams.get('type') === 'recovery';
-
             const normalView = document.getElementById('normalView');
             const resetRequestView = document.getElementById('resetRequestView');
             const newPasswordView = document.getElementById('newPasswordView');
-
             if (isRecovery) {
                 normalView.classList.add('hidden');
                 resetRequestView.classList.add('hidden');
@@ -154,7 +142,6 @@
                 resetRequestView.classList.add('hidden');
                 newPasswordView.classList.add('hidden');
             }
-
             const form = document.getElementById('authForm');
             const emailInp = document.getElementById('email');
             const passInp = document.getElementById('password');
@@ -163,10 +150,8 @@
             const signupTab = document.getElementById('signupTab');
             const submitBtn = document.getElementById('submitBtn');
             let mode = 'login';
-
             loginTab.addEventListener('click', () => switchMode('login'));
             signupTab.addEventListener('click', () => switchMode('signup'));
-
             function switchMode(m) {
                 mode = m;
                 loginTab.classList.toggle('active', m === 'login');
@@ -174,7 +159,6 @@
                 submitBtn.textContent = m === 'login' ? 'Log in' : 'Sign Up';
                 errorEl.style.display = 'none';
             }
-
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 errorEl.style.display = 'none';
@@ -186,10 +170,8 @@
                         if (error) throw error;
                         if (data.user) {
                             const userId = data.user.id;
-                            // Create cafe row
                             const { error: insertErr } = await client.from('cafes').insert({ owner_id: userId });
                             if (insertErr && insertErr.code !== '23505') throw insertErr;
-                            // Create subscription with 5‑day trial
                             const { error: subErr } = await client.from('subscriptions').insert({ owner_id: userId });
                             if (subErr) console.warn('Subscription creation failed:', subErr);
                             window.location.href = 'dashboard.html';
@@ -204,7 +186,6 @@
                     errorEl.style.display = 'block';
                 }
             });
-
             document.getElementById('forgotPasswordLink').addEventListener('click', () => {
                 normalView.classList.add('hidden');
                 resetRequestView.classList.remove('hidden');
@@ -214,12 +195,10 @@
                 normalView.classList.remove('hidden');
                 resetRequestView.classList.add('hidden');
             });
-
             const resetForm = document.getElementById('resetForm');
             const resetEmail = document.getElementById('resetEmail');
             const resetError = document.getElementById('resetError');
             const resetSuccess = document.getElementById('resetSuccess');
-
             resetForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 resetError.style.display = 'none';
@@ -236,12 +215,10 @@
                     resetError.style.display = 'block';
                 }
             });
-
             const newPasswordForm = document.getElementById('newPasswordForm');
             const newPass = document.getElementById('newPassword');
             const newPassErr = document.getElementById('newPasswordError');
             const newPassOk = document.getElementById('newPasswordSuccess');
-
             newPasswordForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 newPassErr.style.display = 'none';
@@ -257,7 +234,6 @@
                     newPassErr.style.display = 'block';
                 }
             });
-
             if (!isRecovery) {
                 client.auth.getSession().then(({ data }) => {
                     if (data.session) window.location.href = 'dashboard.html';
