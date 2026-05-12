@@ -313,7 +313,7 @@
 
             // QR code
             document.getElementById('qrBtn').addEventListener('click', () => {
-                const menuUrl = `${window.location.origin}/menu.html?id=${cafe.id}`;
+                const menuUrl = window.location.href.replace(/dashboard\.html.*/, `menu.html?id=${cafe.id}`);
                 qrContainer.innerHTML = '';
                 new QRCode(qrContainer, {
                     text: menuUrl,
