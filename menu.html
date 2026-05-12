@@ -23,7 +23,6 @@
             overflow-x: hidden;
             position: relative;
         }
-        /* Regal background pattern */
         body::before {
             content: "";
             position: fixed;
@@ -32,14 +31,94 @@
                               radial-gradient(circle at 70% 80%, rgba(109,26,45,0.1) 0%, transparent 50%);
             z-index: 0;
         }
+
+        /* ========== ENTRANCE ANIMATION ========== */
+        /* Full‑screen overlay that reveals the menu */
+        .reveal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .reveal-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .curtain {
+            width: 100%;
+            height: 100%;
+            display: flex;
+        }
+        .curtain-left, .curtain-right {
+            flex: 1;
+            background: radial-gradient(circle at center, var(--burgundy) 0%, var(--dark) 90%);
+            transform: scaleX(1);
+            transition: transform 0.8s cubic-bezier(0.77, 0, 0.18, 1);
+            position: relative;
+        }
+        .curtain-left {
+            border-right: 2px solid var(--gold);
+            transform-origin: left;
+        }
+        .curtain-right {
+            border-left: 2px solid var(--gold);
+            transform-origin: right;
+        }
+        .reveal-overlay.hidden .curtain-left {
+            transform: scaleX(0);
+        }
+        .reveal-overlay.hidden .curtain-right {
+            transform: scaleX(0);
+        }
+        .crown-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            color: var(--gold);
+            z-index: 101;
+            animation: pulse-crown 1.5s infinite;
+            text-shadow: 0 0 20px var(--gold);
+        }
+        @keyframes pulse-crown {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+        /* Particles */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--gold);
+            border-radius: 50%;
+            animation: floatUp 2s linear infinite;
+            opacity: 0;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-100px) scale(0); opacity: 0; }
+        }
+
+        /* Main container */
         .container {
             position: relative;
             z-index: 1;
             max-width: 600px;
             margin: 0 auto;
             padding: 2rem 1rem 8rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease 0.8s, transform 0.6s ease 0.8s;
         }
-        /* Royal Header */
+        .container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
         .royal-header {
             text-align: center;
             margin-bottom: 2.5rem;
@@ -63,13 +142,9 @@
             animation: rotate 20s linear infinite;
         }
         @keyframes rotate { 100% { transform: rotate(360deg); } }
-        .header-content {
-            position: relative;
-            z-index: 1;
-        }
+        .header-content { position: relative; z-index: 1; }
         .logo-img {
-            width: 80px;
-            height: 80px;
+            width: 80px; height: 80px;
             border-radius: 50%;
             border: 3px solid var(--gold);
             box-shadow: 0 0 30px rgba(212,175,55,0.6);
@@ -84,19 +159,12 @@
             letter-spacing: 2px;
             margin: 0.3rem 0;
         }
-        .cafe-desc {
-            color: var(--gold-light);
-            font-size: 0.95rem;
-            opacity: 0.85;
-            font-style: italic;
-            margin-top: 0.2rem;
-        }
+        .cafe-desc { color: var(--gold-light); font-size: 0.95rem; opacity: 0.85; font-style: italic; margin-top: 0.2rem; }
         .ornament {
             height: 2px;
             background: linear-gradient(to right, transparent, var(--gold), transparent);
             margin: 0.5rem 0;
         }
-        /* Category Card */
         .category {
             background: var(--glass);
             backdrop-filter: blur(15px);
@@ -119,7 +187,6 @@
             border-bottom: 2px solid var(--gold);
             padding-bottom: 0.4rem;
         }
-        /* Item Row */
         .item-row {
             display: flex;
             align-items: center;
@@ -134,25 +201,13 @@
         .item-info { flex: 1; min-width: 0; }
         .item-name { font-weight: 600; }
         .item-desc { font-size: 0.8rem; opacity: 0.6; margin-top: 0.15rem; }
-        .item-price {
-            font-weight: 700;
-            color: var(--gold);
-            margin: 0 0.5rem;
-            white-space: nowrap;
-            font-size: 1rem;
-        }
-        /* Quantity Selector */
-        .qty-selector {
-            display: flex;
-            align-items: center;
-            gap: 0.2rem;
-        }
+        .item-price { font-weight: 700; color: var(--gold); margin: 0 0.5rem; white-space: nowrap; font-size: 1rem; }
+        .qty-selector { display: flex; align-items: center; gap: 0.2rem; }
         .qty-btn {
             background: rgba(212,175,55,0.15);
             border: 1px solid var(--gold);
             color: var(--gold);
-            width: 30px;
-            height: 30px;
+            width: 30px; height: 30px;
             border-radius: 50%;
             font-size: 1.2rem;
             font-weight: bold;
@@ -163,13 +218,7 @@
             transition: all 0.2s;
         }
         .qty-btn:active { background: var(--gold); color: var(--dark); }
-        .qty-num {
-            min-width: 24px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        /* Floating Cart */
+        .qty-num { min-width: 24px; text-align: center; font-weight: 600; font-size: 0.9rem; }
         #cartFloat {
             position: fixed;
             bottom: 1.5rem;
@@ -187,12 +236,6 @@
             align-items: center;
             gap: 0.5rem;
             border: 1px solid var(--gold-light);
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 20px rgba(212,175,55,0.6); }
-            50% { box-shadow: 0 0 40px rgba(212,175,55,0.9); }
-            100% { box-shadow: 0 0 20px rgba(212,175,55,0.6); }
         }
         #cartPreview {
             display: none;
@@ -209,28 +252,10 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
             z-index: 19;
         }
-        #cartPreview h4 {
-            font-family: 'Playfair Display', serif;
-            color: var(--gold);
-            margin-bottom: 0.8rem;
-        }
+        #cartPreview h4 { font-family: 'Playfair Display', serif; color: var(--gold); margin-bottom: 0.8rem; }
         #cartItems { list-style: none; margin: 0.5rem 0; max-height: 250px; overflow-y: auto; }
-        #cartItems li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 0.5rem 0;
-            font-size: 0.9rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 0.3rem;
-        }
-        .remove-item {
-            background: none;
-            border: none;
-            color: var(--gold-light);
-            cursor: pointer;
-            font-size: 1rem;
-        }
+        #cartItems li { display: flex; justify-content: space-between; align-items: center; margin: 0.5rem 0; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.3rem; }
+        .remove-item { background: none; border: none; color: var(--gold-light); cursor: pointer; font-size: 1rem; }
         #orderBtn {
             width: 100%;
             background: linear-gradient(135deg, var(--gold), #b8922e);
@@ -243,13 +268,22 @@
             margin-top: 0.8rem;
             cursor: pointer;
             box-shadow: 0 0 25px rgba(212,175,55,0.5);
-            transition: transform 0.1s;
         }
-        #orderBtn:active { transform: scale(0.96); }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Entrance Animation Overlay -->
+    <div class="reveal-overlay" id="revealOverlay">
+        <div class="curtain">
+            <div class="curtain-left"></div>
+            <div class="curtain-right"></div>
+        </div>
+        <div class="crown-icon">👑</div>
+        <!-- Generate a few gold particles -->
+        <div id="particlesContainer" style="position:absolute; inset:0; overflow:hidden;"></div>
+    </div>
+
+    <div class="container" id="menuContent">
         <div id="cafeHeader" class="royal-header">
             <div class="header-content">
                 <img id="logoImage" class="logo-img" src="" alt="Logo" style="display:none;" />
@@ -270,6 +304,28 @@
         <p style="color:var(--gold); font-weight:600;">Total: ₹<span id="cartTotal">0.00</span></p>
         <button id="orderBtn">Order via WhatsApp</button>
     </div>
+
+    <!-- Entrance animation script -->
+    <script>
+        // Create floating gold particles
+        const particlesContainer = document.getElementById('particlesContainer');
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 2 + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // After 2.5 seconds, hide the overlay and show the menu
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('revealOverlay').classList.add('hidden');
+                document.getElementById('menuContent').classList.add('visible');
+            }, 2500); // adjust time as needed
+        });
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module">
@@ -292,7 +348,6 @@
             const { data: cafe, error } = await client.from('cafes').select('*').eq('id', cafeId).single();
             if (error || !cafe) { document.body.innerHTML = '<h2>Cafe not found</h2>'; return; }
 
-            // Populate header
             document.getElementById('cafeTitle').textContent = cafe.cafe_name || 'Cafe Menu';
             document.getElementById('cafeDesc').textContent = cafe.description || '';
             const logoImg = document.getElementById('logoImage');
@@ -309,7 +364,6 @@
             });
 
             const container = document.getElementById('menuContainer');
-            // Cart object: { id: { name, price, qty } }
             const cart = {};
 
             for (const [cat, catItems] of Object.entries(grouped)) {
@@ -336,7 +390,6 @@
                 container.appendChild(section);
             }
 
-            // Quantity selector event delegation
             container.addEventListener('click', (e) => {
                 const btn = e.target;
                 if (!btn.classList.contains('qty-btn')) return;
@@ -345,25 +398,17 @@
                 const name = selector.dataset.name;
                 const price = parseFloat(selector.dataset.price);
                 const qtySpan = selector.querySelector('.qty-num');
-
                 let currentQty = cart[id] ? cart[id].qty : 0;
 
-                if (btn.classList.contains('inc')) {
-                    currentQty++;
-                } else if (btn.classList.contains('dec')) {
-                    currentQty = Math.max(0, currentQty - 1);
-                }
+                if (btn.classList.contains('inc')) currentQty++;
+                else if (btn.classList.contains('dec')) currentQty = Math.max(0, currentQty - 1);
 
-                if (currentQty === 0) {
-                    delete cart[id];
-                } else {
-                    cart[id] = { name, price, qty: currentQty };
-                }
+                if (currentQty === 0) delete cart[id];
+                else cart[id] = { name, price, qty: currentQty };
                 qtySpan.textContent = currentQty;
                 updateCartUI();
             });
 
-            // Cart UI elements
             const cartFloat = document.getElementById('cartFloat');
             const cartPreview = document.getElementById('cartPreview');
             const cartCountEl = document.getElementById('cartCount');
@@ -378,43 +423,32 @@
 
             function updateCartUI() {
                 const items = Object.values(cart);
-                const totalQty = items.reduce((sum, i) => sum + i.qty, 0);
-                cartCountEl.textContent = totalQty;
-
-                const total = items.reduce((sum, i) => sum + i.price * i.qty, 0);
-                cartTotalEl.textContent = total.toFixed(2);
-
+                cartCountEl.textContent = items.reduce((sum, i) => sum + i.qty, 0);
+                cartTotalEl.textContent = items.reduce((sum, i) => sum + i.price * i.qty, 0).toFixed(2);
                 cartItemsEl.innerHTML = items.map((item, idx) => `
                     <li>
-                        <span>${idx+1}. ${item.name} x${item.qty}</span>
+                        <span>${idx+1}. ${item.name} × ${item.qty}</span>
                         <span style="color:var(--gold);">₹${(item.price * item.qty).toFixed(2)}
                             <button class="remove-item" data-id="${Object.keys(cart)[idx]}">✕</button>
                         </span>
                     </li>
                 `).join('');
-
-                // Attach remove listeners
                 document.querySelectorAll('.remove-item').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const id = e.target.dataset.id;
                         delete cart[id];
-                        // Reset the qty selector in the menu
                         const selector = document.querySelector(`.qty-selector[data-id="${id}"]`);
-                        if (selector) {
-                            selector.querySelector('.qty-num').textContent = '0';
-                        }
+                        if (selector) selector.querySelector('.qty-num').textContent = '0';
                         updateCartUI();
                     });
                 });
             }
 
-            // Order button
             document.getElementById('orderBtn').addEventListener('click', () => {
                 const items = Object.values(cart);
                 if (items.length === 0) return alert('Cart is empty');
                 const phone = cafe.whatsapp ? cafe.whatsapp.replace(/\D/g, '') : '';
                 if (!phone) return alert('No WhatsApp number set.');
-
                 let message = `🛎️ Order from ${cafe.cafe_name}:\n`;
                 items.forEach((item, idx) => {
                     message += `${idx+1}. ${item.name} × ${item.qty} — ₹${(item.price * item.qty).toFixed(2)}\n`;
