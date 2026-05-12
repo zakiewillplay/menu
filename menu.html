@@ -30,8 +30,6 @@
                         radial-gradient(circle at 80% 70%, rgba(192,57,43,0.1) 0%, transparent 50%);
             z-index: 0;
         }
-
-        /* Food reveal animation */
         .food-reveal {
             position: fixed;
             inset: 0;
@@ -86,7 +84,6 @@
             0% { transform: translateX(-50%) scale(0.5); opacity: 0.8; }
             100% { transform: translateX(-50%) translateY(-30px) scale(1.2); opacity: 0; }
         }
-
         .container {
             position: relative;
             z-index: 1;
@@ -98,8 +95,6 @@
             transition: opacity 0.6s ease 0.9s, transform 0.6s ease 0.9s;
         }
         .container.visible { opacity: 1; transform: translateY(0); }
-
-        /* Header */
         .header {
             text-align: center;
             margin-bottom: 2rem;
@@ -123,8 +118,6 @@
             text-shadow: 0 0 10px var(--gold);
         }
         .header p { color: var(--cream); font-style: italic; }
-
-        /* Category cards */
         .category {
             background: var(--glass);
             backdrop-filter: blur(15px);
@@ -145,56 +138,42 @@
             border-bottom: 2px solid var(--gold);
             padding-bottom: 0.3rem;
         }
-
-        /* Item row */
-        .item {
+        .item-block {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .item-name {
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+        .item-desc {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-top: 0.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .variant-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-top: 0.5rem;
+        }
+        .variant-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 1rem 0.4rem;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
             gap: 0.5rem;
-            transition: background 0.2s;
-            border-radius: 12px;
         }
-        .item:hover { background: rgba(212,175,55,0.05); }
-        .item-info { flex: 1; min-width: 0; }
-        .item-name { font-weight: 600; }
-        .item-desc { font-size: 0.85rem; opacity: 0.7; margin-top: 0.2rem; }
-
-        /* Variant chips */
-        .variants {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem;
-            margin-top: 0.5rem;
-        }
-        .variant-chip {
-            background: rgba(212,175,55,0.15);
-            border: 1px solid var(--gold);
-            border-radius: 20px;
-            padding: 0.3rem 0.9rem;
-            cursor: pointer;
-            font-size: 0.8rem;
+        .variant-label {
+            flex: 1;
             font-weight: 600;
             color: var(--gold);
-            transition: all 0.2s;
         }
-        .variant-chip.active {
-            background: var(--gold);
-            color: var(--dark);
-            box-shadow: 0 0 10px var(--gold);
+        .variant-label small {
+            font-weight: 400;
+            color: #ccc;
+            margin-left: 0.3rem;
         }
-
-        .current-price {
-            font-weight: 700;
-            color: var(--gold);
-            font-size: 1rem;
-            margin-left: 0.5rem;
-            white-space: nowrap;
-        }
-
-        /* Quantity selector */
         .qty-box {
             display: flex;
             align-items: center;
@@ -221,6 +200,16 @@
             text-align: center;
             font-weight: 600;
             font-size: 1rem;
+        }
+        .single-price {
+            font-weight: 700;
+            color: var(--gold);
+            margin: 0 1rem;
+        }
+        .single-item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         /* Floating cart */
@@ -281,7 +270,6 @@
     </style>
 </head>
 <body>
-    <!-- Food reveal animation overlay -->
     <div class="food-reveal" id="foodReveal">
         <div class="dish">
             <div class="plate"></div>
@@ -309,7 +297,6 @@
     </div>
 
     <script>
-        // --- Reveal animation ---
         window.addEventListener('load', () => {
             setTimeout(() => {
                 document.getElementById('foodReveal').classList.add('hidden');
@@ -339,7 +326,6 @@
             const { data: cafe, error } = await client.from('cafes').select('*').eq('id', cafeId).single();
             if (error || !cafe) { document.body.innerHTML = '<h2>Cafe not found</h2>'; return; }
 
-            // Header
             document.getElementById('cafeTitle').textContent = cafe.cafe_name || 'Our Menu';
             document.getElementById('cafeDesc').textContent = cafe.description || '';
             const logo = document.getElementById('logoImg');
@@ -353,8 +339,7 @@
             });
 
             const menuList = document.getElementById('menuList');
-            // Cart object: key = `${itemId}_${variantName}` -> { id, name, price, qty }
-            const cart = {};
+            const cart = {}; // key: `${itemId}_${variantName}`
 
             // Build menu
             for (const [cat, catItems] of Object.entries(grouped)) {
@@ -364,129 +349,144 @@
 
                 catItems.forEach(item => {
                     const hasVariants = item.description && item.description.startsWith('VAR::');
-                    const variants = [];
+                    let variants = [];
                     if (hasVariants) {
                         const vStr = item.description.replace('VAR::', '');
                         vStr.split('|').forEach(p => {
                             const [name, price] = p.split('=');
-                            variants.push({ name: name.trim(), price: parseFloat(price) });
+                            if (name && price) variants.push({ name: name.trim(), price: parseFloat(price) });
                         });
                     } else {
-                        variants.push({ name: item.name, price: parseFloat(item.price) }); // single variant
+                        variants = [{ name: item.name, price: parseFloat(item.price) }];
                     }
 
-                    const row = document.createElement('div');
-                    row.className = 'item';
-
-                    // Build variant chips HTML
-                    let variantChipsHTML = '';
-                    if (variants.length > 1) {
-                        variants.forEach((v, idx) => {
-                            variantChipsHTML += `
-                                <span class="variant-chip ${idx === 0 ? 'active' : ''}" data-variant-index="${idx}">
-                                    ${v.name} <span class="v-price">₹${v.price}</span>
-                                </span>`;
-                        });
-                    }
-
-                    // Current price display (updates based on selected variant)
-                    const currentPrice = variants[0].price;
-
-                    row.innerHTML = `
-                        <div class="item-info">
-                            <div class="item-name">${item.name}</div>
-                            <div class="item-desc">${hasVariants ? '' : (item.description || '')}</div>
-                            ${variants.length > 1 ? `<div class="variants">${variantChipsHTML}</div>` : ''}
-                        </div>
-                        <div class="current-price">₹${currentPrice}</div>
-                        <div class="qty-box">
-                            <button class="qty-btn qty-dec">−</button>
-                            <span class="qty-num">0</span>
-                            <button class="qty-btn qty-inc">+</button>
-                        </div>
+                    const block = document.createElement('div');
+                    block.className = 'item-block';
+                    block.dataset.itemId = item.id;
+                    block.innerHTML = `
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-desc">${hasVariants ? '' : (item.description || '')}</div>
                     `;
 
-                    // Store item data on the row
-                    row.dataset.itemId = item.id;
-                    row.dataset.itemName = item.name;
-                    row.dataset.hasVariants = hasVariants;
-                    // Attach variant data for easy access
-                    row.__variants = variants;
-
-                    section.appendChild(row);
+                    if (variants.length > 1) {
+                        // Multiple variants – each gets its own qty selector
+                        const variantList = document.createElement('div');
+                        variantList.className = 'variant-list';
+                        variants.forEach(v => {
+                            const vRow = document.createElement('div');
+                            vRow.className = 'variant-row';
+                            vRow.dataset.variantName = v.name;
+                            vRow.innerHTML = `
+                                <span class="variant-label">${v.name} <small>₹${v.price}</small></span>
+                                <div class="qty-box">
+                                    <button class="qty-btn qty-dec">−</button>
+                                    <span class="qty-num">0</span>
+                                    <button class="qty-btn qty-inc">+</button>
+                                </div>
+                            `;
+                            variantList.appendChild(vRow);
+                        });
+                        block.appendChild(variantList);
+                    } else {
+                        // Single price (or single variant) – single qty selector
+                        const singleVariant = variants[0];
+                        const singleRow = document.createElement('div');
+                        singleRow.className = 'single-item-row';
+                        singleRow.innerHTML = `
+                            <span class="single-price">₹${singleVariant.price}</span>
+                            <div class="qty-box">
+                                <button class="qty-btn qty-dec">−</button>
+                                <span class="qty-num">0</span>
+                                <button class="qty-btn qty-inc">+</button>
+                            </div>
+                        `;
+                        block.appendChild(singleRow);
+                        // Store variant info on the block for cart key
+                        block.dataset.variantName = singleVariant.name;
+                    }
+                    section.appendChild(block);
                 });
                 menuList.appendChild(section);
             }
 
-            // Update the quantity display for a specific row
-            function updateQtyUI(row) {
-                const itemId = row.dataset.itemId;
-                const variants = row.__variants;
-                const activeChip = row.querySelector('.variant-chip.active');
-                const selectedIndex = activeChip ? parseInt(activeChip.dataset.variantIndex) : 0;
-                const variant = variants[selectedIndex];
-                const cartKey = `${itemId}_${variant.name}`;
+            // Update quantity display for a single variant within a block
+            function updateVariantQty(block, variantName) {
+                const itemId = block.dataset.itemId;
+                const cartKey = `${itemId}_${variantName}`;
                 const cartItem = cart[cartKey];
                 const qty = cartItem ? cartItem.qty : 0;
-                row.querySelector('.qty-num').textContent = qty;
-                // update price display
-                row.querySelector('.current-price').textContent = `₹${variant.price}`;
+                // Find the specific qty-num inside that variant row
+                let qtySpan;
+                if (block.querySelector('.variant-row')) {
+                    // multiple variants
+                    const rows = block.querySelectorAll('.variant-row');
+                    for (const row of rows) {
+                        if (row.dataset.variantName === variantName) {
+                            qtySpan = row.querySelector('.qty-num');
+                            break;
+                        }
+                    }
+                } else {
+                    // single variant
+                    qtySpan = block.querySelector('.qty-num');
+                }
+                if (qtySpan) qtySpan.textContent = qty;
             }
 
-            // Event delegation for variant chip clicks and quantity buttons
+            // Event delegation
             menuList.addEventListener('click', (e) => {
                 const target = e.target;
-                const row = target.closest('.item');
-                if (!row) return;
+                if (!target.classList.contains('qty-btn')) return;
 
-                // Variant chip click
-                if (target.classList.contains('variant-chip')) {
-                    // Remove active from siblings
-                    row.querySelectorAll('.variant-chip').forEach(chip => chip.classList.remove('active'));
-                    target.classList.add('active');
-                    // Update quantity display for the new selected variant
-                    updateQtyUI(row);
+                const btn = target;
+                const isInc = btn.classList.contains('qty-inc');
+                const isDec = btn.classList.contains('qty-dec');
+                if (!isInc && !isDec) return;
+
+                const qtyBox = btn.closest('.qty-box');
+                if (!qtyBox) return;
+
+                const block = btn.closest('.item-block');
+                const itemId = block.dataset.itemId;
+                const itemName = block.querySelector('.item-name').textContent;
+
+                let variantName, price;
+                // Check if it's a multi-variant row
+                const variantRow = btn.closest('.variant-row');
+                if (variantRow) {
+                    variantName = variantRow.dataset.variantName;
+                    const priceText = variantRow.querySelector('small').textContent.replace('₹', '');
+                    price = parseFloat(priceText);
+                } else {
+                    // single variant
+                    variantName = block.dataset.variantName || block.querySelector('.variant-label')?.textContent.trim() || itemName;
+                    const priceEl = block.querySelector('.single-price');
+                    price = priceEl ? parseFloat(priceEl.textContent.replace('₹', '')) : 0;
                 }
 
-                // Quantity decrease
-                if (target.classList.contains('qty-dec')) {
-                    const itemId = row.dataset.itemId;
-                    const variants = row.__variants;
-                    const activeChip = row.querySelector('.variant-chip.active');
-                    const selectedIndex = activeChip ? parseInt(activeChip.dataset.variantIndex) : 0;
-                    const variant = variants[selectedIndex];
-                    const cartKey = `${itemId}_${variant.name}`;
-                    if (cart[cartKey]) {
-                        cart[cartKey].qty--;
-                        if (cart[cartKey].qty <= 0) delete cart[cartKey];
-                        updateQtyUI(row);
-                        updateCartPreview();
-                    }
-                }
+                const cartKey = `${itemId}_${variantName}`;
 
-                // Quantity increase
-                if (target.classList.contains('qty-inc')) {
-                    const itemId = row.dataset.itemId;
-                    const itemName = row.dataset.itemName;
-                    const variants = row.__variants;
-                    const activeChip = row.querySelector('.variant-chip.active');
-                    const selectedIndex = activeChip ? parseInt(activeChip.dataset.variantIndex) : 0;
-                    const variant = variants[selectedIndex];
-                    const cartKey = `${itemId}_${variant.name}`;
+                if (isInc) {
                     if (cart[cartKey]) {
                         cart[cartKey].qty++;
                     } else {
                         cart[cartKey] = {
                             id: itemId,
                             name: itemName,
-                            variantName: variant.name,
-                            price: variant.price,
+                            variantName: variantName,
+                            price: price,
                             qty: 1
                         };
                     }
-                    updateQtyUI(row);
-                    updateCartPreview();
+                } else if (isDec) {
+                    if (cart[cartKey]) {
+                        cart[cartKey].qty--;
+                        if (cart[cartKey].qty <= 0) delete cart[cartKey];
+                    }
                 }
+
+                updateVariantQty(block, variantName);
+                updateCartPreview();
             });
 
             // Cart preview
@@ -504,33 +504,35 @@
 
             function updateCartPreview() {
                 const items = Object.values(cart);
-                const totalQty = items.reduce((sum, item) => sum + item.qty, 0);
+                const totalQty = items.reduce((s, i) => s + i.qty, 0);
                 cartCountEl.textContent = totalQty;
-                const total = items.reduce((sum, item) => sum + item.price * item.qty, 0);
+                const total = items.reduce((s, i) => s + i.price * i.qty, 0);
                 cartTotalEl.textContent = total.toFixed(2);
                 cartItemsEl.innerHTML = items.map((item, idx) => `
                     <li>
-                        <span>${item.name}${item.variantName ? ' (' + item.variantName + ')' : ''} × ${item.qty}</span>
+                        <span>${item.name} ${item.variantName ? '(' + item.variantName + ')' : ''} × ${item.qty}</span>
                         <span>₹${(item.price * item.qty).toFixed(2)}
                             <button class="remove-item" data-key="${Object.keys(cart)[idx]}">✕</button>
                         </span>
                     </li>
                 `).join('');
-                // Attach remove listeners
                 document.querySelectorAll('.remove-item').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const key = e.target.dataset.key;
                         delete cart[key];
-                        // Update all rows Qty displays
-                        document.querySelectorAll('.item').forEach(row => {
-                            updateQtyUI(row);
+                        // update all block qty displays to 0 for that key
+                        const [id, ...variantArr] = key.split('_');
+                        const variantName = variantArr.join('_');
+                        document.querySelectorAll('.item-block').forEach(b => {
+                            if (b.dataset.itemId === id) {
+                                updateVariantQty(b, variantName);
+                            }
                         });
                         updateCartPreview();
                     });
                 });
             }
 
-            // Order button
             document.getElementById('orderBtn').addEventListener('click', () => {
                 const items = Object.values(cart);
                 if (items.length === 0) return alert('Cart is empty');
@@ -540,13 +542,24 @@
                 items.forEach((item, idx) => {
                     msg += `${idx+1}. ${item.name}${item.variantName ? ' (' + item.variantName + ')' : ''} × ${item.qty} — ₹${(item.price * item.qty).toFixed(2)}\n`;
                 });
-                const total = items.reduce((s, i) => s + i.price*i.qty, 0).toFixed(2);
-                msg += `\n💰 Total: ₹${total}`;
+                msg += `\n💰 Total: ₹${items.reduce((s,i) => s + i.price*i.qty, 0).toFixed(2)}`;
                 window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
             });
 
-            // Initial UI update for all rows
-            document.querySelectorAll('.item').forEach(row => updateQtyUI(row));
+            // Initial display
+            document.querySelectorAll('.item-block').forEach(block => {
+                const itemId = block.dataset.itemId;
+                const variantRows = block.querySelectorAll('.variant-row');
+                if (variantRows.length > 0) {
+                    variantRows.forEach(row => {
+                        const vName = row.dataset.variantName;
+                        updateVariantQty(block, vName);
+                    });
+                } else {
+                    const vName = block.dataset.variantName;
+                    if (vName) updateVariantQty(block, vName);
+                }
+            });
         }
     </script>
 </body>
