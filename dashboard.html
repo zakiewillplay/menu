@@ -41,16 +41,102 @@
         .toggle-avail { background: #555; border: none; color: white; padding: 0.3rem 0.7rem; border-radius: 20px; cursor: pointer; }
         .toggle-avail.available { background: #27ae60; }
         .edit-btn, .del-btn { background: transparent; border: 1px solid #555; color: #ccc; padding: 0.3rem 0.6rem; border-radius: 8px; cursor: pointer; font-size: 0.75rem; }
+        .menu-item { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #444; }
     </style>
 </head>
 <body>
-    <header><h1>☕ Dashboard</h1><button class="btn-logout" id="logoutBtn">Logout</button></header>
+    <header>
+        <h1>☕ Dashboard</h1>
+        <button class="btn-logout" id="logoutBtn">Logout</button>
+    </header>
 
-    <!-- Subscription, Settings, Logo, QR code – unchanged, same as before -->
+    <!-- Subscription Card -->
+    <div class="card" id="subscriptionCard">
+        <h3>💳 Subscription</h3>
+        <div id="subStatus"><p>Loading...</p></div>
+        <div id="subAction" style="display:none;">
+            <button id="showUpiQRBtn">Show UPI QR Code (₹200/month)</button>
+            <div id="upiQRContainer" style="display:none; text-align:center; margin-top:1rem;">
+                <div id="upiQR"></div>
+                <p class="note">Scan this QR with any UPI app to pay ₹200</p>
+            </div>
+        </div>
+        <div id="txnInput" style="display:none; margin-top:1rem;">
+            <label>After payment, enter UPI Transaction ID:</label>
+            <input type="text" id="txnId" placeholder="e.g., 1234567890" />
+            <button id="submitTxnBtn">Submit for Verification</button>
+            <p id="txnMessage" class="note"></p>
+        </div>
+    </div>
 
-    <!-- Menu Item Form with Variant Support -->
+    <!-- Settings -->
     <div class="card">
-        <h3>✏️ Add / Edit Item</h3>
+        <h3>⚙️ Cafe Settings</h3>
+        <div class="form-group"><label>Cafe Name</label><input type="text" id="cafeName" /></div>
+        <div class="form-group"><label>WhatsApp (digits only)</label><input type="text" id="whatsapp" placeholder="1234567890" /></div>
+        <div class="form-group"><label>Description</label><textarea id="description" rows="2"></textarea></div>
+        <div class="form-group"><label>Primary Color</label><input type="color" id="primaryColor" /></div>
+        <div class="form-group"><label>Accent Color</label><input type="color" id="accentColor" /></div>
+        <button id="saveSettingsBtn">Save Settings</button>
+    </div>
+
+    <!-- Logo Upload -->
+    <div class="card">
+        <h3>🖼️ Logo</h3>
+        <div class="logo-upload">
+            <img id="logoPreview" src="" alt="Logo" style="width:70px; height:70px; border-radius:50%; object-fit:cover; display:none;" />
+            <input type="file" id="logoFile" accept="image/*" class="visually-hidden" />
+            <button class="btn-outline" id="selectLogoBtn">Choose</button>
+            <button id="uploadLogoBtn">Upload</button>
+        </div>
+    </div>
+
+    <!-- QR Code Generator -->
+    <div class="card">
+        <h3>📱 QR Menu</h3>
+        <button id="qrBtn">Generate QR Code</button>
+        <div id="qrContainer" style="margin-top:1rem; text-align:center;">
+            <div id="qrcode"></div>
+            <div id="qrLinkDisplay" style="font-size:0.8rem; word-break:break-all; opacity:0.7; margin-top:0.5rem;"></div>
+        </div>
+    </div>
+
+    <!-- Smart Menu Builder (Camera / Gallery) -->
+    <div class="card">
+        <h3>📸 Smart Menu Builder</h3>
+        <p class="note">Snap a photo or pick one from your gallery – we'll read the items and prices.</p>
+        <div class="image-actions" style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+            <button class="btn-outline" id="openCameraBtn">📷 Camera</button>
+            <button class="btn-outline" id="openGalleryBtn">🖼️ Gallery</button>
+        </div>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" class="visually-hidden" />
+        <input type="file" id="galleryInput" accept="image/*" class="visually-hidden" />
+        <img id="imagePreview" alt="Selected menu" style="max-width:100%; max-height:300px; border-radius:12px; margin:1rem 0; display:none;" />
+        <button id="scanBtn" style="display:none;">🔍 Scan & Extract</button>
+        <div id="scanResult"></div>
+        <div id="ocrProgress" style="display:none; margin-top:1rem;">
+            <progress id="ocrBar" value="0" max="100" style="width:100%;"></progress>
+            <p id="ocrStatus">Recognizing text...</p>
+        </div>
+        <div id="categoryAssign" style="display:none; margin-top:1rem;">
+            <label>Assign all items to category:</label>
+            <input type="text" id="globalCategory" placeholder="e.g., Coffee" />
+            <button id="addAllBtn">Add All to Menu</button>
+        </div>
+    </div>
+
+    <!-- Bulk Paste -->
+    <div class="card">
+        <h3>📋 Paste Multiple Items</h3>
+        <p class="note">Format: <code>Item name,Price,Category</code> (one per line)</p>
+        <textarea id="bulkTextarea" rows="4" placeholder="Latte,150,Coffee&#10;Croissant,90,Pastry&#10;..."></textarea>
+        <button id="bulkAddBtn">Add All Items</button>
+        <p id="bulkMessage" class="note"></p>
+    </div>
+
+    <!-- Add/Edit Single Item (with Variants) -->
+    <div class="card">
+        <h3>✏️ Single Item (edit)</h3>
         <form id="menuForm">
             <input type="hidden" id="editId" />
             <div class="form-group"><label>Name</label><input type="text" id="itemName" required /></div>
@@ -60,15 +146,15 @@
             <div class="form-group"><label>Variants (e.g., Small=150|Large=250)</label>
                 <div id="variantsContainer">
                     <div class="variant-row">
-                        <input type="text" placeholder="Variant name (e.g., Small)" class="vname" />
-                        <input type="number" placeholder="Price" step="0.01" class="vprice" />
+                        <input type="text" class="vname" placeholder="Variant name (e.g., Small)" />
+                        <input type="number" class="vprice" step="0.01" placeholder="Price" />
                     </div>
                 </div>
                 <button type="button" id="addVariantBtn" class="btn-outline">+ Add Variant</button>
                 <p class="note" style="font-size:0.8rem; opacity:0.6;">Leave variants empty if item has single price.</p>
             </div>
             <div class="form-group"><label>Image (optional)</label><input type="file" id="itemImage" accept="image/*" class="visually-hidden" /></div>
-            <button type="submit" class="btn-primary" id="saveItemBtn">Add Item</button>
+            <button type="submit" id="saveItemBtn">Add Item</button>
         </form>
     </div>
 
@@ -78,9 +164,10 @@
         <div id="menuList"></div>
     </div>
 
-    <footer>Cafe Boss © 2026</footer>
+    <footer style="text-align:center; margin-top:2rem; opacity:0.5;">Cafe Boss © 2026</footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script type="module">
         const SUPABASE_URL = 'https://phunzwqocgtgnpsgvsyv.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBodW56d3FvY2d0Z25wc2d2c3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MTQ2ODIsImV4cCI6MjA5NDA5MDY4Mn0.gWJ_NORZxMWz0EPJ425gDZew7MJUxWdo6L67snAE0dI';
@@ -108,29 +195,257 @@
                 return;
             }
 
-            // Subscription, settings, logo, QR code – unchanged, same as earlier (abbreviated for brevity)
+            // ---------- Subscription logic ----------
+            const subStatus = document.getElementById('subStatus');
+            const subAction = document.getElementById('subAction');
+            const showUpiQRBtn = document.getElementById('showUpiQRBtn');
+            const upiQRContainer = document.getElementById('upiQRContainer');
+            const upiQR = document.getElementById('upiQR');
+            const txnInput = document.getElementById('txnInput');
+            const txnId = document.getElementById('txnId');
+            const submitTxnBtn = document.getElementById('submitTxnBtn');
+            const txnMessage = document.getElementById('txnMessage');
 
-            // Variant management
-            const variantsContainer = document.getElementById('variantsContainer');
-            let variantRowsCount = 1;
+            const loadSubscription = async () => {
+                const { data: sub, error } = await client.from('subscriptions').select('*').eq('owner_id', user.id).single();
+                if (error) { subStatus.innerHTML = '<p>Error loading subscription</p>'; return; }
+                const now = new Date();
+                const trialEnd = sub.trial_ends_at ? new Date(sub.trial_ends_at) : null;
+                const paidUntil = sub.paid_until ? new Date(sub.paid_until) : null;
+                if (paidUntil && paidUntil > now) {
+                    const daysLeft = Math.ceil((paidUntil - now) / (1000 * 60 * 60 * 24));
+                    subStatus.innerHTML = `<p>✅ Active until <strong>${paidUntil.toLocaleDateString()}</strong> (${daysLeft} day${daysLeft>1?'s':''} left)</p>`;
+                    subAction.style.display = 'none';
+                } else if (trialEnd && trialEnd > now) {
+                    const daysLeft = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
+                    subStatus.innerHTML = `<p>🆓 Free trial: <strong>${daysLeft} day${daysLeft>1?'s':''} remaining</strong></p>`;
+                    subAction.style.display = 'block';
+                    showUpiQRBtn.textContent = 'Subscribe Now (₹200/month)';
+                } else {
+                    subStatus.innerHTML = '<p>❌ Trial expired. Please subscribe.</p>';
+                    subAction.style.display = 'block';
+                    showUpiQRBtn.textContent = 'Renew Subscription (₹200/month)';
+                }
+            };
+            await loadSubscription();
 
-            document.getElementById('addVariantBtn').addEventListener('click', () => {
-                const row = document.createElement('div');
-                row.className = 'variant-row';
-                row.innerHTML = `
-                    <input type="text" placeholder="Variant name" class="vname" />
-                    <input type="number" placeholder="Price" step="0.01" class="vprice" />
-                    <button type="button" class="btn-danger remove-variant-btn">✕</button>
-                `;
-                variantsContainer.appendChild(row);
-                variantRowsCount++;
-                row.querySelector('.remove-variant-btn').addEventListener('click', () => {
-                    row.remove();
-                    variantRowsCount--;
-                });
+            showUpiQRBtn.addEventListener('click', () => {
+                const amount = '200.00';
+                const note = `SUB_${user.id.substring(0,8)}`;
+                const upiLink = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=CafeBoss&am=${amount}&tn=${encodeURIComponent(note)}`;
+                upiQR.innerHTML = '';
+                new QRCode(upiQR, { text: upiLink, width: 160, height: 160, colorDark: '#000', colorLight: '#fff' });
+                upiQRContainer.style.display = 'block';
+                txnInput.style.display = 'block';
             });
 
-            // Load items
+            submitTxnBtn.addEventListener('click', async () => {
+                const txn = txnId.value.trim();
+                if (!txn) { txnMessage.textContent = 'Please enter the transaction ID.'; return; }
+                const { error } = await client.from('payment_requests').insert({
+                    owner_id: user.id,
+                    amount: 200.00,
+                    upi_transaction_id: txn,
+                    status: 'pending'
+                });
+                if (error) txnMessage.textContent = 'Error: ' + error.message;
+                else {
+                    txnMessage.textContent = 'Transaction ID submitted!';
+                    txnId.value = '';
+                    setTimeout(() => { txnInput.style.display = 'none'; }, 2000);
+                }
+            });
+
+            // ---------- Settings ----------
+            const cafeNameInp = document.getElementById('cafeName');
+            const whatsappInp = document.getElementById('whatsapp');
+            const descInp = document.getElementById('description');
+            const primaryColorInp = document.getElementById('primaryColor');
+            const accentColorInp = document.getElementById('accentColor');
+            const logoPreview = document.getElementById('logoPreview');
+
+            cafeNameInp.value = cafe.cafe_name || '';
+            whatsappInp.value = cafe.whatsapp || '';
+            descInp.value = cafe.description || '';
+            primaryColorInp.value = cafe.primary_color || '#FF6B35';
+            accentColorInp.value = cafe.accent_color || '#2F3E46';
+            if (cafe.logo_url) {
+                logoPreview.src = cafe.logo_url;
+                logoPreview.style.display = 'block';
+            }
+
+            document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+                const updates = {
+                    cafe_name: cafeNameInp.value,
+                    whatsapp: whatsappInp.value.replace(/\D/g, ''),
+                    description: descInp.value,
+                    primary_color: primaryColorInp.value,
+                    accent_color: accentColorInp.value,
+                };
+                const { error } = await client.from('cafes').update(updates).eq('owner_id', user.id);
+                if (error) alert('Error: ' + error.message);
+                else alert('Settings saved!');
+            });
+
+            // Logo upload
+            document.getElementById('selectLogoBtn').addEventListener('click', () => document.getElementById('logoFile').click());
+            document.getElementById('uploadLogoBtn').addEventListener('click', async () => {
+                const file = document.getElementById('logoFile').files[0];
+                if (!file) return alert('Choose an image first');
+                const path = `${user.id}/logos/${Date.now()}_${file.name}`;
+                const { error } = await client.storage.from('menu-items').upload(path, file);
+                if (error) return alert('Upload failed: ' + error.message);
+                const { data: { publicUrl } } = client.storage.from('menu-items').getPublicUrl(path);
+                await client.from('cafes').update({ logo_url: publicUrl }).eq('owner_id', user.id);
+                logoPreview.src = publicUrl;
+                logoPreview.style.display = 'block';
+                alert('Logo updated!');
+            });
+
+            // QR code generation (hardcoded correct URL)
+            document.getElementById('qrBtn').addEventListener('click', () => {
+                const menuUrl = BASE_URL + cafe.id;
+                document.getElementById('qrcode').innerHTML = '';
+                new QRCode(document.getElementById('qrcode'), {
+                    text: menuUrl,
+                    width: 150,
+                    height: 150,
+                    colorDark: '#2F3E46',
+                    colorLight: '#ffffff',
+                });
+                document.getElementById('qrLinkDisplay').textContent = menuUrl;
+                navigator.clipboard.writeText(menuUrl).then(() => alert('Menu link copied!')).catch(() => {});
+            });
+
+            // ---------- Smart Menu Builder ----------
+            const cameraInput = document.getElementById('cameraInput');
+            const galleryInput = document.getElementById('galleryInput');
+            const imagePreview = document.getElementById('imagePreview');
+            const scanBtn = document.getElementById('scanBtn');
+            const ocrProgress = document.getElementById('ocrProgress');
+            const ocrBar = document.getElementById('ocrBar');
+            const ocrStatus = document.getElementById('ocrStatus');
+            const scanResult = document.getElementById('scanResult');
+            const categoryAssign = document.getElementById('categoryAssign');
+            const globalCategory = document.getElementById('globalCategory');
+            const addAllBtn = document.getElementById('addAllBtn');
+            let extractedItems = [];
+
+            function handleImageSelection(file) {
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    imagePreview.src = ev.target.result;
+                    imagePreview.style.display = 'block';
+                    scanBtn.style.display = 'inline-block';
+                    extractedItems = [];
+                    scanResult.innerHTML = '';
+                    categoryAssign.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            document.getElementById('openCameraBtn').addEventListener('click', () => cameraInput.click());
+            document.getElementById('openGalleryBtn').addEventListener('click', () => galleryInput.click());
+            cameraInput.addEventListener('change', e => { if (e.target.files[0]) handleImageSelection(e.target.files[0]); });
+            galleryInput.addEventListener('change', e => { if (e.target.files[0]) handleImageSelection(e.target.files[0]); });
+
+            scanBtn.addEventListener('click', async () => {
+                if (!imagePreview.src) return;
+                scanBtn.disabled = true;
+                ocrProgress.style.display = 'block';
+                ocrBar.value = 0;
+                ocrStatus.textContent = 'Recognizing text...';
+                try {
+                    const { data: { text } } = await Tesseract.recognize(imagePreview.src, 'eng', {
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                ocrBar.value = Math.round(m.progress * 100);
+                                ocrStatus.textContent = `Recognizing... ${Math.round(m.progress * 100)}%`;
+                            }
+                        }
+                    });
+                    const lines = text.split('\n').filter(l => l.trim());
+                    extractedItems = lines.map(line => {
+                        const m = line.match(/(.*[^\d₹])\s*[₹]?(\d+\.?\d*)\s*$/);
+                        return m ? { name: m[1].trim(), price: m[2] } : { name: line.trim(), price: '' };
+                    });
+                    displayExtractedItems();
+                    categoryAssign.style.display = 'block';
+                } catch (err) {
+                    alert('OCR failed: ' + err.message);
+                } finally {
+                    ocrProgress.style.display = 'none';
+                    scanBtn.disabled = false;
+                }
+            });
+
+            function displayExtractedItems() {
+                scanResult.innerHTML = '';
+                extractedItems.forEach((item, idx) => {
+                    const div = document.createElement('div');
+                    div.style.cssText = 'display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;';
+                    div.innerHTML = `
+                        <input type="text" class="item-name-edit" value="${item.name}" style="flex:2" />
+                        <input type="number" class="item-price-edit" step="0.01" value="${item.price}" style="flex:1" />
+                        <button class="btn-danger remove-extracted-btn" data-index="${idx}">✕</button>
+                    `;
+                    scanResult.appendChild(div);
+                });
+                document.querySelectorAll('.item-name-edit').forEach((inp, i) => inp.addEventListener('input', e => extractedItems[i].name = e.target.value));
+                document.querySelectorAll('.item-price-edit').forEach((inp, i) => inp.addEventListener('input', e => extractedItems[i].price = e.target.value));
+                document.querySelectorAll('.remove-extracted-btn').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const idx = +e.target.dataset.index;
+                        extractedItems.splice(idx, 1);
+                        displayExtractedItems();
+                        if (!extractedItems.length) categoryAssign.style.display = 'none';
+                    });
+                });
+            }
+
+            addAllBtn.addEventListener('click', async () => {
+                const cat = globalCategory.value.trim() || 'Uncategorized';
+                const items = extractedItems.filter(i => i.name && !isNaN(parseFloat(i.price))).map(i => ({
+                    cafe_id: cafe.id, name: i.name, price: parseFloat(i.price), category: cat, description: '', available: true
+                }));
+                if (!items.length) return alert('No valid items.');
+                const { error } = await client.from('menu_items').insert(items);
+                if (error) alert('Error: ' + error.message);
+                else {
+                    alert(`Added ${items.length} items!`);
+                    extractedItems = [];
+                    scanResult.innerHTML = '';
+                    categoryAssign.style.display = 'none';
+                    imagePreview.style.display = 'none';
+                    scanBtn.style.display = 'none';
+                    cameraInput.value = galleryInput.value = '';
+                    loadItems();
+                }
+            });
+
+            // Bulk paste
+            document.getElementById('bulkAddBtn').addEventListener('click', async () => {
+                const raw = document.getElementById('bulkTextarea').value.trim();
+                if (!raw) return;
+                const lines = raw.split('\n').filter(l => l.trim());
+                const items = [];
+                for (const line of lines) {
+                    const [name, price, category] = line.split(',').map(s => s.trim());
+                    if (!name || isNaN(parseFloat(price))) continue;
+                    items.push({ cafe_id: cafe.id, name, price: parseFloat(price), category: category || 'Uncategorized', description: '', available: true });
+                }
+                if (!items.length) return document.getElementById('bulkMessage').textContent = 'No valid items.';
+                const { error } = await client.from('menu_items').insert(items);
+                if (error) document.getElementById('bulkMessage').textContent = 'Error: ' + error.message;
+                else {
+                    document.getElementById('bulkMessage').textContent = `Added ${items.length} items!`;
+                    document.getElementById('bulkTextarea').value = '';
+                    loadItems();
+                }
+            });
+
+            // ---------- Menu items loading & variant editing ----------
             const loadItems = async () => {
                 const { data, error } = await client.from('menu_items').select('*').eq('cafe_id', cafe.id).order('created_at');
                 if (error) return;
@@ -138,17 +453,21 @@
                 menuList.innerHTML = '';
                 data.forEach(item => {
                     const hasVariants = item.description && item.description.startsWith('VAR::');
-                    let displayVariants = '';
+                    let variantsDisplay = '';
                     if (hasVariants) {
                         const vStr = item.description.replace('VAR::', '');
                         const pairs = vStr.split('|');
-                        displayVariants = ' (' + pairs.map(p => p.split('=')[0] + ' ₹' + p.split('=')[1]).join(', ') + ')';
+                        variantsDisplay = ' (' + pairs.map(p => {
+                            const [n, pr] = p.split('=');
+                            return `${n} ₹${pr}`;
+                        }).join(', ') + ')';
                     }
                     const div = document.createElement('div');
                     div.className = 'menu-item';
-                    div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.padding = '0.5rem 0';
                     div.innerHTML = `
-                        <div><strong>${item.name}</strong> ${hasVariants ? displayVariants : '· ₹' + item.price} (${item.category})</div>
+                        <div>
+                            <strong>${item.name}</strong> ${hasVariants ? variantsDisplay : '· ₹' + item.price} (${item.category})
+                        </div>
                         <div>
                             <button class="toggle-avail ${item.available ? 'available' : ''}" data-id="${item.id}" data-avail="${item.available}">${item.available ? 'On' : 'Off'}</button>
                             <button class="edit-btn" data-id="${item.id}">Edit</button>
@@ -164,8 +483,8 @@
                 document.querySelectorAll('.toggle-avail').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const id = e.target.dataset.id;
-                        const current = e.target.dataset.avail === 'true';
-                        await client.from('menu_items').update({ available: !current }).eq('id', id);
+                        const avail = e.target.dataset.avail === 'true';
+                        await client.from('menu_items').update({ available: !avail }).eq('id', id);
                         loadItems();
                     });
                 });
@@ -181,45 +500,54 @@
                     btn.addEventListener('click', async (e) => {
                         const id = e.target.dataset.id;
                         const { data } = await client.from('menu_items').select('*').eq('id', id).single();
-                        if (data) {
-                            document.getElementById('editId').value = data.id;
-                            document.getElementById('itemName').value = data.name;
-                            document.getElementById('itemDesc').value = data.description && !data.description.startsWith('VAR::') ? data.description : '';
-                            document.getElementById('itemPrice').value = data.price;
-                            document.getElementById('itemCategory').value = data.category;
-
-                            // Clear existing variant rows
-                            variantsContainer.innerHTML = '';
-                            if (data.description && data.description.startsWith('VAR::')) {
-                                const vStr = data.description.replace('VAR::', '');
-                                const pairs = vStr.split('|');
-                                pairs.forEach(p => {
-                                    const [name, price] = p.split('=');
-                                    const row = document.createElement('div');
-                                    row.className = 'variant-row';
-                                    row.innerHTML = `
-                                        <input type="text" class="vname" value="${name}" />
-                                        <input type="number" class="vprice" step="0.01" value="${price}" />
-                                        <button type="button" class="btn-danger remove-variant-btn">✕</button>
-                                    `;
-                                    variantsContainer.appendChild(row);
-                                    row.querySelector('.remove-variant-btn').addEventListener('click', () => row.remove());
-                                });
-                            } else {
-                                // default single row
+                        if (!data) return;
+                        document.getElementById('editId').value = data.id;
+                        document.getElementById('itemName').value = data.name;
+                        document.getElementById('itemDesc').value = data.description && !data.description.startsWith('VAR::') ? data.description : '';
+                        document.getElementById('itemPrice').value = data.price;
+                        document.getElementById('itemCategory').value = data.category;
+                        // Populate variants
+                        const container = document.getElementById('variantsContainer');
+                        container.innerHTML = '';
+                        if (data.description && data.description.startsWith('VAR::')) {
+                            const vStr = data.description.replace('VAR::', '');
+                            vStr.split('|').forEach(p => {
+                                const [name, price] = p.split('=');
                                 const row = document.createElement('div');
                                 row.className = 'variant-row';
-                                row.innerHTML = `<input type="text" class="vname" placeholder="Variant name" />
-                                                  <input type="number" class="vprice" step="0.01" placeholder="Price" />`;
-                                variantsContainer.appendChild(row);
-                            }
-                            document.getElementById('saveItemBtn').textContent = 'Update Item';
+                                row.innerHTML = `
+                                    <input type="text" class="vname" value="${name}" />
+                                    <input type="number" class="vprice" step="0.01" value="${price}" />
+                                    <button type="button" class="btn-danger remove-variant-btn">✕</button>
+                                `;
+                                container.appendChild(row);
+                                row.querySelector('.remove-variant-btn').addEventListener('click', () => row.remove());
+                            });
+                        } else {
+                            // default empty row
+                            const row = document.createElement('div');
+                            row.className = 'variant-row';
+                            row.innerHTML = `<input type="text" class="vname" placeholder="Variant name" /><input type="number" class="vprice" step="0.01" placeholder="Price" />`;
+                            container.appendChild(row);
                         }
+                        document.getElementById('saveItemBtn').textContent = 'Update Item';
                     });
                 });
             }
 
-            // Save item (handles variants)
+            document.getElementById('addVariantBtn').addEventListener('click', () => {
+                const container = document.getElementById('variantsContainer');
+                const row = document.createElement('div');
+                row.className = 'variant-row';
+                row.innerHTML = `
+                    <input type="text" class="vname" placeholder="Variant name" />
+                    <input type="number" class="vprice" step="0.01" placeholder="Price" />
+                    <button type="button" class="btn-danger remove-variant-btn">✕</button>
+                `;
+                container.appendChild(row);
+                row.querySelector('.remove-variant-btn').addEventListener('click', () => row.remove());
+            });
+
             document.getElementById('menuForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const id = document.getElementById('editId').value;
@@ -228,26 +556,21 @@
                 const price = parseFloat(document.getElementById('itemPrice').value);
                 const category = document.getElementById('itemCategory').value;
 
-                // Collect variants
                 const vNames = Array.from(document.querySelectorAll('.vname')).map(inp => inp.value.trim());
                 const vPrices = Array.from(document.querySelectorAll('.vprice')).map(inp => inp.value.trim());
                 let variantString = '';
-                const variants = [];
                 for (let i = 0; i < vNames.length; i++) {
                     if (vNames[i] && vPrices[i] && !isNaN(parseFloat(vPrices[i]))) {
-                        variants.push({ name: vNames[i], price: parseFloat(vPrices[i]) });
                         variantString += (variantString ? '|' : '') + `${vNames[i]}=${vPrices[i]}`;
                     }
                 }
-
-                // Store variants in description field as "VAR::..." if any
-                const description = variants.length > 0 ? 'VAR::' + variantString : descPlain;
+                const description = variantString ? 'VAR::' + variantString : descPlain;
 
                 const payload = {
                     cafe_id: cafe.id,
                     name,
                     description,
-                    price: variants.length > 0 ? 0 : price,  // set primary price to 0 if variants present (menu will use variant prices)
+                    price: variantString ? 0 : price,
                     category,
                 };
 
@@ -270,18 +593,18 @@
                     document.getElementById('itemDesc').value = '';
                     document.getElementById('itemPrice').value = '';
                     document.getElementById('itemCategory').value = '';
-                    variantsContainer.innerHTML = `<div class="variant-row"><input type="text" class="vname" placeholder="Variant name" /><input type="number" class="vprice" step="0.01" placeholder="Price" /></div>`;
+                    document.getElementById('variantsContainer').innerHTML = '<div class="variant-row"><input type="text" class="vname" placeholder="Variant name" /><input type="number" class="vprice" step="0.01" placeholder="Price" /></div>';
                     document.getElementById('saveItemBtn').textContent = 'Add Item';
                     loadItems();
                 }
             });
 
-            // Initial load
-            loadItems();
+            await loadItems();
 
-            // Subscription, settings, logo, QR, etc. – assume present and working; omitted for brevity but included in actual file.
-            // In the real file, all previous blocks (subscription logic, settings save, logo upload, QR generation) are present.
-            // I'll include their complete code below (but not restate here for length – in final answer I'll ensure everything is there).
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                await client.auth.signOut();
+                window.location.href = 'index.html';
+            });
         }
     </script>
 </body>
