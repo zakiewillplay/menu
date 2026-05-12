@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Cafe Boss - Admin</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #1a1c1d;
+            color: #f0f0f0;
+            padding: 1.5rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        h1 { color: #FF6B35; margin-bottom: 1.5rem; }
+        .card {
+            background: #2a2a2c;
+            border-radius: 16px;
+            padding: 1.3rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.7rem 0.5rem; text-align: left; border-bottom: 1px solid #444; }
+        th { color: #FF6B35; font-weight: 600; }
+        .approve-btn {
+            background: #FF6B35;
+            color: white;
+            border: none;
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .approve-btn:active { transform: scale(0.95); }
+        .logout {
+            background: none;
+            border: 1px solid #FF6B35;
+            color: #FF6B35;
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            float: right;
+            margin-bottom: 1rem;
+        }
+        .empty { text-align: center; opacity: 0.6; padding: 2rem; }
+    </style>
+</head>
+<body>
+    <button class="logout" id="logoutBtn">Logout</button>
+    <h1>🔑 Payment Approvals</h1>
+    <div id="requestsContainer">
+        <p class="empty">Loading pending requests...</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        // ======================= YOUR SUPABASE CREDENTIALS =======================
+        const SUPABASE_URL = 'https://phunzwqocgtgnpsgvsyv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBodW56d3FvY2d0Z25wc2d2c3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MTQ2ODIsImV4cCI6MjA5NDA5MDY4Mn0.gWJ_NORZxMWz0EPJ425gDZew7MJUxWdo6L67snAE0dI';
+
+        // ======================= YOUR ADMIN UUID (ALREADY SET) =======================
+        const ADMIN_UID = '19ca445a-16bd-44f0-962d-a7982d7d15de';
+
+        const init = () => {
+            if (typeof supabase === 'undefined') { setTimeout(init, 100); return; }
+            window.client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            main();
+        };
+        init();
+
+        async function main() {
+            const client = window.client;
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) {
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            // Only the admin user can see this page
+            if (session.user.id !== ADMIN_UID) {
+                document.body.innerHTML = '<h2 style="text-align:center;margin-top:4rem;">⛔ Access denied</h2>';
+                return;
+            }
+
+            const container = document.getElementById('requestsContainer');
+
+            // Load and display pending requests
+            const loadRequests = async () => {
+                container.innerHTML = '<p class="empty">Loading...</p>';
+                const { data, error } = await client.from('payment_requests')
+                    .select('*')
+                    .eq('status', 'pending')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    container.innerHTML = `<p class="empty">Error: ${error.message}</p>`;
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p class="empty">✅ No pending requests – you’re all caught up.</p>';
+                    return;
+                }
+
+                let html = `<table>
+                    <tr>
+                        <th>User (ID)</th>
+                        <th>Transaction ID</th>
+                        <th>Amount</th>
+                        <th></th>
+                    </tr>`;
+
+                data.forEach(req => {
+                    html += `<tr>
+                        <td><small>${req.owner_id.substring(0,8)}</small></td>
+                        <td><strong>${req.upi_transaction_id}</strong></td>
+                        <td>₹${req.amount}</td>
+                        <td><button class="approve-btn" data-id="${req.id}" data-owner="${req.owner_id}">Approve</button></td>
+                    </tr>`;
+                });
+                html += '</table>';
+                container.innerHTML = html;
+
+                // Attach approve event listeners
+                document.querySelectorAll('.approve-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const reqId = e.target.dataset.id;
+                        const ownerId = e.target.dataset.owner;
+                        btn.disabled = true;
+                        btn.textContent = 'Working...';
+
+                        // 1. Mark request as approved
+                        const { error: updateReq } = await client.from('payment_requests')
+                            .update({ status: 'approved' })
+                            .eq('id', reqId);
+                        if (updateReq) {
+                            alert('Error approving request: ' + updateReq.message);
+                            btn.disabled = false;
+                            btn.textContent = 'Approve';
+                            return;
+                        }
+
+                        // 2. Extend subscription by 1 month from now
+                        const now = new Date();
+                        const paidUntil = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
+                        const { error: updateSub } = await client.from('subscriptions')
+                            .update({
+                                status: 'active',
+                                paid_until: paidUntil.toISOString()
+                            })
+                            .eq('owner_id', ownerId);
+                        if (updateSub) {
+                            alert('Error updating subscription: ' + updateSub.message);
+                            btn.disabled = false;
+                            btn.textContent = 'Approve';
+                            return;
+                        }
+
+                        alert('✅ Approved! Subscription extended for 1 month.');
+                        loadRequests();
+                    });
+                });
+            };
+
+            await loadRequests();
+
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                await client.auth.signOut();
+                window.location.href = 'index.html';
+            });
+        }
+    </script>
+</body>
+</html>
