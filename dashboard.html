@@ -4,7 +4,7 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Cafe Boss - Dashboard</title>
-    <!-- QRCode library for both menu QR and UPI payment QR -->
+    <!-- QRCode library for menu QR and UPI QR -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
@@ -99,9 +99,14 @@
             display: none;
         }
         .logo-upload { display: flex; align-items: center; gap: 1rem; }
-        #qrContainer { margin-top: 1rem; text-align: center; }
-        /* UPI QR code container */
-        #upiQR { display: inline-block; padding: 0.8rem; background: white; border-radius: 12px; margin-top: 0.8rem; }
+        #qrContainer, #upiQRContainer { margin-top: 1rem; text-align: center; }
+        #qrcode, #upiQR {
+            display: inline-block;
+            padding: 0.8rem;
+            background: white;
+            border-radius: 12px;
+            margin-top: 0.5rem;
+        }
         #qrLinkDisplay { font-size: 0.8rem; word-break: break-all; opacity: 0.7; margin-top: 0.5rem; }
         .menu-item {
             display: flex;
@@ -142,16 +147,15 @@
         <button class="btn-logout" id="logoutBtn">Logout</button>
     </header>
 
-    <!-- Subscription Card – NOW WITH QR CODE -->
+    <!-- Subscription Card (UPI QR + Transaction ID) -->
     <div class="card" id="subscriptionCard">
         <h3>💳 Subscription</h3>
         <div id="subStatus"><p>Loading...</p></div>
         <div id="subAction" style="display:none;">
             <button class="btn-primary" id="showUpiQRBtn">Show UPI QR Code (₹200/month)</button>
             <div id="upiQRContainer" style="display:none; text-align:center; margin-top:1rem;">
-                <!-- The QR code will be injected here -->
                 <div id="upiQR"></div>
-                <p class="note" style="margin-top:0.5rem;">Scan this QR with any UPI app to pay ₹200</p>
+                <p class="note">Scan this QR with any UPI app to pay ₹200</p>
             </div>
         </div>
         <div id="txnInput" style="display:none; margin-top:1rem;">
@@ -184,14 +188,17 @@
         </div>
     </div>
 
-    <!-- QR -->
+    <!-- Menu QR Code (fixed) -->
     <div class="card">
         <h3>📱 QR Menu</h3>
         <button class="btn-primary" id="qrBtn">Generate QR Code</button>
-        <div id="qrContainer"><div id="qrcode"></div><div id="qrLinkDisplay"></div></div>
+        <div id="qrContainer">
+            <div id="qrcode"></div>
+            <div id="qrLinkDisplay"></div>
+        </div>
     </div>
 
-    <!-- SMART MENU BUILDER -->
+    <!-- SMART MENU BUILDER (camera + gallery + OCR) -->
     <div class="card">
         <h3>📸 Smart Menu Builder</h3>
         <p class="note">Snap a photo or pick one from your gallery – we'll read the items and prices.</p>
@@ -307,7 +314,6 @@
                     subStatus.innerHTML = `<p>🆓 Free trial: <strong>${daysLeft} day${daysLeft>1?'s':''} remaining</strong></p>`;
                     subAction.style.display = 'block';
                     showUpiQRBtn.textContent = 'Subscribe Now (₹200/month)';
-                    // Reset QR & txn input
                     upiQRContainer.style.display = 'none';
                     upiQR.innerHTML = '';
                     txnInput.style.display = 'none';
@@ -322,15 +328,13 @@
             };
             await loadSubscription();
 
-            // Show UPI QR code
+            // Show UPI QR code with unique payment link
             showUpiQRBtn.addEventListener('click', () => {
                 const amount = '200.00';
                 const note = `SUB_${user.id.substring(0, 8)}`;
                 const upiLink = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=CafeBoss&am=${amount}&tn=${encodeURIComponent(note)}`;
 
-                // Clear previous QR
                 upiQR.innerHTML = '';
-                // Generate QR code
                 new QRCode(upiQR, {
                     text: upiLink,
                     width: 160,
@@ -376,7 +380,7 @@
             const itemDesc = document.getElementById('itemDesc');
             const itemPrice = document.getElementById('itemPrice');
             const itemCategory = document.getElementById('itemCategory');
-            const qrContainer = document.getElementById('qrcode');
+            const qrContainerEl = document.getElementById('qrcode'); // different from upiQR
             const qrLinkDisplay = document.getElementById('qrLinkDisplay');
             const bulkTextarea = document.getElementById('bulkTextarea');
             const bulkMessage = document.getElementById('bulkMessage');
@@ -404,6 +408,7 @@
                 else alert('Settings saved!');
             });
 
+            // Logo upload
             document.getElementById('selectLogoBtn').addEventListener('click', () => document.getElementById('logoFile').click());
             document.getElementById('uploadLogoBtn').addEventListener('click', async () => {
                 const file = document.getElementById('logoFile').files[0];
@@ -418,10 +423,11 @@
                 alert('Logo updated!');
             });
 
+            // ----- FIXED MENU QR CODE GENERATION -----
             document.getElementById('qrBtn').addEventListener('click', () => {
                 const menuUrl = window.location.href.replace(/dashboard\.html.*/, 'menu.html?id=' + cafe.id);
-                qrContainer.innerHTML = '';
-                new QRCode(qrContainer, {
+                qrContainerEl.innerHTML = '';
+                new QRCode(qrContainerEl, {
                     text: menuUrl,
                     width: 150,
                     height: 150,
@@ -432,9 +438,7 @@
                 navigator.clipboard.writeText(menuUrl).then(() => alert('Link copied!')).catch(() => {});
             });
 
-            // ... [All other sections – Smart Menu Builder, Bulk Paste, Load Items, etc. – remain exactly the same as in the previous complete dashboard. I'll include them below for completeness.]
-
-            // Smart Menu Builder
+            // Smart Menu Builder logic (unchanged, included for completeness)
             const cameraInput = document.getElementById('cameraInput');
             const galleryInput = document.getElementById('galleryInput');
             const imagePreview = document.getElementById('imagePreview');
@@ -466,12 +470,8 @@
             document.getElementById('openCameraBtn').addEventListener('click', () => cameraInput.click());
             document.getElementById('openGalleryBtn').addEventListener('click', () => galleryInput.click());
 
-            cameraInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) handleImageSelection(e.target.files[0]);
-            });
-            galleryInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) handleImageSelection(e.target.files[0]);
-            });
+            cameraInput.addEventListener('change', (e) => { if (e.target.files[0]) handleImageSelection(e.target.files[0]); });
+            galleryInput.addEventListener('change', (e) => { if (e.target.files[0]) handleImageSelection(e.target.files[0]); });
 
             scanBtn.addEventListener('click', async () => {
                 if (!imagePreview.src) return;
@@ -493,10 +493,7 @@
                     lines.forEach(line => {
                         const priceMatch = line.match(/(.*[^\d₹])\s*[₹]?(\d+\.?\d*)\s*$/);
                         if (priceMatch) {
-                            extractedItems.push({
-                                name: priceMatch[1].trim(),
-                                price: parseFloat(priceMatch[2]).toFixed(2)
-                            });
+                            extractedItems.push({ name: priceMatch[1].trim(), price: parseFloat(priceMatch[2]).toFixed(2) });
                         } else {
                             extractedItems.push({ name: line.trim(), price: '' });
                         }
@@ -515,10 +512,7 @@
                 scanResult.innerHTML = '';
                 extractedItems.forEach((item, idx) => {
                     const div = document.createElement('div');
-                    div.style.display = 'flex';
-                    div.style.alignItems = 'center';
-                    div.style.gap = '0.5rem';
-                    div.style.marginBottom = '0.5rem';
+                    div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '0.5rem'; div.style.marginBottom = '0.5rem';
                     div.innerHTML = `
                         <input type="text" class="item-name-edit" value="${item.name}" placeholder="Name" style="flex:2" />
                         <input type="number" class="item-price-edit" step="0.01" value="${item.price}" placeholder="₹" style="flex:1" />
@@ -526,12 +520,8 @@
                     `;
                     scanResult.appendChild(div);
                 });
-                document.querySelectorAll('.item-name-edit').forEach((inp, idx) => {
-                    inp.addEventListener('input', (e) => { extractedItems[idx].name = e.target.value; });
-                });
-                document.querySelectorAll('.item-price-edit').forEach((inp, idx) => {
-                    inp.addEventListener('input', (e) => { extractedItems[idx].price = e.target.value; });
-                });
+                document.querySelectorAll('.item-name-edit').forEach((inp, idx) => inp.addEventListener('input', (e) => { extractedItems[idx].name = e.target.value; }));
+                document.querySelectorAll('.item-price-edit').forEach((inp, idx) => inp.addEventListener('input', (e) => { extractedItems[idx].price = e.target.value; }));
                 document.querySelectorAll('.remove-extracted-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const index = parseInt(e.target.dataset.index);
@@ -544,32 +534,16 @@
 
             addAllBtn.addEventListener('click', async () => {
                 const category = globalCategory.value.trim() || 'Uncategorized';
-                const itemsToInsert = extractedItems
-                    .filter(item => item.name.trim() !== '' && !isNaN(parseFloat(item.price)))
-                    .map(item => ({
-                        cafe_id: cafe.id,
-                        name: item.name,
-                        price: parseFloat(item.price),
-                        category: category,
-                        description: '',
-                        available: true
-                    }));
-                if (itemsToInsert.length === 0) {
-                    alert('No valid items (each needs name and price).');
-                    return;
-                }
+                const itemsToInsert = extractedItems.filter(item => item.name.trim() !== '' && !isNaN(parseFloat(item.price)))
+                    .map(item => ({ cafe_id: cafe.id, name: item.name, price: parseFloat(item.price), category, description: '', available: true }));
+                if (itemsToInsert.length === 0) { alert('No valid items.'); return; }
                 const { error } = await client.from('menu_items').insert(itemsToInsert);
-                if (error) {
-                    alert('Error: ' + error.message);
-                } else {
-                    alert(`Added ${itemsToInsert.length} items in "${category}"!`);
-                    extractedItems = [];
-                    scanResult.innerHTML = '';
-                    categoryAssign.style.display = 'none';
-                    imagePreview.style.display = 'none';
-                    scanBtn.style.display = 'none';
-                    cameraInput.value = '';
-                    galleryInput.value = '';
+                if (error) alert('Error: ' + error.message);
+                else {
+                    alert(`Added ${itemsToInsert.length} items!`);
+                    extractedItems = []; scanResult.innerHTML = ''; categoryAssign.style.display = 'none';
+                    imagePreview.style.display = 'none'; scanBtn.style.display = 'none';
+                    cameraInput.value = ''; galleryInput.value = '';
                     loadItems();
                 }
             });
@@ -587,23 +561,12 @@
                     const price = parseFloat(parts[1]);
                     const category = parts[2] || 'Uncategorized';
                     if (!name || isNaN(price)) continue;
-                    itemsToInsert.push({
-                        cafe_id: cafe.id,
-                        name,
-                        price,
-                        category,
-                        description: '',
-                        available: true
-                    });
+                    itemsToInsert.push({ cafe_id: cafe.id, name, price, category, description: '', available: true });
                 }
-                if (itemsToInsert.length === 0) {
-                    bulkMessage.textContent = 'No valid items. Use: Name,Price,Category';
-                    return;
-                }
+                if (itemsToInsert.length === 0) { bulkMessage.textContent = 'No valid items.'; return; }
                 const { error } = await client.from('menu_items').insert(itemsToInsert);
-                if (error) {
-                    bulkMessage.textContent = 'Error: ' + error.message;
-                } else {
+                if (error) bulkMessage.textContent = 'Error: ' + error.message;
+                else {
                     bulkMessage.textContent = `Added ${itemsToInsert.length} items!`;
                     bulkTextarea.value = '';
                     loadItems();
@@ -639,10 +602,7 @@
                     loadItems();
                 }
                 if (e.target.classList.contains('del-btn')) {
-                    if (confirm('Delete?')) {
-                        await client.from('menu_items').delete().eq('id', id);
-                        loadItems();
-                    }
+                    if (confirm('Delete?')) { await client.from('menu_items').delete().eq('id', id); loadItems(); }
                 }
                 if (e.target.classList.contains('edit-btn')) {
                     const { data } = await client.from('menu_items').select('*').eq('id', id).single();
@@ -675,9 +635,7 @@
                     const { data: { publicUrl } } = client.storage.from('menu-items').getPublicUrl(path);
                     payload.image_url = publicUrl;
                 }
-                const { error } = id
-                    ? await client.from('menu_items').update(payload).eq('id', id)
-                    : await client.from('menu_items').insert(payload);
+                const { error } = id ? await client.from('menu_items').update(payload).eq('id', id) : await client.from('menu_items').insert(payload);
                 if (error) alert('Error: ' + error.message);
                 else {
                     editId.value = '';
