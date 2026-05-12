@@ -4,6 +4,7 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Cafe Boss - Dashboard</title>
+    <!-- QRCode library for both menu QR and UPI payment QR -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
@@ -99,7 +100,8 @@
         }
         .logo-upload { display: flex; align-items: center; gap: 1rem; }
         #qrContainer { margin-top: 1rem; text-align: center; }
-        #qrcode { display: inline-block; padding: 0.8rem; background: white; border-radius: 12px; }
+        /* UPI QR code container */
+        #upiQR { display: inline-block; padding: 0.8rem; background: white; border-radius: 12px; margin-top: 0.8rem; }
         #qrLinkDisplay { font-size: 0.8rem; word-break: break-all; opacity: 0.7; margin-top: 0.5rem; }
         .menu-item {
             display: flex;
@@ -140,16 +142,20 @@
         <button class="btn-logout" id="logoutBtn">Logout</button>
     </header>
 
-    <!-- Subscription Card -->
+    <!-- Subscription Card – NOW WITH QR CODE -->
     <div class="card" id="subscriptionCard">
         <h3>💳 Subscription</h3>
         <div id="subStatus"><p>Loading...</p></div>
         <div id="subAction" style="display:none;">
-            <button class="btn-primary" id="subscribeBtn">Subscribe Now (₹200/month)</button>
-            <p class="note" id="upiNote" style="display:none;"></p>
+            <button class="btn-primary" id="showUpiQRBtn">Show UPI QR Code (₹200/month)</button>
+            <div id="upiQRContainer" style="display:none; text-align:center; margin-top:1rem;">
+                <!-- The QR code will be injected here -->
+                <div id="upiQR"></div>
+                <p class="note" style="margin-top:0.5rem;">Scan this QR with any UPI app to pay ₹200</p>
+            </div>
         </div>
         <div id="txnInput" style="display:none; margin-top:1rem;">
-            <label>Enter UPI Transaction ID:</label>
+            <label>After payment, enter the UPI Transaction ID:</label>
             <input type="text" id="txnId" placeholder="e.g., 1234567890" />
             <button class="btn-primary" id="submitTxnBtn">Submit for Verification</button>
             <p class="note" id="txnMessage"></p>
@@ -246,7 +252,7 @@
         const SUPABASE_URL = 'https://phunzwqocgtgnpsgvsyv.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBodW56d3FvY2d0Z25wc2d2c3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MTQ2ODIsImV4cCI6MjA5NDA5MDY4Mn0.gWJ_NORZxMWz0EPJ425gDZew7MJUxWdo6L67snAE0dI';
 
-        // ========== YOUR UPI ID – ALREADY SET ==========
+        // ========== YOUR UPI ID ==========
         const UPI_ID = '9103173043@omni';
 
         const init = () => {
@@ -273,12 +279,13 @@
             // ================== SUBSCRIPTION LOGIC ==================
             const subStatus = document.getElementById('subStatus');
             const subAction = document.getElementById('subAction');
-            const subscribeBtn = document.getElementById('subscribeBtn');
+            const showUpiQRBtn = document.getElementById('showUpiQRBtn');
+            const upiQRContainer = document.getElementById('upiQRContainer');
+            const upiQR = document.getElementById('upiQR');
             const txnInput = document.getElementById('txnInput');
             const txnId = document.getElementById('txnId');
             const submitTxnBtn = document.getElementById('submitTxnBtn');
             const txnMessage = document.getElementById('txnMessage');
-            const upiNote = document.getElementById('upiNote');
 
             const loadSubscription = async () => {
                 const { data: sub, error } = await client.from('subscriptions').select('*').eq('owner_id', user.id).single();
@@ -299,26 +306,39 @@
                     const daysLeft = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
                     subStatus.innerHTML = `<p>🆓 Free trial: <strong>${daysLeft} day${daysLeft>1?'s':''} remaining</strong></p>`;
                     subAction.style.display = 'block';
-                    subscribeBtn.textContent = 'Subscribe Now (₹200/month)';
-                    upiNote.innerHTML = '';
+                    showUpiQRBtn.textContent = 'Subscribe Now (₹200/month)';
+                    // Reset QR & txn input
+                    upiQRContainer.style.display = 'none';
+                    upiQR.innerHTML = '';
                     txnInput.style.display = 'none';
                 } else {
                     subStatus.innerHTML = '<p>❌ Trial expired. Please subscribe to continue.</p>';
                     subAction.style.display = 'block';
-                    subscribeBtn.textContent = 'Renew Subscription (₹200/month)';
-                    upiNote.innerHTML = '';
+                    showUpiQRBtn.textContent = 'Renew Subscription (₹200/month)';
+                    upiQRContainer.style.display = 'none';
+                    upiQR.innerHTML = '';
                     txnInput.style.display = 'none';
                 }
             };
             await loadSubscription();
 
-            subscribeBtn.addEventListener('click', () => {
+            // Show UPI QR code
+            showUpiQRBtn.addEventListener('click', () => {
                 const amount = '200.00';
                 const note = `SUB_${user.id.substring(0, 8)}`;
                 const upiLink = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=CafeBoss&am=${amount}&tn=${encodeURIComponent(note)}`;
-                upiNote.innerHTML = `<a href="${upiLink}" class="btn-primary" style="display:inline-block; margin-top:0.5rem;">Pay ₹200 via UPI</a>
-                    <p class="note" style="margin-top:0.5rem;">After payment, copy the transaction ID from your UPI app and paste it below.</p>`;
-                upiNote.style.display = 'block';
+
+                // Clear previous QR
+                upiQR.innerHTML = '';
+                // Generate QR code
+                new QRCode(upiQR, {
+                    text: upiLink,
+                    width: 160,
+                    height: 160,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                });
+                upiQRContainer.style.display = 'block';
                 txnInput.style.display = 'block';
             });
 
@@ -411,6 +431,8 @@
                 qrLinkDisplay.textContent = menuUrl;
                 navigator.clipboard.writeText(menuUrl).then(() => alert('Link copied!')).catch(() => {});
             });
+
+            // ... [All other sections – Smart Menu Builder, Bulk Paste, Load Items, etc. – remain exactly the same as in the previous complete dashboard. I'll include them below for completeness.]
 
             // Smart Menu Builder
             const cameraInput = document.getElementById('cameraInput');
