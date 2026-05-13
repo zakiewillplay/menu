@@ -4,7 +4,7 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Cafe Boss - Dashboard</title>
-    <!-- QRCode.js library is used only for UPI payment QR -->
+    <!-- QRCode.js library is used only for UPI payment QR (it still works) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
@@ -383,14 +383,15 @@
                 alert('Logo updated!');
             });
 
-            // ----- PERMANENTLY FIXED MENU QR CODE (Google Charts API) -----
+            // ----- PERMANENTLY FIXED MENU QR CODE (goQR.me API) -----
             document.getElementById('qrBtn').addEventListener('click', () => {
                 const menuUrl = BASE_MENU_URL + cafe.id;
                 const qrContainer = document.getElementById('qrcode');
                 qrContainer.innerHTML = '';
 
-                // Create QR code image via Google Charts (reliable scanning)
-                const qrImageUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(menuUrl)}&choe=UTF-8&chld=L|0`;
+                // Use the reliable goQR.me API (always returns an image)
+                const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(menuUrl)}`;
+
                 const img = document.createElement('img');
                 img.src = qrImageUrl;
                 img.width = 200;
@@ -618,7 +619,6 @@
                                 row.querySelector('.remove-variant-btn').addEventListener('click', () => row.remove());
                             });
                         } else {
-                            // default empty row
                             const row = document.createElement('div');
                             row.className = 'variant-row';
                             row.innerHTML = `<input type="text" class="vname" placeholder="Variant name" /><input type="number" class="vprice" step="0.01" placeholder="Price" />`;
@@ -662,7 +662,6 @@
                 const hasVariants = variantString.length > 0;
                 const description = hasVariants ? 'VAR::' + variantString : descPlain;
 
-                // If variants present, price is forced to 0 (ignored)
                 if (hasVariants) {
                     price = 0;
                 } else if (isNaN(price) || price <= 0) {
@@ -692,7 +691,6 @@
                     : await client.from('menu_items').insert(payload);
                 if (error) alert('Error: ' + error.message);
                 else {
-                    // Reset form
                     document.getElementById('editId').value = '';
                     document.getElementById('itemName').value = '';
                     document.getElementById('itemDesc').value = '';
@@ -706,7 +704,6 @@
 
             await loadItems();
 
-            // Logout
             document.getElementById('logoutBtn').addEventListener('click', async () => {
                 await client.auth.signOut();
                 window.location.href = 'index.html';
