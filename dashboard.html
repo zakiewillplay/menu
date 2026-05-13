@@ -4,6 +4,7 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Cafe Boss - Dashboard</title>
+    <!-- QRCode.js library is used only for UPI payment QR -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
@@ -382,17 +383,23 @@
                 alert('Logo updated!');
             });
 
-            // ----- PERMANENTLY FIXED MENU QR CODE -----
+            // ----- PERMANENTLY FIXED MENU QR CODE (Google Charts API) -----
             document.getElementById('qrBtn').addEventListener('click', () => {
                 const menuUrl = BASE_MENU_URL + cafe.id;
-                document.getElementById('qrcode').innerHTML = '';
-                new QRCode(document.getElementById('qrcode'), {
-                    text: menuUrl,
-                    width: 150,
-                    height: 150,
-                    colorDark: '#2F3E46',
-                    colorLight: '#ffffff',
-                });
+                const qrContainer = document.getElementById('qrcode');
+                qrContainer.innerHTML = '';
+
+                // Create QR code image via Google Charts (reliable scanning)
+                const qrImageUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(menuUrl)}&choe=UTF-8&chld=L|0`;
+                const img = document.createElement('img');
+                img.src = qrImageUrl;
+                img.width = 200;
+                img.height = 200;
+                img.style.display = 'block';
+                img.style.margin = '0 auto';
+                img.style.borderRadius = '8px';
+                qrContainer.appendChild(img);
+
                 document.getElementById('qrLinkDisplay').textContent = menuUrl;
                 navigator.clipboard.writeText(menuUrl).then(() => alert('Menu link copied!')).catch(() => {});
             });
@@ -477,29 +484,7 @@
                 });
                 // Attach edit listeners
                 document.querySelectorAll('.item-name-edit').forEach((inp, i) => inp.addEventListener('input', e => extractedItems[i].name = e.target.value));
-              document.getElementById('qrBtn').addEventListener('click', () => {
-    const menuUrl = BASE_MENU_URL + cafe.id;
-    const qrContainer = document.getElementById('qrcode');
-    // Clear previous
-    qrContainer.innerHTML = '';
-
-    // Build Google Charts QR image URL
-    const qrImageUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(menuUrl)}&choe=UTF-8&chld=L|0`;
-
-    // Create an <img> element
-    const img = document.createElement('img');
-    img.src = qrImageUrl;
-    img.width = 200;
-    img.height = 200;
-    img.style.display = 'block';
-    img.style.margin = '0 auto';
-    img.style.borderRadius = '8px';
-    qrContainer.appendChild(img);
-
-    // Show link below
-    document.getElementById('qrLinkDisplay').textContent = menuUrl;
-    navigator.clipboard.writeText(menuUrl).then(() => alert('Menu link copied!')).catch(() => {});
-});
+                document.querySelectorAll('.item-price-edit').forEach((inp, i) => inp.addEventListener('input', e => extractedItems[i].price = e.target.value));
                 document.querySelectorAll('.remove-extracted-btn').forEach(btn => {
                     btn.addEventListener('click', e => {
                         const idx = +e.target.dataset.index;
