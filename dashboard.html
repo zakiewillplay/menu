@@ -477,7 +477,29 @@
                 });
                 // Attach edit listeners
                 document.querySelectorAll('.item-name-edit').forEach((inp, i) => inp.addEventListener('input', e => extractedItems[i].name = e.target.value));
-                document.querySelectorAll('.item-price-edit').forEach((inp, i) => inp.addEventListener('input', e => extractedItems[i].price = e.target.value));
+              document.getElementById('qrBtn').addEventListener('click', () => {
+    const menuUrl = BASE_MENU_URL + cafe.id;
+    const qrContainer = document.getElementById('qrcode');
+    // Clear previous
+    qrContainer.innerHTML = '';
+
+    // Build Google Charts QR image URL
+    const qrImageUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(menuUrl)}&choe=UTF-8&chld=L|0`;
+
+    // Create an <img> element
+    const img = document.createElement('img');
+    img.src = qrImageUrl;
+    img.width = 200;
+    img.height = 200;
+    img.style.display = 'block';
+    img.style.margin = '0 auto';
+    img.style.borderRadius = '8px';
+    qrContainer.appendChild(img);
+
+    // Show link below
+    document.getElementById('qrLinkDisplay').textContent = menuUrl;
+    navigator.clipboard.writeText(menuUrl).then(() => alert('Menu link copied!')).catch(() => {});
+});
                 document.querySelectorAll('.remove-extracted-btn').forEach(btn => {
                     btn.addEventListener('click', e => {
                         const idx = +e.target.dataset.index;
