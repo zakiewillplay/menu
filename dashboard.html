@@ -280,7 +280,7 @@
                 else alert('Settings saved!');
             });
 
-            // Logo
+            // Logo upload
             document.getElementById('selectLogoBtn').addEventListener('click', () => document.getElementById('logoFile').click());
             document.getElementById('uploadLogoBtn').addEventListener('click', async () => {
                 const file = document.getElementById('logoFile').files[0];
@@ -295,18 +295,22 @@
                 alert('Logo updated!');
             });
 
-            // QR
+            // ---------- QR Code (hardcoded correct URL) ----------
             document.getElementById('qrBtn').addEventListener('click', () => {
-                const url = BASE_URL + cafe.id;
+                const menuUrl = BASE_URL + cafe.id;
                 document.getElementById('qrcode').innerHTML = '';
                 new QRCode(document.getElementById('qrcode'), {
-                    text: url, width: 150, height: 150, colorDark: '#2F3E46', colorLight: '#fff'
+                    text: menuUrl,
+                    width: 150,
+                    height: 150,
+                    colorDark: '#2F3E46',
+                    colorLight: '#ffffff',
                 });
-                document.getElementById('qrLinkDisplay').textContent = url;
-                navigator.clipboard.writeText(url).then(() => alert('Copied!')).catch(() => {});
+                document.getElementById('qrLinkDisplay').textContent = menuUrl;
+                navigator.clipboard.writeText(menuUrl).then(() => alert('Menu link copied!')).catch(() => {});
             });
 
-            // ---------- SMART MENU BUILDER (fixed OCR) ----------
+            // ---------- Smart Menu Builder (fixed OCR) ----------
             const cameraInput = document.getElementById('cameraInput');
             const galleryInput = document.getElementById('galleryInput');
             const imagePreview = document.getElementById('imagePreview');
@@ -356,7 +360,7 @@
                         }
                     });
                     const lines = text.split('\n').filter(l => l.trim());
-                    // Keep only lines with a price at the end (digits, optional ₹)
+                    // Keep only lines with a valid price at the end (optional ₹ sign)
                     extractedItems = lines
                         .map(line => {
                             const m = line.match(/(.+?)\s*[₹]?(\d+\.?\d*)\s*$/);
@@ -543,7 +547,7 @@
                 row.querySelector('.remove-variant-btn').addEventListener('click', () => row.remove());
             });
 
-            // Save item (handles optional default price)
+            // Save item (no default price needed if variants exist)
             document.getElementById('menuForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const id = document.getElementById('editId').value;
@@ -563,9 +567,8 @@
                 const hasVariants = variantString.length > 0;
                 const description = hasVariants ? 'VAR::' + variantString : descPlain;
 
-                // If variants present, set price to 0 (or ignore default price field)
                 if (hasVariants) {
-                    price = 0;
+                    price = 0;           // variants carry the prices
                 } else if (isNaN(price) || price <= 0) {
                     alert('Please enter a valid price or add variants.');
                     return;
