@@ -34,9 +34,9 @@
             border-radius: 20px;
             cursor: pointer;
         }
-        .stats-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+        .stats-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
         .stat-card {
-            flex: 1;
+            flex: 1; min-width: 100px;
             background: var(--card-bg);
             padding: 1rem;
             border-radius: 16px;
@@ -92,59 +92,28 @@
         }
         .visually-hidden {
             position: absolute;
-            width: 1px;
-            height: 1px;
+            width: 1px; height: 1px;
             overflow: hidden;
             clip: rect(0,0,0,0);
         }
-        .variant-row {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            margin-top: 0.5rem;
-        }
+        .variant-row { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.5rem; }
         .variant-row input { flex: 1; }
-        .toggle-avail {
-            background: #555;
-            border: none;
-            color: white;
-            padding: 0.3rem 0.7rem;
-            border-radius: 20px;
-            cursor: pointer;
-        }
+        .toggle-avail { background: #555; border: none; color: white; padding: 0.3rem 0.7rem; border-radius: 20px; cursor: pointer; }
         .toggle-avail.available { background: #27ae60; }
         .edit-btn, .del-btn {
-            background: transparent;
-            border: 1px solid #555;
-            color: #ccc;
-            padding: 0.3rem 0.6rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.75rem;
+            background: transparent; border: 1px solid #555; color: #ccc;
+            padding: 0.3rem 0.6rem; border-radius: 8px; cursor: pointer; font-size: 0.75rem;
         }
         .featured-btn {
-            background: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 0.3rem 0.6rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.75rem;
+            background: transparent; border: 1px solid var(--primary); color: var(--primary);
+            padding: 0.3rem 0.6rem; border-radius: 8px; cursor: pointer; font-size: 0.75rem;
         }
         .featured-btn.active { background: var(--primary); color: white; }
         .menu-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #444;
-            align-items: center;
+            display: flex; justify-content: space-between; padding: 0.5rem 0;
+            border-bottom: 1px solid #444; align-items: center;
         }
-        .menu-item img {
-            width: 40px; height: 40px;
-            border-radius: 8px;
-            object-fit: cover;
-            margin-right: 0.5rem;
-        }
+        .menu-item img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; margin-right: 0.5rem; }
         .note { font-size: 0.8rem; opacity: 0.7; margin-top: 0.3rem; }
         .image-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
         #imagePreview { max-width: 100%; max-height: 300px; border-radius: 12px; margin: 1rem 0; display: none; }
@@ -222,7 +191,7 @@
         </div>
     </div>
 
-    <!-- Smart Menu Builder -->
+    <!-- Smart Menu Builder (fixed OCR) -->
     <div class="card">
         <h3>📸 Smart Menu Builder</h3>
         <p class="note">Snap a photo or pick one from your gallery – only lines with prices are kept.</p>
@@ -255,7 +224,7 @@
         <p id="bulkMessage" class="note"></p>
     </div>
 
-    <!-- Add/Edit Single Item -->
+    <!-- Add/Edit Single Item (with Variants & Featured) -->
     <div class="card">
         <h3>✏️ Single Item (edit)</h3>
         <form id="menuForm">
@@ -290,6 +259,13 @@
         <div id="menuList"></div>
     </div>
 
+    <!-- Orders Card (NEW) -->
+    <div class="card">
+        <h3>📦 Recent Orders <span id="orderBadge" style="background:var(--primary);color:white;border-radius:20px;padding:0.2rem 0.6rem;font-size:0.8rem;display:none;">New</span></h3>
+        <div id="ordersList"><p class="note">No orders yet.</p></div>
+        <button id="requestNotificationPermissionBtn" style="display:none;">🔔 Enable Notifications</button>
+    </div>
+
     <footer style="text-align:center; margin-top:2rem; opacity:0.5; font-size:0.8rem;">Cafe Boss © 2026</footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -320,28 +296,6 @@
                 window.location.href = 'auth.html';
                 return;
             }
-
-            // Load view count
-            const loadViewCount = async () => {
-                const { count, error } = await client.from('menu_views_log')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('cafe_id', cafe.id);
-                if (!error) {
-                    document.getElementById('totalViews').textContent = count || 0;
-                }
-            };
-            await loadViewCount();
-
-            // Load item count
-            const loadItemCount = async () => {
-                const { count, error } = await client.from('menu_items')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('cafe_id', cafe.id);
-                if (!error) {
-                    document.getElementById('totalItems').textContent = count || 0;
-                }
-            };
-            await loadItemCount();
 
             // ---------- SUBSCRIPTION LOGIC ----------
             const subStatus = document.getElementById('subStatus');
@@ -459,7 +413,140 @@
                 navigator.clipboard.writeText(menuUrl).then(() => alert('Menu link copied!')).catch(() => {});
             });
 
-            // ---------- LOAD ITEMS & ATTACH EVENTS ----------
+            // ---------- SMART MENU BUILDER (OCR only price lines) ----------
+            const cameraInput = document.getElementById('cameraInput');
+            const galleryInput = document.getElementById('galleryInput');
+            const imagePreview = document.getElementById('imagePreview');
+            const scanBtn = document.getElementById('scanBtn');
+            const ocrProgress = document.getElementById('ocrProgress');
+            const ocrBar = document.getElementById('ocrBar');
+            const ocrStatus = document.getElementById('ocrStatus');
+            const scanResult = document.getElementById('scanResult');
+            const categoryAssign = document.getElementById('categoryAssign');
+            const globalCategory = document.getElementById('globalCategory');
+            const addAllBtn = document.getElementById('addAllBtn');
+            let extractedItems = [];
+
+            function handleImageSelection(file) {
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    imagePreview.src = ev.target.result;
+                    imagePreview.style.display = 'block';
+                    scanBtn.style.display = 'inline-block';
+                    extractedItems = [];
+                    scanResult.innerHTML = '';
+                    categoryAssign.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            document.getElementById('openCameraBtn').addEventListener('click', () => cameraInput.click());
+            document.getElementById('openGalleryBtn').addEventListener('click', () => galleryInput.click());
+            cameraInput.addEventListener('change', e => { if (e.target.files[0]) handleImageSelection(e.target.files[0]); });
+            galleryInput.addEventListener('change', e => { if (e.target.files[0]) handleImageSelection(e.target.files[0]); });
+
+            scanBtn.addEventListener('click', async () => {
+                if (!imagePreview.src) return;
+                scanBtn.disabled = true;
+                ocrProgress.style.display = 'block';
+                ocrBar.value = 0;
+                ocrStatus.textContent = 'Reading text...';
+                try {
+                    const { data: { text } } = await Tesseract.recognize(imagePreview.src, 'eng', {
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                ocrBar.value = Math.round(m.progress * 100);
+                                ocrStatus.textContent = `Reading... ${Math.round(m.progress * 100)}%`;
+                            }
+                        }
+                    });
+                    const lines = text.split('\n').filter(l => l.trim());
+                    extractedItems = lines
+                        .map(line => {
+                            const m = line.match(/(.+?)\s*[₹]?(\d+\.?\d*)\s*$/);
+                            return m ? { name: m[1].trim(), price: m[2] } : null;
+                        })
+                        .filter(item => item !== null);
+                    displayExtractedItems();
+                    categoryAssign.style.display = 'block';
+                } catch (err) {
+                    alert('OCR failed: ' + err.message);
+                } finally {
+                    ocrProgress.style.display = 'none';
+                    scanBtn.disabled = false;
+                }
+            });
+
+            function displayExtractedItems() {
+                scanResult.innerHTML = '';
+                extractedItems.forEach((item, idx) => {
+                    const div = document.createElement('div');
+                    div.style.cssText = 'display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;';
+                    div.innerHTML = `
+                        <input type="text" class="item-name-edit" value="${item.name}" style="flex:2" />
+                        <input type="number" class="item-price-edit" step="0.01" value="${item.price}" style="flex:1" />
+                        <button class="btn-danger remove-extracted-btn" data-index="${idx}">✕</button>
+                    `;
+                    scanResult.appendChild(div);
+                });
+                document.querySelectorAll('.item-name-edit').forEach((inp, i) => inp.addEventListener('input', e => extractedItems[i].name = e.target.value));
+                document.querySelectorAll('.item-price-edit').forEach((inp, i) => inp.addEventListener('input', e => extractedItems[i].price = e.target.value));
+                document.querySelectorAll('.remove-extracted-btn').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const idx = +e.target.dataset.index;
+                        extractedItems.splice(idx, 1);
+                        displayExtractedItems();
+                        if (!extractedItems.length) categoryAssign.style.display = 'none';
+                    });
+                });
+            }
+
+            addAllBtn.addEventListener('click', async () => {
+                const cat = globalCategory.value.trim() || 'Uncategorized';
+                const toInsert = extractedItems
+                    .filter(i => i.name && !isNaN(parseFloat(i.price)))
+                    .map(i => ({ cafe_id: cafe.id, name: i.name, price: parseFloat(i.price), category: cat, description: '', available: true }));
+                if (!toInsert.length) return alert('No valid items (each needs a name and price).');
+                const { error } = await client.from('menu_items').insert(toInsert);
+                if (error) alert('Error: ' + error.message);
+                else {
+                    alert(`Added ${toInsert.length} items!`);
+                    extractedItems = [];
+                    scanResult.innerHTML = '';
+                    categoryAssign.style.display = 'none';
+                    imagePreview.style.display = 'none';
+                    scanBtn.style.display = 'none';
+                    cameraInput.value = galleryInput.value = '';
+                    loadItems();
+                }
+            });
+
+            // ---------- BULK PASTE ----------
+            document.getElementById('bulkAddBtn').addEventListener('click', async () => {
+                const raw = document.getElementById('bulkTextarea').value.trim();
+                if (!raw) return;
+                const lines = raw.split('\n').filter(l => l.trim());
+                const items = [];
+                lines.forEach(line => {
+                    const parts = line.split(',');
+                    if (parts.length < 2) return;
+                    const name = parts[0].trim();
+                    const price = parseFloat(parts[1].trim());
+                    const cat = parts[2] ? parts[2].trim() : 'Uncategorized';
+                    if (name && !isNaN(price)) items.push({ cafe_id: cafe.id, name, price, category: cat, description: '', available: true });
+                });
+                if (!items.length) { document.getElementById('bulkMessage').textContent = 'No valid items.'; return; }
+                const { error } = await client.from('menu_items').insert(items);
+                if (error) document.getElementById('bulkMessage').textContent = 'Error: ' + error.message;
+                else {
+                    document.getElementById('bulkMessage').textContent = `Added ${items.length} items!`;
+                    document.getElementById('bulkTextarea').value = '';
+                    loadItems();
+                }
+            });
+
+            // ---------- MENU ITEMS LOADING & EDITING ----------
             const loadItems = async () => {
                 const { data, error } = await client.from('menu_items').select('*').eq('cafe_id', cafe.id).order('created_at');
                 if (error) return;
@@ -494,7 +581,9 @@
                     menuList.appendChild(div);
                 });
                 attachItemEvents();
-                await loadItemCount();
+                // Update item count
+                const { count } = await client.from('menu_items').select('*', { count: 'exact', head: true }).eq('cafe_id', cafe.id);
+                document.getElementById('totalItems').textContent = count || 0;
             };
 
             function attachItemEvents() {
@@ -574,7 +663,7 @@
                 row.querySelector('.remove-variant-btn').addEventListener('click', () => row.remove());
             });
 
-            // Save item
+            // Save item (handles optional default price + featured)
             document.getElementById('menuForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const id = document.getElementById('editId').value;
@@ -629,11 +718,87 @@
                 }
             });
 
-            // Smart Menu Builder (same as before, omitted for brevity but will be included in final)
-            // [Smart menu builder code here - same as previous version]
+            // View count
+            const loadViewCount = async () => {
+                const { count } = await client.from('menu_views_log').select('*', { count: 'exact', head: true }).eq('cafe_id', cafe.id);
+                document.getElementById('totalViews').textContent = count || 0;
+            };
+            await loadViewCount();
 
             await loadItems();
 
+            // ---------- ORDERS + NOTIFICATIONS ----------
+            let lastOrderTime = new Date().toISOString();
+            const ordersListEl = document.getElementById('ordersList');
+            const orderBadge = document.getElementById('orderBadge');
+            const notifBtn = document.getElementById('requestNotificationPermissionBtn');
+
+            if (Notification.permission === 'default') {
+                notifBtn.style.display = 'inline-block';
+                notifBtn.addEventListener('click', async () => {
+                    const perm = await Notification.requestPermission();
+                    if (perm === 'granted') notifBtn.style.display = 'none';
+                });
+            } else if (Notification.permission === 'granted') {
+                notifBtn.style.display = 'none';
+            }
+
+            const loadOrders = async () => {
+                const { data, error } = await client.from('orders')
+                    .select('*')
+                    .eq('cafe_id', cafe.id)
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+                if (error) return;
+                if (!data || data.length === 0) {
+                    ordersListEl.innerHTML = '<p class="note">No orders yet.</p>';
+                    return;
+                }
+                let html = '';
+                data.forEach(order => {
+                    const items = order.items || [];
+                    const itemList = items.map(i => `${i.name}${i.variant ? ' ('+i.variant+')' : ''} ×${i.qty}`).join(', ');
+                    const time = new Date(order.created_at).toLocaleTimeString();
+                    html += `
+                        <div style="border-bottom:1px solid #444; padding:0.8rem 0;">
+                            <div style="display:flex; justify-content:space-between;">
+                                <strong>Table ${order.table_number}</strong>
+                                <small>${time}</small>
+                            </div>
+                            <div>👤 ${order.customer_name || 'Guest'}</div>
+                            <div>${itemList}</div>
+                            <div style="color:var(--primary); font-weight:600;">₹${order.total}</div>
+                        </div>
+                    `;
+                });
+                ordersListEl.innerHTML = html;
+            };
+
+            setInterval(async () => {
+                const { data, error } = await client.from('orders')
+                    .select('*')
+                    .eq('cafe_id', cafe.id)
+                    .gt('created_at', lastOrderTime)
+                    .order('created_at', { ascending: false });
+                if (error || !data || data.length === 0) return;
+                lastOrderTime = new Date().toISOString();
+                orderBadge.style.display = 'inline-block';
+                orderBadge.textContent = `${data.length} new`;
+                if (Notification.permission === 'granted') {
+                    const order = data[0];
+                    const items = order.items || [];
+                    const itemNames = items.map(i => i.name).join(', ');
+                    new Notification('New Order!', {
+                        body: `Table ${order.table_number} – ${itemNames} – ₹${order.total}`,
+                        icon: cafe.logo_url || ''
+                    });
+                }
+                loadOrders();
+            }, 30000);
+
+            loadOrders();
+
+            // Logout
             document.getElementById('logoutBtn').addEventListener('click', async () => {
                 await client.auth.signOut();
                 window.location.href = 'index.html';
