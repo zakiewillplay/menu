@@ -15,6 +15,17 @@
             margin: 0 auto;
         }
         h1 { color: #FF6B35; margin-bottom: 1.5rem; }
+        .stats-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card {
+            flex: 1;
+            background: #2a2a2c;
+            padding: 1rem;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; color: #FF6B35; }
+        .stat-card .stat-label { font-size: 0.8rem; opacity: 0.7; }
         .card {
             background: #2a2a2c;
             border-radius: 16px;
@@ -34,7 +45,6 @@
             cursor: pointer;
             font-weight: 600;
         }
-        .approve-btn:active { transform: scale(0.95); }
         .logout {
             background: none;
             border: 1px solid #FF6B35;
@@ -43,25 +53,43 @@
             border-radius: 20px;
             cursor: pointer;
             float: right;
-            margin-bottom: 1rem;
         }
         .empty { text-align: center; opacity: 0.6; padding: 2rem; }
     </style>
 </head>
 <body>
     <button class="logout" id="logoutBtn">Logout</button>
-    <h1>🔑 Payment Approvals</h1>
-    <div id="requestsContainer">
-        <p class="empty">Loading pending requests...</p>
+    <h1>🔑 Admin Panel</h1>
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-value" id="totalRevenue">₹0</div>
+            <div class="stat-label">Total Revenue</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="approvedCount">0</div>
+            <div class="stat-label">Approved</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="pendingCount">0</div>
+            <div class="stat-label">Pending</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>⏳ Pending Approvals</h3>
+        <div id="requestsContainer"><p class="empty">Loading...</p></div>
+    </div>
+
+    <div class="card">
+        <h3>✅ Recent Approved Payments</h3>
+        <div id="approvedContainer"><p class="empty">Loading...</p></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module">
-        // ======================= YOUR SUPABASE CREDENTIALS =======================
         const SUPABASE_URL = 'https://phunzwqocgtgnpsgvsyv.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBodW56d3FvY2d0Z25wc2d2c3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MTQ2ODIsImV4cCI6MjA5NDA5MDY4Mn0.gWJ_NORZxMWz0EPJ425gDZew7MJUxWdo6L67snAE0dI';
-
-        // ======================= YOUR ADMIN UUID (ALREADY SET) =======================
         const ADMIN_UID = '19ca445a-16bd-44f0-962d-a7982d7d15de';
 
         const init = () => {
@@ -74,49 +102,39 @@
         async function main() {
             const client = window.client;
             const { data: { session } } = await client.auth.getSession();
-            if (!session) {
-                window.location.href = 'auth.html';
-                return;
-            }
-
-            // Only the admin user can see this page
+            if (!session) { window.location.href = 'auth.html'; return; }
             if (session.user.id !== ADMIN_UID) {
-                document.body.innerHTML = '<h2 style="text-align:center;margin-top:4rem;">⛔ Access denied</h2>';
+                document.body.innerHTML = '<h2>⛔ Access denied</h2>';
                 return;
             }
 
-            const container = document.getElementById('requestsContainer');
+            // Load stats
+            const loadStats = async () => {
+                const { data: approved, error: err1 } = await client.from('payment_requests').select('amount').eq('status', 'approved');
+                const { count: pendingCount, error: err2 } = await client.from('payment_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+                const { count: approvedCount, error: err3 } = await client.from('payment_requests').select('*', { count: 'exact', head: true }).eq('status', 'approved');
 
-            // Load and display pending requests
-            const loadRequests = async () => {
-                container.innerHTML = '<p class="empty">Loading...</p>';
-                const { data, error } = await client.from('payment_requests')
-                    .select('*')
-                    .eq('status', 'pending')
-                    .order('created_at', { ascending: false });
-
-                if (error) {
-                    container.innerHTML = `<p class="empty">Error: ${error.message}</p>`;
-                    return;
+                if (!err1 && approved) {
+                    const total = approved.reduce((sum, r) => sum + parseFloat(r.amount), 0);
+                    document.getElementById('totalRevenue').textContent = `₹${total.toFixed(2)}`;
                 }
+                if (!err2) document.getElementById('pendingCount').textContent = pendingCount || 0;
+                if (!err3) document.getElementById('approvedCount').textContent = approvedCount || 0;
+            };
+            await loadStats();
 
-                if (!data || data.length === 0) {
-                    container.innerHTML = '<p class="empty">✅ No pending requests – you’re all caught up.</p>';
-                    return;
-                }
+            // Load pending requests
+            const loadPending = async () => {
+                const { data, error } = await client.from('payment_requests').select('*').eq('status', 'pending').order('created_at', { ascending: false });
+                const container = document.getElementById('requestsContainer');
+                if (error) { container.innerHTML = '<p class="empty">Error loading</p>'; return; }
+                if (!data || data.length === 0) { container.innerHTML = '<p class="empty">✅ No pending requests</p>'; return; }
 
-                let html = `<table>
-                    <tr>
-                        <th>User (ID)</th>
-                        <th>Transaction ID</th>
-                        <th>Amount</th>
-                        <th></th>
-                    </tr>`;
-
+                let html = '<table><tr><th>User</th><th>Txn ID</th><th>Amount</th><th></th></tr>';
                 data.forEach(req => {
                     html += `<tr>
                         <td><small>${req.owner_id.substring(0,8)}</small></td>
-                        <td><strong>${req.upi_transaction_id}</strong></td>
+                        <td>${req.upi_transaction_id}</td>
                         <td>₹${req.amount}</td>
                         <td><button class="approve-btn" data-id="${req.id}" data-owner="${req.owner_id}">Approve</button></td>
                     </tr>`;
@@ -124,50 +142,45 @@
                 html += '</table>';
                 container.innerHTML = html;
 
-                // Attach approve event listeners
                 document.querySelectorAll('.approve-btn').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const reqId = e.target.dataset.id;
                         const ownerId = e.target.dataset.owner;
-                        btn.disabled = true;
-                        btn.textContent = 'Working...';
-
-                        // 1. Mark request as approved
-                        const { error: updateReq } = await client.from('payment_requests')
-                            .update({ status: 'approved' })
-                            .eq('id', reqId);
-                        if (updateReq) {
-                            alert('Error approving request: ' + updateReq.message);
-                            btn.disabled = false;
-                            btn.textContent = 'Approve';
-                            return;
-                        }
-
-                        // 2. Extend subscription by 1 month from now
+                        await client.from('payment_requests').update({ status: 'approved' }).eq('id', reqId);
                         const now = new Date();
                         const paidUntil = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
-                        const { error: updateSub } = await client.from('subscriptions')
-                            .update({
-                                status: 'active',
-                                paid_until: paidUntil.toISOString()
-                            })
-                            .eq('owner_id', ownerId);
-                        if (updateSub) {
-                            alert('Error updating subscription: ' + updateSub.message);
-                            btn.disabled = false;
-                            btn.textContent = 'Approve';
-                            return;
-                        }
-
-                        alert('✅ Approved! Subscription extended for 1 month.');
-                        loadRequests();
+                        await client.from('subscriptions').update({ status: 'active', paid_until: paidUntil.toISOString() }).eq('owner_id', ownerId);
+                        alert('✅ Approved!');
+                        loadPending();
+                        loadApproved();
+                        loadStats();
                     });
                 });
             };
 
-            await loadRequests();
+            // Load approved payments
+            const loadApproved = async () => {
+                const { data, error } = await client.from('payment_requests').select('*').eq('status', 'approved').order('created_at', { ascending: false }).limit(20);
+                const container = document.getElementById('approvedContainer');
+                if (error) { container.innerHTML = '<p class="empty">Error loading</p>'; return; }
+                if (!data || data.length === 0) { container.innerHTML = '<p class="empty">No approved payments yet</p>'; return; }
 
-            // Logout button
+                let html = '<table><tr><th>User</th><th>Txn ID</th><th>Amount</th><th>Date</th></tr>';
+                data.forEach(req => {
+                    html += `<tr>
+                        <td><small>${req.owner_id.substring(0,8)}</small></td>
+                        <td>${req.upi_transaction_id}</td>
+                        <td>₹${req.amount}</td>
+                        <td>${new Date(req.created_at).toLocaleDateString()}</td>
+                    </tr>`;
+                });
+                html += '</table>';
+                container.innerHTML = html;
+            };
+
+            await loadPending();
+            await loadApproved();
+
             document.getElementById('logoutBtn').addEventListener('click', async () => {
                 await client.auth.signOut();
                 window.location.href = 'index.html';
