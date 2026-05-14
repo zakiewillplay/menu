@@ -15,9 +15,10 @@
             margin: 0 auto;
         }
         h1 { color: #FF6B35; margin-bottom: 1.5rem; }
-        .stats-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+        .stats-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
         .stat-card {
             flex: 1;
+            min-width: 120px;
             background: #2a2a2c;
             padding: 1rem;
             border-radius: 16px;
@@ -63,12 +64,16 @@
 
     <div class="stats-row">
         <div class="stat-card">
+            <div class="stat-value" id="totalCafes">0</div>
+            <div class="stat-label">Total Cafes</div>
+        </div>
+        <div class="stat-card">
             <div class="stat-value" id="totalRevenue">₹0</div>
             <div class="stat-label">Total Revenue</div>
         </div>
         <div class="stat-card">
             <div class="stat-value" id="approvedCount">0</div>
-            <div class="stat-label">Approved</div>
+            <div class="stat-label">Approved Payments</div>
         </div>
         <div class="stat-card">
             <div class="stat-value" id="pendingCount">0</div>
@@ -108,27 +113,56 @@
                 return;
             }
 
-            // Load stats
+            // Load stats: total cafes, revenue, pending/approved counts
             const loadStats = async () => {
-                const { data: approved, error: err1 } = await client.from('payment_requests').select('amount').eq('status', 'approved');
-                const { count: pendingCount, error: err2 } = await client.from('payment_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
-                const { count: approvedCount, error: err3 } = await client.from('payment_requests').select('*', { count: 'exact', head: true }).eq('status', 'approved');
+                // Total cafes
+                const { count: cafesCount, error: cafesErr } = await client
+                    .from('cafes')
+                    .select('*', { count: 'exact', head: true });
+                if (!cafesErr && cafesCount !== null) {
+                    document.getElementById('totalCafes').textContent = cafesCount;
+                }
 
-                if (!err1 && approved) {
-                    const total = approved.reduce((sum, r) => sum + parseFloat(r.amount), 0);
+                // Revenue from approved payments
+                const { data: approvedData, error: revErr } = await client
+                    .from('payment_requests')
+                    .select('amount')
+                    .eq('status', 'approved');
+                if (!revErr && approvedData) {
+                    const total = approvedData.reduce((sum, r) => sum + parseFloat(r.amount), 0);
                     document.getElementById('totalRevenue').textContent = `₹${total.toFixed(2)}`;
                 }
-                if (!err2) document.getElementById('pendingCount').textContent = pendingCount || 0;
-                if (!err3) document.getElementById('approvedCount').textContent = approvedCount || 0;
+
+                // Pending count
+                const { count: pendingCount } = await client
+                    .from('payment_requests')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'pending');
+                document.getElementById('pendingCount').textContent = pendingCount || 0;
+
+                // Approved count
+                const { count: approvedCount } = await client
+                    .from('payment_requests')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'approved');
+                document.getElementById('approvedCount').textContent = approvedCount || 0;
             };
             await loadStats();
 
             // Load pending requests
             const loadPending = async () => {
-                const { data, error } = await client.from('payment_requests').select('*').eq('status', 'pending').order('created_at', { ascending: false });
                 const container = document.getElementById('requestsContainer');
+                const { data, error } = await client
+                    .from('payment_requests')
+                    .select('*')
+                    .eq('status', 'pending')
+                    .order('created_at', { ascending: false });
+
                 if (error) { container.innerHTML = '<p class="empty">Error loading</p>'; return; }
-                if (!data || data.length === 0) { container.innerHTML = '<p class="empty">✅ No pending requests</p>'; return; }
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p class="empty">✅ No pending requests</p>';
+                    return;
+                }
 
                 let html = '<table><tr><th>User</th><th>Txn ID</th><th>Amount</th><th></th></tr>';
                 data.forEach(req => {
@@ -160,10 +194,19 @@
 
             // Load approved payments
             const loadApproved = async () => {
-                const { data, error } = await client.from('payment_requests').select('*').eq('status', 'approved').order('created_at', { ascending: false }).limit(20);
                 const container = document.getElementById('approvedContainer');
+                const { data, error } = await client
+                    .from('payment_requests')
+                    .select('*')
+                    .eq('status', 'approved')
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+
                 if (error) { container.innerHTML = '<p class="empty">Error loading</p>'; return; }
-                if (!data || data.length === 0) { container.innerHTML = '<p class="empty">No approved payments yet</p>'; return; }
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p class="empty">No approved payments yet</p>';
+                    return;
+                }
 
                 let html = '<table><tr><th>User</th><th>Txn ID</th><th>Amount</th><th>Date</th></tr>';
                 data.forEach(req => {
