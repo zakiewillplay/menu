@@ -172,6 +172,20 @@
         }
         body.light-mode .item { border-bottom-color: rgba(0,0,0,0.1); }
         .item-name { font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
+        .featured-badge {
+            background: linear-gradient(135deg, var(--gold), #b8922e);
+            color: var(--dark);
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            animation: glow 2s infinite alternate;
+        }
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px var(--gold); }
+            100% { box-shadow: 0 0 15px var(--gold); }
+        }
         .item-image {
             width: 50px; height: 50px;
             border-radius: 8px;
@@ -366,45 +380,28 @@
             const cafeId = params.get('id');
             if (!cafeId) { document.body.innerHTML = '<h2>Missing cafe ID</h2>'; return; }
 
-            // Fetch cafe info
-            const { data: cafe, error: cafeError } = await client.from('cafes').select('*').eq('id', cafeId).single();
-            if (cafeError || !cafe) { document.body.innerHTML = '<h2>Cafe not found</h2>'; return; }
+            const { data: cafe, error } = await client.from('cafes').select('*').eq('id', cafeId).single();
+            if (error || !cafe) { document.body.innerHTML = '<h2>Cafe not found</h2>'; return; }
 
-            document.getElementById('cafeTitle').textContent = cafe.cafe_name || 'Our Menu';
+            // Track menu view
+            await client.from('menu_views_log').insert({ cafe_id: cafeId });
+            await client.rpc('increment_menu_views', { cafe_id: cafeId }).catch(() => {});
+
+            document.getElementById('cafeTitle').textContent = cafe.cafe_name || 'Menu';
             document.getElementById('cafeDesc').textContent = cafe.description || '';
             const logo = document.getElementById('logoImg');
             if (cafe.logo_url) { logo.src = cafe.logo_url; logo.style.display = 'block'; }
 
-            // Fetch items (only available)
-            const { data: items, error: itemsError } = await client.from('menu_items')
-                .select('*')
-                .eq('cafe_id', cafeId)
-                .eq('available', true)
-                .order('created_at');
-
-            if (itemsError) {
-                document.getElementById('menuList').innerHTML = '<p style="text-align:center;">⚠️ Could not load menu items. Please try again.</p>';
-                console.error(itemsError);
-                return;
-            }
-
-            if (!items || items.length === 0) {
-                document.getElementById('menuList').innerHTML = '<p style="text-align:center;">🍽️ No items available right now.</p>';
-                return;
-            }
-
-            // Group by category
+            const { data: items } = await client.from('menu_items').select('*').eq('cafe_id', cafeId).eq('available', true);
             const grouped = {};
-            items.forEach(item => {
-                const cat = item.category || 'Uncategorized';
-                if (!grouped[cat]) grouped[cat] = [];
-                grouped[cat].push(item);
+            if (items) items.forEach(item => {
+                if (!grouped[item.category]) grouped[item.category] = [];
+                grouped[item.category].push(item);
             });
 
             const menuList = document.getElementById('menuList');
             const cart = {};
 
-            // Build menu
             for (const [cat, catItems] of Object.entries(grouped)) {
                 const section = document.createElement('div');
                 section.className = 'category';
@@ -426,15 +423,18 @@
                         variants.push({ name: '', price: parseFloat(item.price) });
                     }
 
+                    const featuredBadge = item.featured ? '<span class="featured-badge">🔥 Chef\'s Special</span>' : '';
                     const itemImageHtml = item.image_url ? `<img src="${item.image_url}" class="item-image" alt="${item.name}" />` : '';
-                    const itemNameHtml = `<div class="item-name">${itemImageHtml}${item.name}</div>`;
+
+                    const itemNameHtml = `<div class="item-name">${itemImageHtml}${item.name} ${featuredBadge}</div>`;
                     const itemDescHtml = (hasVariants || !item.description) ? '' : `<div class="item-desc">${item.description}</div>`;
 
                     let variantsHtml = '';
-                    variants.forEach((v) => {
+                    variants.forEach((v, idx) => {
                         const variantName = v.name || item.name;
+                        const variantId = v.name || 'default';
                         variantsHtml += `
-                            <div class="variant-row" data-variant-id="${v.name || 'default'}" data-price="${v.price}">
+                            <div class="variant-row" data-variant-id="${variantId}" data-price="${v.price}">
                                 <span class="variant-name">${variantName}</span>
                                 <span class="variant-price">₹${v.price}</span>
                                 <div class="qty-box">
@@ -510,8 +510,9 @@
                     btn.addEventListener('click', (e) => {
                         const key = e.target.dataset.key;
                         delete cart[key];
-                        // Reset all quantity displays
-                        document.querySelectorAll('.qty-num').forEach(qtySpan => qtySpan.textContent = '0');
+                        document.querySelectorAll('.item').forEach(itemDiv => {
+                            itemDiv.querySelectorAll('.qty-num').forEach(qtySpan => qtySpan.textContent = '0');
+                        });
                         Object.entries(cart).forEach(([k, v]) => {
                             const [itemId, variantId] = k.split('_');
                             const itemDiv = document.querySelector(`.item[data-item-id="${itemId}"]`);
@@ -525,19 +526,22 @@
                 });
             }
 
-            // Order button
-            document.getElementById('orderBtn').addEventListener('click', () => {
+            // Order button – NOW SAVES TO DATABASE
+            document.getElementById('orderBtn').addEventListener('click', async () => {
                 const items = Object.values(cart);
                 if (items.length === 0) return alert('Cart is empty');
                 const tableNumber = document.getElementById('tableNumber').value.trim();
                 if (!tableNumber) return alert('Please enter your table number');
-                const customerName = document.getElementById('customerName').value.trim();
+                const customerName = document.getElementById('customerName').value.trim() || 'Guest';
                 const phone = cafe.whatsapp ? cafe.whatsapp.replace(/\D/g, '') : '';
                 if (!phone) return alert('No WhatsApp number set');
 
+                const total = items.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
+
+                // Build WhatsApp message
                 let msg = `🛎️ *Order from ${cafe.cafe_name}*\n`;
                 msg += `📋 Table: ${tableNumber}\n`;
-                if (customerName) msg += `👤 Name: ${customerName}\n`;
+                msg += `👤 Name: ${customerName}\n`;
                 msg += `\n📝 *Items:*\n`;
                 msg += `━━━━━━━━━━━━━━━━\n`;
                 items.forEach((item, idx) => {
@@ -545,11 +549,30 @@
                     msg += `${idx+1}. ${item.name}${item.variantName && item.variantName !== item.name ? ' (' + item.variantName + ')' : ''}\n`;
                     msg += `   ${item.qty} × ₹${item.price} = ₹${lineTotal}\n`;
                 });
-                const total = items.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
                 msg += `━━━━━━━━━━━━━━━━\n`;
                 msg += `💰 *Total: ₹${total}*\n`;
                 msg += `\n🙏 Thank you!`;
 
+                // Save order to DB (fire‑and‑forget)
+                try {
+                    await client.from('orders').insert({
+                        cafe_id: cafeId,
+                        customer_name: customerName,
+                        table_number: tableNumber,
+                        items: items.map(i => ({
+                            name: i.name,
+                            variant: i.variantName || '',
+                            price: i.price,
+                            qty: i.qty
+                        })),
+                        total: parseFloat(total),
+                        status: 'new'
+                    });
+                } catch (err) {
+                    console.warn('Order save failed (WhatsApp will still open):', err);
+                }
+
+                // Open WhatsApp
                 window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
             });
 
