@@ -288,6 +288,13 @@
             margin-top: 0.8rem;
             cursor: pointer;
         }
+        .success-message {
+            text-align: center;
+            color: var(--gold);
+            font-weight: 600;
+            margin-top: 0.5rem;
+            display: none;
+        }
 
         /* Share button */
         .share-btn {
@@ -342,7 +349,8 @@
             <label>Your Name (optional)</label>
             <input type="text" id="customerName" placeholder="e.g., Rahul" />
         </div>
-        <button id="orderBtn">Order via WhatsApp</button>
+        <button id="orderBtn">Place Order</button>
+        <p class="success-message" id="orderSuccess">✅ Order placed! The cafe has been notified.</p>
     </div>
 
     <script>
@@ -383,10 +391,8 @@
             const { data: cafe, error } = await client.from('cafes').select('*').eq('id', cafeId).single();
             if (error || !cafe) { document.body.innerHTML = '<h2>Cafe not found</h2>'; return; }
 
-            // Track menu view (ignore if fails)
-            try {
-                await client.from('menu_views_log').insert({ cafe_id: cafeId });
-            } catch(e) {}
+            // Track menu view (fire‑and‑forget)
+            try { await client.from('menu_views_log').insert({ cafe_id: cafeId }); } catch(e) {}
 
             document.getElementById('cafeTitle').textContent = cafe.cafe_name || 'Menu';
             document.getElementById('cafeDesc').textContent = cafe.description || '';
@@ -459,7 +465,7 @@
                 menuList.appendChild(section);
             }
 
-            // Cart logic with variant‑specific quantities
+            // Cart logic
             document.querySelectorAll('.item').forEach(itemDiv => {
                 itemDiv.addEventListener('click', (e) => {
                     const btn = e.target;
@@ -474,7 +480,6 @@
                     const cartKey = `${itemId}_${variantId}`;
 
                     let currentQty = cart[cartKey] ? cart[cartKey].qty : 0;
-
                     if (btn.classList.contains('qty-inc')) currentQty++;
                     else if (btn.classList.contains('qty-dec')) currentQty = Math.max(0, currentQty - 1);
 
@@ -486,7 +491,6 @@
                 });
             });
 
-            // Cart UI
             const cartFloat = document.getElementById('cartFloat');
             const cartPreview = document.getElementById('cartPreview');
             const cartCountEl = document.getElementById('cartCount');
@@ -531,33 +535,47 @@
                 });
             }
 
-            // Order button (just WhatsApp, no DB saving for now)
-            document.getElementById('orderBtn').addEventListener('click', () => {
+            // Place Order – save to DB, no WhatsApp
+            document.getElementById('orderBtn').addEventListener('click', async () => {
                 const items = Object.values(cart);
                 if (items.length === 0) return alert('Cart is empty');
                 const tableNumber = document.getElementById('tableNumber').value.trim();
                 if (!tableNumber) return alert('Please enter your table number');
                 const customerName = document.getElementById('customerName').value.trim() || 'Guest';
-                const phone = cafe.whatsapp ? cafe.whatsapp.replace(/\D/g, '') : '';
-                if (!phone) return alert('No WhatsApp number set');
-
                 const total = items.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
 
-                let msg = `🛎️ *Order from ${cafe.cafe_name}*\n`;
-                msg += `📋 Table: ${tableNumber}\n`;
-                msg += `👤 Name: ${customerName}\n`;
-                msg += `\n📝 *Items:*\n`;
-                msg += `━━━━━━━━━━━━━━━━\n`;
-                items.forEach((item, idx) => {
-                    const lineTotal = (item.price * item.qty).toFixed(2);
-                    msg += `${idx+1}. ${item.name}${item.variantName && item.variantName !== item.name ? ' (' + item.variantName + ')' : ''}\n`;
-                    msg += `   ${item.qty} × ₹${item.price} = ₹${lineTotal}\n`;
-                });
-                msg += `━━━━━━━━━━━━━━━━\n`;
-                msg += `💰 *Total: ₹${total}*\n`;
-                msg += `\n🙏 Thank you!`;
+                try {
+                    await client.from('orders').insert({
+                        cafe_id: cafeId,
+                        customer_name: customerName,
+                        table_number: tableNumber,
+                        items: items.map(i => ({
+                            name: i.name,
+                            variant: i.variantName || '',
+                            price: i.price,
+                            qty: i.qty
+                        })),
+                        total: parseFloat(total),
+                        status: 'new'
+                    });
 
-                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                    // Show success message & clear cart
+                    document.getElementById('orderSuccess').style.display = 'block';
+                    // Clear cart
+                    for (const key in cart) delete cart[key];
+                    document.querySelectorAll('.qty-num').forEach(el => el.textContent = '0');
+                    updateCartUI();
+
+                    setTimeout(() => {
+                        document.getElementById('orderSuccess').style.display = 'none';
+                        cartPreview.style.display = 'none';
+                        cartVisible = false;
+                    }, 3000);
+
+                } catch (err) {
+                    alert('Order failed. Please try again.');
+                    console.error(err);
+                }
             });
 
             // Share button
