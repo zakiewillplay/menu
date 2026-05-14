@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Foodie Menu</title>
+    <title>Royal Menu</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --gold: #D4AF37;
-            --warm-red: #C0392B;
+            --gold-light: #F5E7B5;
+            --burgundy: #6D1A2D;
             --cream: #FDF3E0;
             --dark: #1A0F0A;
             --glass: rgba(20, 10, 10, 0.75);
+            --light-bg: #FEFAF0;
+            --light-text: #2D1A0A;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
@@ -21,6 +24,11 @@
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
+            transition: background 0.5s, color 0.5s;
+        }
+        body.light-mode {
+            background: var(--light-bg);
+            color: var(--light-text);
         }
         body::before {
             content: "";
@@ -29,7 +37,14 @@
             background: radial-gradient(circle at 20% 30%, rgba(212,175,55,0.1) 0%, transparent 50%),
                         radial-gradient(circle at 80% 70%, rgba(192,57,43,0.1) 0%, transparent 50%);
             z-index: 0;
+            transition: opacity 0.5s;
         }
+        body.light-mode::before {
+            background: radial-gradient(circle at 20% 30%, rgba(212,175,55,0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(192,57,43,0.05) 0%, transparent 50%);
+        }
+
+        /* Food reveal animation */
         .food-reveal {
             position: fixed;
             inset: 0;
@@ -40,28 +55,18 @@
             justify-content: center;
             transition: opacity 0.5s ease 0.8s, visibility 0.5s ease 0.8s;
         }
+        body.light-mode .food-reveal { background: var(--light-bg); }
         .food-reveal.hidden { opacity: 0; visibility: hidden; }
-        .dish {
-            position: relative;
-            width: 180px;
-            height: 180px;
-        }
+        .dish { position: relative; width: 180px; height: 180px; }
         .plate {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 150px;
-            height: 30px;
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 150px; height: 30px;
             background: radial-gradient(circle at 50% 30%, #f0f0f0, #aaa);
             border-radius: 50%;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
         .food-icon {
-            position: absolute;
-            top: -40px;
-            left: 50%;
-            transform: translateX(-50%);
+            position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
             font-size: 3.5rem;
             animation: float 2s infinite alternate;
         }
@@ -70,12 +75,8 @@
             100% { transform: translateX(-50%) translateY(-10px); }
         }
         .steam {
-            position: absolute;
-            top: -60px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 20px;
-            height: 20px;
+            position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+            width: 20px; height: 20px;
             background: rgba(255,255,255,0.4);
             border-radius: 50%;
             animation: steam 1.5s infinite;
@@ -84,6 +85,7 @@
             0% { transform: translateX(-50%) scale(0.5); opacity: 0.8; }
             100% { transform: translateX(-50%) translateY(-30px) scale(1.2); opacity: 0; }
         }
+
         .container {
             position: relative;
             z-index: 1;
@@ -95,6 +97,25 @@
             transition: opacity 0.6s ease 0.9s, transform 0.6s ease 0.9s;
         }
         .container.visible { opacity: 1; transform: translateY(0); }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 30;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Header */
         .header {
             text-align: center;
             margin-bottom: 2rem;
@@ -105,6 +126,7 @@
             border-radius: 20px;
             box-shadow: 0 0 30px rgba(212,175,55,0.3);
         }
+        body.light-mode .header { background: rgba(255,255,255,0.8); }
         .header img {
             width: 80px; height: 80px;
             border-radius: 50%; object-fit: cover;
@@ -118,6 +140,9 @@
             text-shadow: 0 0 10px var(--gold);
         }
         .header p { color: var(--cream); font-style: italic; }
+        body.light-mode .header p { color: #6B4A2A; }
+
+        /* Category cards */
         .category {
             background: var(--glass);
             backdrop-filter: blur(15px);
@@ -127,6 +152,7 @@
             margin-bottom: 1.8rem;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
+        body.light-mode .category { background: rgba(255,255,255,0.7); }
         .cat-title {
             font-family: 'Playfair Display', serif;
             color: var(--gold);
@@ -138,79 +164,62 @@
             border-bottom: 2px solid var(--gold);
             padding-bottom: 0.3rem;
         }
-        .item-block {
-            padding: 0.8rem 0;
+
+        /* Item styles */
+        .item {
             border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 1rem 0;
         }
-        .item-name {
-            font-weight: 600;
-            font-size: 1.05rem;
+        body.light-mode .item { border-bottom-color: rgba(0,0,0,0.1); }
+        .item-name { font-weight: 600; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
+        .featured-badge {
+            background: linear-gradient(135deg, var(--gold), #b8922e);
+            color: var(--dark);
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            animation: glow 2s infinite alternate;
         }
-        .item-desc {
-            font-size: 0.85rem;
-            opacity: 0.7;
-            margin-top: 0.2rem;
-            margin-bottom: 0.5rem;
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px var(--gold); }
+            100% { box-shadow: 0 0 15px var(--gold); }
         }
-        .variant-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
-            margin-top: 0.5rem;
+        .item-image {
+            width: 50px; height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-right: 0.5rem;
+            vertical-align: middle;
         }
+        .item-desc { font-size: 0.85rem; opacity: 0.7; margin-bottom: 0.5rem; }
         .variant-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 0.5rem;
+            margin-top: 0.3rem;
+            padding: 0.2rem 0;
         }
-        .variant-label {
-            flex: 1;
-            font-weight: 600;
-            color: var(--gold);
-        }
-        .variant-label small {
-            font-weight: 400;
-            color: #ccc;
-            margin-left: 0.3rem;
-        }
-        .qty-box {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
+        .variant-name { flex: 1; font-size: 0.9rem; }
+        .variant-price { color: var(--gold); font-weight: 600; margin: 0 0.5rem; }
+        .qty-box { display: flex; align-items: center; gap: 0.3rem; }
         .qty-btn {
-            width: 32px;
-            height: 32px;
+            width: 28px; height: 28px;
             border-radius: 50%;
             border: 1px solid var(--gold);
             background: rgba(212,175,55,0.15);
             color: var(--gold);
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
         }
         .qty-btn:active { background: var(--gold); color: var(--dark); }
-        .qty-num {
-            min-width: 24px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-        .single-price {
-            font-weight: 700;
-            color: var(--gold);
-            margin: 0 1rem;
-        }
-        .single-item-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+        .qty-num { min-width: 20px; text-align: center; font-weight: 600; }
 
         /* Floating cart */
         #cartFloat {
@@ -243,19 +252,31 @@
             border: 2px solid var(--gold);
             box-shadow: 0 15px 50px rgba(0,0,0,0.8);
             z-index: 19;
+            max-height: 70vh;
+            overflow-y: auto;
         }
+        body.light-mode #cartPreview { background: rgba(255,255,255,0.95); color: var(--light-text); }
         #cartPreview h4 { font-family: 'Playfair Display', serif; color: var(--gold); margin-bottom: 0.8rem; }
-        #cartItems { list-style: none; margin: 0.5rem 0; max-height: 250px; overflow-y: auto; }
+        #cartItems { list-style: none; margin: 0.5rem 0; }
         #cartItems li {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             margin: 0.5rem 0;
             font-size: 0.9rem;
             border-bottom: 1px solid rgba(255,255,255,0.1);
             padding-bottom: 0.3rem;
         }
         .remove-item { background: none; border: none; color: var(--gold); cursor: pointer; font-size: 1rem; }
+        .order-form-group { margin-top: 1rem; }
+        .order-form-group label { display: block; margin-bottom: 0.3rem; font-size: 0.85rem; }
+        .order-form-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--gold);
+            background: transparent;
+            color: inherit;
+        }
         #orderBtn {
             width: 100%;
             background: var(--gold);
@@ -267,9 +288,28 @@
             margin-top: 0.8rem;
             cursor: pointer;
         }
+
+        /* Share button */
+        .share-btn {
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
     </style>
 </head>
 <body>
+    <!-- Theme toggle -->
+    <button class="theme-toggle" id="themeToggle">🌓 Light Mode</button>
+
+    <!-- Food reveal animation -->
     <div class="food-reveal" id="foodReveal">
         <div class="dish">
             <div class="plate"></div>
@@ -286,6 +326,7 @@
             <p id="cafeDesc"></p>
         </div>
         <div id="menuList"></div>
+        <button class="share-btn" id="shareMenuBtn">📤 Share this Menu</button>
     </div>
 
     <div id="cartFloat"><span>🛒</span> <span id="cartCount">0</span></div>
@@ -293,15 +334,31 @@
         <h4>Your Order</h4>
         <ul id="cartItems"></ul>
         <p style="color:var(--gold); font-weight:600;">Total: ₹<span id="cartTotal">0.00</span></p>
+        <div class="order-form-group">
+            <label>Table Number *</label>
+            <input type="text" id="tableNumber" placeholder="e.g., 12" required />
+        </div>
+        <div class="order-form-group">
+            <label>Your Name (optional)</label>
+            <input type="text" id="customerName" placeholder="e.g., Rahul" />
+        </div>
         <button id="orderBtn">Order via WhatsApp</button>
     </div>
 
     <script>
+        // Reveal animation
         window.addEventListener('load', () => {
             setTimeout(() => {
                 document.getElementById('foodReveal').classList.add('hidden');
                 document.getElementById('menuContent').classList.add('visible');
             }, 2000);
+        });
+
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            themeToggle.textContent = document.body.classList.contains('light-mode') ? '🌙 Dark Mode' : '🌓 Light Mode';
         });
     </script>
 
@@ -326,7 +383,11 @@
             const { data: cafe, error } = await client.from('cafes').select('*').eq('id', cafeId).single();
             if (error || !cafe) { document.body.innerHTML = '<h2>Cafe not found</h2>'; return; }
 
-            document.getElementById('cafeTitle').textContent = cafe.cafe_name || 'Our Menu';
+            // Track menu view
+            await client.from('menu_views_log').insert({ cafe_id: cafeId });
+            await client.rpc('increment_menu_views', { cafe_id: cafeId }).catch(() => {});
+
+            document.getElementById('cafeTitle').textContent = cafe.cafe_name || 'Menu';
             document.getElementById('cafeDesc').textContent = cafe.description || '';
             const logo = document.getElementById('logoImg');
             if (cafe.logo_url) { logo.src = cafe.logo_url; logo.style.display = 'block'; }
@@ -339,157 +400,88 @@
             });
 
             const menuList = document.getElementById('menuList');
-            const cart = {}; // key: `${itemId}_${variantName}`
+            const cart = {};
 
-            // Build menu
             for (const [cat, catItems] of Object.entries(grouped)) {
                 const section = document.createElement('div');
                 section.className = 'category';
                 section.innerHTML = `<h2 class="cat-title">${cat}</h2>`;
 
                 catItems.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'item';
+
                     const hasVariants = item.description && item.description.startsWith('VAR::');
                     let variants = [];
                     if (hasVariants) {
                         const vStr = item.description.replace('VAR::', '');
                         vStr.split('|').forEach(p => {
                             const [name, price] = p.split('=');
-                            if (name && price) variants.push({ name: name.trim(), price: parseFloat(price) });
+                            variants.push({ name: name.trim(), price: parseFloat(price) });
                         });
                     } else {
-                        variants = [{ name: item.name, price: parseFloat(item.price) }];
+                        variants.push({ name: '', price: parseFloat(item.price) });
                     }
 
-                    const block = document.createElement('div');
-                    block.className = 'item-block';
-                    block.dataset.itemId = item.id;
-                    block.innerHTML = `
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-desc">${hasVariants ? '' : (item.description || '')}</div>
-                    `;
+                    const featuredBadge = item.featured ? '<span class="featured-badge">🔥 Chef\'s Special</span>' : '';
+                    const itemImageHtml = item.image_url ? `<img src="${item.image_url}" class="item-image" alt="${item.name}" />` : '';
 
-                    if (variants.length > 1) {
-                        // Multiple variants – each gets its own qty selector
-                        const variantList = document.createElement('div');
-                        variantList.className = 'variant-list';
-                        variants.forEach(v => {
-                            const vRow = document.createElement('div');
-                            vRow.className = 'variant-row';
-                            vRow.dataset.variantName = v.name;
-                            vRow.innerHTML = `
-                                <span class="variant-label">${v.name} <small>₹${v.price}</small></span>
+                    const itemNameHtml = `<div class="item-name">${itemImageHtml}${item.name} ${featuredBadge}</div>`;
+                    const itemDescHtml = (hasVariants || !item.description) ? '' : `<div class="item-desc">${item.description}</div>`;
+
+                    let variantsHtml = '';
+                    variants.forEach((v, idx) => {
+                        const variantName = v.name || item.name;
+                        const variantId = v.name || 'default';
+                        variantsHtml += `
+                            <div class="variant-row" data-variant-id="${variantId}" data-price="${v.price}">
+                                <span class="variant-name">${variantName}</span>
+                                <span class="variant-price">₹${v.price}</span>
                                 <div class="qty-box">
                                     <button class="qty-btn qty-dec">−</button>
                                     <span class="qty-num">0</span>
                                     <button class="qty-btn qty-inc">+</button>
                                 </div>
-                            `;
-                            variantList.appendChild(vRow);
-                        });
-                        block.appendChild(variantList);
-                    } else {
-                        // Single price (or single variant) – single qty selector
-                        const singleVariant = variants[0];
-                        const singleRow = document.createElement('div');
-                        singleRow.className = 'single-item-row';
-                        singleRow.innerHTML = `
-                            <span class="single-price">₹${singleVariant.price}</span>
-                            <div class="qty-box">
-                                <button class="qty-btn qty-dec">−</button>
-                                <span class="qty-num">0</span>
-                                <button class="qty-btn qty-inc">+</button>
                             </div>
                         `;
-                        block.appendChild(singleRow);
-                        // Store variant info on the block for cart key
-                        block.dataset.variantName = singleVariant.name;
-                    }
-                    section.appendChild(block);
+                    });
+
+                    itemDiv.innerHTML = itemNameHtml + itemDescHtml + `<div class="variants-container">${variantsHtml}</div>`;
+                    itemDiv.dataset.itemId = item.id;
+                    itemDiv.dataset.itemName = item.name;
+                    section.appendChild(itemDiv);
                 });
                 menuList.appendChild(section);
             }
 
-            // Update quantity display for a single variant within a block
-            function updateVariantQty(block, variantName) {
-                const itemId = block.dataset.itemId;
-                const cartKey = `${itemId}_${variantName}`;
-                const cartItem = cart[cartKey];
-                const qty = cartItem ? cartItem.qty : 0;
-                // Find the specific qty-num inside that variant row
-                let qtySpan;
-                if (block.querySelector('.variant-row')) {
-                    // multiple variants
-                    const rows = block.querySelectorAll('.variant-row');
-                    for (const row of rows) {
-                        if (row.dataset.variantName === variantName) {
-                            qtySpan = row.querySelector('.qty-num');
-                            break;
-                        }
-                    }
-                } else {
-                    // single variant
-                    qtySpan = block.querySelector('.qty-num');
-                }
-                if (qtySpan) qtySpan.textContent = qty;
-            }
+            // Cart logic with variant-specific quantities
+            document.querySelectorAll('.item').forEach(itemDiv => {
+                itemDiv.addEventListener('click', (e) => {
+                    const btn = e.target;
+                    if (!btn.classList.contains('qty-btn')) return;
+                    const variantRow = btn.closest('.variant-row');
+                    const variantId = variantRow.dataset.variantId;
+                    const price = parseFloat(variantRow.dataset.price);
+                    const itemId = itemDiv.dataset.itemId;
+                    const itemName = itemDiv.dataset.itemName;
+                    const variantName = variantRow.querySelector('.variant-name').textContent;
+                    const qtySpan = variantRow.querySelector('.qty-num');
+                    const cartKey = `${itemId}_${variantId}`;
 
-            // Event delegation
-            menuList.addEventListener('click', (e) => {
-                const target = e.target;
-                if (!target.classList.contains('qty-btn')) return;
+                    let currentQty = cart[cartKey] ? cart[cartKey].qty : 0;
 
-                const btn = target;
-                const isInc = btn.classList.contains('qty-inc');
-                const isDec = btn.classList.contains('qty-dec');
-                if (!isInc && !isDec) return;
+                    if (btn.classList.contains('qty-inc')) currentQty++;
+                    else if (btn.classList.contains('qty-dec')) currentQty = Math.max(0, currentQty - 1);
 
-                const qtyBox = btn.closest('.qty-box');
-                if (!qtyBox) return;
+                    if (currentQty === 0) delete cart[cartKey];
+                    else cart[cartKey] = { id: itemId, name: itemName, variantName, price, qty: currentQty };
 
-                const block = btn.closest('.item-block');
-                const itemId = block.dataset.itemId;
-                const itemName = block.querySelector('.item-name').textContent;
-
-                let variantName, price;
-                // Check if it's a multi-variant row
-                const variantRow = btn.closest('.variant-row');
-                if (variantRow) {
-                    variantName = variantRow.dataset.variantName;
-                    const priceText = variantRow.querySelector('small').textContent.replace('₹', '');
-                    price = parseFloat(priceText);
-                } else {
-                    // single variant
-                    variantName = block.dataset.variantName || block.querySelector('.variant-label')?.textContent.trim() || itemName;
-                    const priceEl = block.querySelector('.single-price');
-                    price = priceEl ? parseFloat(priceEl.textContent.replace('₹', '')) : 0;
-                }
-
-                const cartKey = `${itemId}_${variantName}`;
-
-                if (isInc) {
-                    if (cart[cartKey]) {
-                        cart[cartKey].qty++;
-                    } else {
-                        cart[cartKey] = {
-                            id: itemId,
-                            name: itemName,
-                            variantName: variantName,
-                            price: price,
-                            qty: 1
-                        };
-                    }
-                } else if (isDec) {
-                    if (cart[cartKey]) {
-                        cart[cartKey].qty--;
-                        if (cart[cartKey].qty <= 0) delete cart[cartKey];
-                    }
-                }
-
-                updateVariantQty(block, variantName);
-                updateCartPreview();
+                    qtySpan.textContent = currentQty;
+                    updateCartUI();
+                });
             });
 
-            // Cart preview
+            // Cart UI
             const cartFloat = document.getElementById('cartFloat');
             const cartPreview = document.getElementById('cartPreview');
             const cartCountEl = document.getElementById('cartCount');
@@ -502,15 +494,13 @@
                 cartPreview.style.display = cartVisible ? 'block' : 'none';
             });
 
-            function updateCartPreview() {
+            function updateCartUI() {
                 const items = Object.values(cart);
-                const totalQty = items.reduce((s, i) => s + i.qty, 0);
-                cartCountEl.textContent = totalQty;
-                const total = items.reduce((s, i) => s + i.price * i.qty, 0);
-                cartTotalEl.textContent = total.toFixed(2);
+                cartCountEl.textContent = items.reduce((s, i) => s + i.qty, 0);
+                cartTotalEl.textContent = items.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
                 cartItemsEl.innerHTML = items.map((item, idx) => `
                     <li>
-                        <span>${item.name} ${item.variantName ? '(' + item.variantName + ')' : ''} × ${item.qty}</span>
+                        <span>${item.name}${item.variantName && item.variantName !== item.name ? ' (' + item.variantName + ')' : ''} × ${item.qty}</span>
                         <span>₹${(item.price * item.qty).toFixed(2)}
                             <button class="remove-item" data-key="${Object.keys(cart)[idx]}">✕</button>
                         </span>
@@ -520,44 +510,57 @@
                     btn.addEventListener('click', (e) => {
                         const key = e.target.dataset.key;
                         delete cart[key];
-                        // update all block qty displays to 0 for that key
-                        const [id, ...variantArr] = key.split('_');
-                        const variantName = variantArr.join('_');
-                        document.querySelectorAll('.item-block').forEach(b => {
-                            if (b.dataset.itemId === id) {
-                                updateVariantQty(b, variantName);
+                        document.querySelectorAll('.item').forEach(itemDiv => {
+                            itemDiv.querySelectorAll('.qty-num').forEach(qtySpan => qtySpan.textContent = '0');
+                        });
+                        Object.entries(cart).forEach(([k, v]) => {
+                            const [itemId, variantId] = k.split('_');
+                            const itemDiv = document.querySelector(`.item[data-item-id="${itemId}"]`);
+                            if (itemDiv) {
+                                const variantRow = itemDiv.querySelector(`.variant-row[data-variant-id="${variantId}"]`);
+                                if (variantRow) variantRow.querySelector('.qty-num').textContent = v.qty;
                             }
                         });
-                        updateCartPreview();
+                        updateCartUI();
                     });
                 });
             }
 
+            // Order button
             document.getElementById('orderBtn').addEventListener('click', () => {
                 const items = Object.values(cart);
                 if (items.length === 0) return alert('Cart is empty');
+                const tableNumber = document.getElementById('tableNumber').value.trim();
+                if (!tableNumber) return alert('Please enter your table number');
+                const customerName = document.getElementById('customerName').value.trim();
                 const phone = cafe.whatsapp ? cafe.whatsapp.replace(/\D/g, '') : '';
                 if (!phone) return alert('No WhatsApp number set');
-                let msg = `🛎️ Order from ${cafe.cafe_name}:\n`;
+
+                let msg = `🛎️ *Order from ${cafe.cafe_name}*\n`;
+                msg += `📋 Table: ${tableNumber}\n`;
+                if (customerName) msg += `👤 Name: ${customerName}\n`;
+                msg += `\n📝 *Items:*\n`;
+                msg += `━━━━━━━━━━━━━━━━\n`;
                 items.forEach((item, idx) => {
-                    msg += `${idx+1}. ${item.name}${item.variantName ? ' (' + item.variantName + ')' : ''} × ${item.qty} — ₹${(item.price * item.qty).toFixed(2)}\n`;
+                    const lineTotal = (item.price * item.qty).toFixed(2);
+                    msg += `${idx+1}. ${item.name}${item.variantName && item.variantName !== item.name ? ' (' + item.variantName + ')' : ''}\n`;
+                    msg += `   ${item.qty} × ₹${item.price} = ₹${lineTotal}\n`;
                 });
-                msg += `\n💰 Total: ₹${items.reduce((s,i) => s + i.price*i.qty, 0).toFixed(2)}`;
+                const total = items.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
+                msg += `━━━━━━━━━━━━━━━━\n`;
+                msg += `💰 *Total: ₹${total}*\n`;
+                msg += `\n🙏 Thank you!`;
+
                 window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
             });
 
-            // Initial display
-            document.querySelectorAll('.item-block').forEach(block => {
-                const itemId = block.dataset.itemId;
-                const variantRows = block.querySelectorAll('.variant-row');
-                if (variantRows.length > 0) {
-                    variantRows.forEach(row => {
-                        const vName = row.dataset.variantName;
-                        updateVariantQty(block, vName);
-                    });
+            // Share button
+            document.getElementById('shareMenuBtn').addEventListener('click', () => {
+                const menuUrl = window.location.href;
+                if (navigator.share) {
+                    navigator.share({ title: cafe.cafe_name, text: 'Check out our menu!', url: menuUrl }).catch(() => {});
                 } else {
-                    const vName = block.dataset.variantName;
-                    if (vName) updateVariantQty(block, vName);
+                    navigator.clipboard.writeText(menuUrl).then(() => alert('Menu link copied!')).catch(() => {});
                 }
             });
         }
