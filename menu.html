@@ -350,7 +350,7 @@
             <input type="text" id="customerName" placeholder="e.g., Rahul" />
         </div>
         <button id="orderBtn">Place Order</button>
-        <p class="success-message" id="orderSuccess">✅ Order placed! The cafe has been notified.</p>
+        <p class="success-message" id="orderSuccess"></p>
     </div>
 
     <script>
@@ -391,7 +391,7 @@
             const { data: cafe, error } = await client.from('cafes').select('*').eq('id', cafeId).single();
             if (error || !cafe) { document.body.innerHTML = '<h2>Cafe not found</h2>'; return; }
 
-            // Track menu view (fire‑and‑forget)
+            // Track menu view (ignore failure)
             try { await client.from('menu_views_log').insert({ cafe_id: cafeId }); } catch(e) {}
 
             document.getElementById('cafeTitle').textContent = cafe.cafe_name || 'Menu';
@@ -535,7 +535,7 @@
                 });
             }
 
-            // Place Order – save to DB, no WhatsApp
+            // Place Order – save to DB, then poll for acceptance
             document.getElementById('orderBtn').addEventListener('click', async () => {
                 const items = Object.values(cart);
                 if (items.length === 0) return alert('Cart is empty');
@@ -545,7 +545,7 @@
                 const total = items.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
 
                 try {
-                    await client.from('orders').insert({
+                    const { data: newOrder, error } = await client.from('orders').insert({
                         cafe_id: cafeId,
                         customer_name: customerName,
                         table_number: tableNumber,
@@ -557,20 +557,50 @@
                         })),
                         total: parseFloat(total),
                         status: 'new'
-                    });
+                    }).select('id').single();
 
-                    // Show success message & clear cart
+                    if (error) throw error;
+
+                    const orderId = newOrder.id;
+                    document.getElementById('orderSuccess').textContent = '✅ Order placed! Waiting for confirmation…';
                     document.getElementById('orderSuccess').style.display = 'block';
+
                     // Clear cart
                     for (const key in cart) delete cart[key];
                     document.querySelectorAll('.qty-num').forEach(el => el.textContent = '0');
                     updateCartUI();
 
-                    setTimeout(() => {
-                        document.getElementById('orderSuccess').style.display = 'none';
-                        cartPreview.style.display = 'none';
-                        cartVisible = false;
-                    }, 3000);
+                    // Poll for order acceptance
+                    let pollInterval = setInterval(async () => {
+                        const { data: order } = await client.from('orders')
+                            .select('status')
+                            .eq('id', orderId)
+                            .single();
+
+                        if (order && order.status === 'accepted') {
+                            clearInterval(pollInterval);
+                            document.getElementById('orderSuccess').textContent = '🎉 Order accepted! Enjoy your meal!';
+                            document.getElementById('orderSuccess').style.color = '#4CAF50';
+
+                            // Send browser notification to customer
+                            if (Notification.permission === 'default') {
+                                await Notification.requestPermission();
+                            }
+                            if (Notification.permission === 'granted') {
+                                new Notification('Order Accepted!', {
+                                    body: 'Your order has been accepted by the cafe. Enjoy your meal!',
+                                    icon: cafe.logo_url || ''
+                                });
+                            }
+
+                            // Hide cart after 3 seconds
+                            setTimeout(() => {
+                                cartPreview.style.display = 'none';
+                                cartVisible = false;
+                                document.getElementById('orderSuccess').style.display = 'none';
+                            }, 5000);
+                        }
+                    }, 5000); // check every 5 seconds
 
                 } catch (err) {
                     alert('Order failed. Please try again.');
