@@ -383,16 +383,21 @@
             const { data: cafe, error } = await client.from('cafes').select('*').eq('id', cafeId).single();
             if (error || !cafe) { document.body.innerHTML = '<h2>Cafe not found</h2>'; return; }
 
-            // Track menu view
-            await client.from('menu_views_log').insert({ cafe_id: cafeId });
-            await client.rpc('increment_menu_views', { cafe_id: cafeId }).catch(() => {});
+            // Track menu view (ignore if fails)
+            try {
+                await client.from('menu_views_log').insert({ cafe_id: cafeId });
+            } catch(e) {}
 
             document.getElementById('cafeTitle').textContent = cafe.cafe_name || 'Menu';
             document.getElementById('cafeDesc').textContent = cafe.description || '';
             const logo = document.getElementById('logoImg');
             if (cafe.logo_url) { logo.src = cafe.logo_url; logo.style.display = 'block'; }
 
-            const { data: items } = await client.from('menu_items').select('*').eq('cafe_id', cafeId).eq('available', true);
+            const { data: items } = await client.from('menu_items')
+                .select('*')
+                .eq('cafe_id', cafeId)
+                .eq('available', true);
+
             const grouped = {};
             if (items) items.forEach(item => {
                 if (!grouped[item.category]) grouped[item.category] = [];
@@ -526,8 +531,8 @@
                 });
             }
 
-            // Order button – NOW SAVES TO DATABASE
-            document.getElementById('orderBtn').addEventListener('click', async () => {
+            // Order button (just WhatsApp, no DB saving for now)
+            document.getElementById('orderBtn').addEventListener('click', () => {
                 const items = Object.values(cart);
                 if (items.length === 0) return alert('Cart is empty');
                 const tableNumber = document.getElementById('tableNumber').value.trim();
@@ -538,7 +543,6 @@
 
                 const total = items.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
 
-                // Build WhatsApp message
                 let msg = `🛎️ *Order from ${cafe.cafe_name}*\n`;
                 msg += `📋 Table: ${tableNumber}\n`;
                 msg += `👤 Name: ${customerName}\n`;
@@ -553,26 +557,6 @@
                 msg += `💰 *Total: ₹${total}*\n`;
                 msg += `\n🙏 Thank you!`;
 
-                // Save order to DB (fire‑and‑forget)
-                try {
-                    await client.from('orders').insert({
-                        cafe_id: cafeId,
-                        customer_name: customerName,
-                        table_number: tableNumber,
-                        items: items.map(i => ({
-                            name: i.name,
-                            variant: i.variantName || '',
-                            price: i.price,
-                            qty: i.qty
-                        })),
-                        total: parseFloat(total),
-                        status: 'new'
-                    });
-                } catch (err) {
-                    console.warn('Order save failed (WhatsApp will still open):', err);
-                }
-
-                // Open WhatsApp
                 window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
             });
 
