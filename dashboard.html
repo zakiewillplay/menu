@@ -53,6 +53,11 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         .card h3 { color: var(--primary); margin-bottom: 1rem; }
+        .order-section {
+            border-left: 3px solid var(--primary);
+            padding-left: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
         .form-group { margin-bottom: 1rem; }
         label { display: block; font-size: 0.85rem; margin-bottom: 0.3rem; opacity: 0.8; }
         input, textarea, select {
@@ -133,14 +138,8 @@
 
     <!-- Stats Row -->
     <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-value" id="totalViews">0</div>
-            <div class="stat-label">Menu Views</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value" id="totalItems">0</div>
-            <div class="stat-label">Items</div>
-        </div>
+        <div class="stat-card"><div class="stat-value" id="totalViews">0</div><div class="stat-label">Menu Views</div></div>
+        <div class="stat-card"><div class="stat-value" id="totalItems">0</div><div class="stat-label">Items</div></div>
     </div>
 
     <!-- Orders Sections -->
@@ -237,7 +236,11 @@
             <div class="form-group"><label>Name</label><input type="text" id="itemName" required /></div>
             <div class="form-group"><label>Description</label><input type="text" id="itemDesc" /></div>
             <div class="form-group"><label>Price (₹, leave blank if variants)</label><input type="number" id="itemPrice" step="0.01" /></div>
-            <div class="form-group"><label>Category</label><input type="text" id="itemCategory" required /></div>
+            <div class="form-group">
+                <label>Category</label>
+                <input type="text" id="itemCategory" list="categoryList" required />
+                <datalist id="categoryList"></datalist>
+            </div>
             <div class="form-group"><label>Variants (e.g., Small=150|Large=250)</label>
                 <div id="variantsContainer"><div class="variant-row"><input type="text" class="vname" placeholder="Variant name" /><input type="number" class="vprice" step="0.01" placeholder="Price" /></div></div>
                 <button type="button" id="addVariantBtn" class="btn-outline">+ Add Variant</button>
@@ -490,6 +493,7 @@
                     scanBtn.style.display = 'none';
                     cameraInput.value = galleryInput.value = '';
                     loadItems();
+                    loadCategories(); // refresh category list
                 }
             });
 
@@ -514,8 +518,26 @@
                     document.getElementById('bulkMessage').textContent = `Added ${items.length} items!`;
                     document.getElementById('bulkTextarea').value = '';
                     loadItems();
+                    loadCategories(); // refresh category list
                 }
             });
+
+            // ---------- CATEGORY DATALIST ----------
+            const loadCategories = async () => {
+                const { data, error } = await client.from('menu_items')
+                    .select('category')
+                    .eq('cafe_id', cafe.id);
+                if (error) return;
+                const categories = [...new Set(data.map(item => item.category))].filter(Boolean);
+                const datalist = document.getElementById('categoryList');
+                datalist.innerHTML = '';
+                categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    datalist.appendChild(option);
+                });
+            };
+            await loadCategories();
 
             // ---------- MENU ITEMS LOADING & EDITING ----------
             const loadItems = async () => {
@@ -578,6 +600,7 @@
                         if (confirm('Delete this item?')) {
                             await client.from('menu_items').delete().eq('id', e.target.dataset.id);
                             loadItems();
+                            loadCategories(); // refresh list
                         }
                     });
                 });
@@ -680,6 +703,7 @@
                     document.getElementById('variantsContainer').innerHTML = `<div class="variant-row"><input type="text" class="vname" placeholder="Variant name" /><input type="number" class="vprice" step="0.01" placeholder="Price" /></div>`;
                     document.getElementById('saveItemBtn').textContent = 'Add Item';
                     loadItems();
+                    loadCategories(); // refresh category list
                 }
             });
 
