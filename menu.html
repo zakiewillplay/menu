@@ -26,7 +26,10 @@
             position: relative;
             transition: background 0.5s, color 0.5s;
         }
-        body.light-mode { background: var(--light-bg); color: var(--light-text); }
+        body.light-mode {
+            background: var(--light-bg);
+            color: var(--light-text);
+        }
         body::before {
             content: "";
             position: fixed;
@@ -34,6 +37,7 @@
             background: radial-gradient(circle at 20% 30%, rgba(212,175,55,0.1) 0%, transparent 50%),
                         radial-gradient(circle at 80% 70%, rgba(192,57,43,0.1) 0%, transparent 50%);
             z-index: 0;
+            transition: opacity 0.5s;
         }
         body.light-mode::before {
             background: radial-gradient(circle at 20% 30%, rgba(212,175,55,0.15) 0%, transparent 50%),
@@ -94,7 +98,7 @@
         }
 
         .header {
-            text-align: center; margin-bottom: 2rem; padding: 1.5rem;
+            text-align: center; margin-bottom: 1rem; padding: 1.5rem;
             background: var(--glass); backdrop-filter: blur(20px);
             border: 1px solid var(--gold); border-radius: 20px;
             box-shadow: 0 0 30px rgba(212,175,55,0.3);
@@ -109,6 +113,32 @@
             text-shadow: 0 0 10px var(--gold);
         }
         .header p { color: var(--cream); font-style: italic; }
+
+        /* Category tabs */
+        .category-tabs {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding: 0.5rem 0;
+            margin-bottom: 1rem;
+            -webkit-overflow-scrolling: touch;
+        }
+        .category-tab {
+            background: var(--glass);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .category-tab.active {
+            background: var(--gold);
+            color: var(--dark);
+        }
 
         .category {
             background: var(--glass); backdrop-filter: blur(15px);
@@ -197,6 +227,9 @@
             <h1 id="cafeTitle"></h1>
             <p id="cafeDesc"></p>
         </div>
+        <div class="category-tabs" id="categoryTabs">
+            <span class="category-tab active" data-category="all">All</span>
+        </div>
         <div id="menuList"></div>
         <button class="share-btn" id="shareMenuBtn">📤 Share this Menu</button>
     </div>
@@ -267,6 +300,35 @@
                 grouped[item.category].push(item);
             });
 
+            // Build category tabs
+            const tabsContainer = document.getElementById('categoryTabs');
+            // Keep "All" tab
+            tabsContainer.innerHTML = '<span class="category-tab active" data-category="all">All</span>';
+            Object.keys(grouped).sort().forEach(cat => {
+                const tab = document.createElement('span');
+                tab.className = 'category-tab';
+                tab.textContent = cat;
+                tab.dataset.category = cat;
+                tabsContainer.appendChild(tab);
+            });
+
+            // Tab filtering
+            tabsContainer.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('category-tab')) return;
+                document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                const selectedCategory = e.target.dataset.category;
+                const allCategories = document.querySelectorAll('.category');
+                allCategories.forEach(catSection => {
+                    const catTitle = catSection.querySelector('.cat-title').textContent;
+                    if (selectedCategory === 'all' || catTitle === selectedCategory) {
+                        catSection.style.display = 'block';
+                    } else {
+                        catSection.style.display = 'none';
+                    }
+                });
+            });
+
             const menuList = document.getElementById('menuList');
             const cart = {};
 
@@ -316,6 +378,7 @@
                 menuList.appendChild(section);
             }
 
+            // Cart logic (unchanged)
             document.querySelectorAll('.item').forEach(itemDiv => {
                 itemDiv.addEventListener('click', (e) => {
                     const btn = e.target;
@@ -412,12 +475,10 @@
                     document.getElementById('orderSuccess').textContent = '✅ Order placed! Waiting for confirmation…';
                     document.getElementById('orderSuccess').style.display = 'block';
 
-                    // Clear cart
                     for (const key in cart) delete cart[key];
                     document.querySelectorAll('.qty-num').forEach(el => el.textContent = '0');
                     updateCartUI();
 
-                    // Poll for acceptance
                     let pollInterval = setInterval(async () => {
                         const { data: order } = await client.from('orders')
                             .select('status')
