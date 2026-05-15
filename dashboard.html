@@ -209,7 +209,7 @@
         </div>
     </div>
 
-    <!-- Smart Menu Builder (fixed OCR) -->
+    <!-- Smart Menu Builder -->
     <div class="card">
         <h3>📸 Smart Menu Builder</h3>
         <p class="note">Snap a photo or pick one from your gallery – only lines with prices are kept.</p>
@@ -242,7 +242,7 @@
         <p id="bulkMessage" class="note"></p>
     </div>
 
-    <!-- Add/Edit Single Item (with Variants & Featured) -->
+    <!-- Add/Edit Single Item -->
     <div class="card">
         <h3>✏️ Single Item (edit)</h3>
         <form id="menuForm">
@@ -308,7 +308,7 @@
                 return;
             }
 
-            // ---------- SUBSCRIPTION LOGIC ----------
+            // ---------- SUBSCRIPTION ----------
             const subStatus = document.getElementById('subStatus');
             const subAction = document.getElementById('subAction');
             const showUpiQRBtn = document.getElementById('showUpiQRBtn');
@@ -325,20 +325,19 @@
                 const now = new Date();
                 const trialEnd = sub.trial_ends_at ? new Date(sub.trial_ends_at) : null;
                 const paidUntil = sub.paid_until ? new Date(sub.paid_until) : null;
-
                 if (paidUntil && paidUntil > now) {
                     const days = Math.ceil((paidUntil - now) / (1000 * 60 * 60 * 24));
-                    subStatus.innerHTML = `<p>✅ Active until ${paidUntil.toLocaleDateString()} (${days} days left)</p>`;
+                    subStatus.innerHTML = `<p>✅ Active until ${paidUntil.toLocaleDateString()} (${days} days)</p>`;
                     subAction.style.display = 'none';
                 } else if (trialEnd && trialEnd > now) {
                     const days = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
-                    subStatus.innerHTML = `<p>🆓 Free trial: ${days} days remaining</p>`;
+                    subStatus.innerHTML = `<p>🆓 Trial: ${days} days remaining</p>`;
                     subAction.style.display = 'block';
                     showUpiQRBtn.textContent = 'Subscribe Now (₹200/month)';
                 } else {
-                    subStatus.innerHTML = '<p>❌ Trial expired. Please subscribe.</p>';
+                    subStatus.innerHTML = '<p>❌ Trial expired</p>';
                     subAction.style.display = 'block';
-                    showUpiQRBtn.textContent = 'Renew Subscription (₹200/month)';
+                    showUpiQRBtn.textContent = 'Renew (₹200/month)';
                 }
             };
             await loadSubscription();
@@ -354,13 +353,13 @@
 
             submitTxnBtn.addEventListener('click', async () => {
                 const txn = txnId.value.trim();
-                if (!txn) { txnMessage.textContent = 'Please enter the transaction ID.'; return; }
+                if (!txn) { txnMessage.textContent = 'Enter transaction ID'; return; }
                 const { error } = await client.from('payment_requests').insert({
                     owner_id: user.id, amount: 200.00, upi_transaction_id: txn, status: 'pending'
                 });
                 if (error) txnMessage.textContent = 'Error: ' + error.message;
                 else {
-                    txnMessage.textContent = 'Transaction ID submitted!';
+                    txnMessage.textContent = 'Submitted!';
                     txnId.value = '';
                     setTimeout(() => { txnInput.style.display = 'none'; }, 2000);
                 }
@@ -370,15 +369,15 @@
             const cafeNameInp = document.getElementById('cafeName');
             const whatsappInp = document.getElementById('whatsapp');
             const descInp = document.getElementById('description');
-            const primaryColorInp = document.getElementById('primaryColor');
-            const accentColorInp = document.getElementById('accentColor');
+            const primaryInp = document.getElementById('primaryColor');
+            const accentInp = document.getElementById('accentColor');
             const logoPreview = document.getElementById('logoPreview');
 
             cafeNameInp.value = cafe.cafe_name || '';
             whatsappInp.value = cafe.whatsapp || '';
             descInp.value = cafe.description || '';
-            primaryColorInp.value = cafe.primary_color || '#FF6B35';
-            accentColorInp.value = cafe.accent_color || '#2F3E46';
+            primaryInp.value = cafe.primary_color || '#FF6B35';
+            accentInp.value = cafe.accent_color || '#2F3E46';
             if (cafe.logo_url) { logoPreview.src = cafe.logo_url; logoPreview.style.display = 'block'; }
 
             document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
@@ -386,19 +385,19 @@
                     cafe_name: cafeNameInp.value,
                     whatsapp: whatsappInp.value.replace(/\D/g, ''),
                     description: descInp.value,
-                    primary_color: primaryColorInp.value,
-                    accent_color: accentColorInp.value,
+                    primary_color: primaryInp.value,
+                    accent_color: accentInp.value,
                 };
                 const { error } = await client.from('cafes').update(updates).eq('owner_id', user.id);
                 if (error) alert('Error: ' + error.message);
                 else alert('Settings saved!');
             });
 
-            // Logo upload
+            // Logo
             document.getElementById('selectLogoBtn').addEventListener('click', () => document.getElementById('logoFile').click());
             document.getElementById('uploadLogoBtn').addEventListener('click', async () => {
                 const file = document.getElementById('logoFile').files[0];
-                if (!file) return alert('Choose an image first');
+                if (!file) return alert('Choose an image');
                 const path = `${user.id}/logos/${Date.now()}_${file.name}`;
                 const { error } = await client.storage.from('menu-items').upload(path, file);
                 if (error) return alert('Upload failed: ' + error.message);
@@ -409,14 +408,13 @@
                 alert('Logo updated!');
             });
 
-            // QR Code (goQR.me API)
+            // QR
             document.getElementById('qrBtn').addEventListener('click', () => {
                 const menuUrl = BASE_MENU_URL + cafe.id;
                 const qrContainer = document.getElementById('qrcode');
                 qrContainer.innerHTML = '';
-                const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(menuUrl)}`;
                 const img = document.createElement('img');
-                img.src = qrImageUrl;
+                img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(menuUrl)}`;
                 img.width = 200; img.height = 200;
                 img.style.display = 'block'; img.style.margin = '0 auto'; img.style.borderRadius = '8px';
                 qrContainer.appendChild(img);
@@ -424,7 +422,7 @@
                 navigator.clipboard.writeText(menuUrl).then(() => alert('Menu link copied!')).catch(() => {});
             });
 
-            // ---------- SMART MENU BUILDER (OCR only price lines) ----------
+            // ---------- SMART MENU BUILDER (OCR) ----------
             const cameraInput = document.getElementById('cameraInput');
             const galleryInput = document.getElementById('galleryInput');
             const imagePreview = document.getElementById('imagePreview');
@@ -518,7 +516,7 @@
                 const toInsert = extractedItems
                     .filter(i => i.name && !isNaN(parseFloat(i.price)))
                     .map(i => ({ cafe_id: cafe.id, name: i.name, price: parseFloat(i.price), category: cat, description: '', available: true }));
-                if (!toInsert.length) return alert('No valid items (each needs a name and price).');
+                if (!toInsert.length) return alert('No valid items.');
                 const { error } = await client.from('menu_items').insert(toInsert);
                 if (error) alert('Error: ' + error.message);
                 else {
@@ -533,7 +531,7 @@
                 }
             });
 
-            // ---------- BULK PASTE ----------
+            // Bulk paste
             document.getElementById('bulkAddBtn').addEventListener('click', async () => {
                 const raw = document.getElementById('bulkTextarea').value.trim();
                 if (!raw) return;
@@ -673,7 +671,6 @@
                 row.querySelector('.remove-variant-btn').addEventListener('click', () => row.remove());
             });
 
-            // Save item (handles optional default price + featured)
             document.getElementById('menuForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const id = document.getElementById('editId').value;
@@ -693,15 +690,12 @@
                 }
                 const hasVariants = variantString.length > 0;
                 const description = hasVariants ? 'VAR::' + variantString : descPlain;
-
                 if (hasVariants) price = 0;
                 else if (isNaN(price) || price <= 0) {
-                    alert('Please provide a valid price or add at least one variant.');
+                    alert('Provide a valid price or add variants.');
                     return;
                 }
-
                 const payload = { cafe_id: cafe.id, name, description, price, category, featured };
-
                 const file = document.getElementById('itemImage').files[0];
                 if (file) {
                     const path = `${user.id}/menu_${Date.now()}_${file.name}`;
@@ -710,7 +704,6 @@
                     const { data: { publicUrl } } = client.storage.from('menu-items').getPublicUrl(path);
                     payload.image_url = publicUrl;
                 }
-
                 const { error } = id
                     ? await client.from('menu_items').update(payload).eq('id', id)
                     : await client.from('menu_items').insert(payload);
@@ -728,16 +721,14 @@
                 }
             });
 
-            // View count
             const loadViewCount = async () => {
                 const { count } = await client.from('menu_views_log').select('*', { count: 'exact', head: true }).eq('cafe_id', cafe.id);
                 document.getElementById('totalViews').textContent = count || 0;
             };
             await loadViewCount();
-
             await loadItems();
 
-            // ---------- ORDERS & NOTIFICATIONS ----------
+            // ---------- ORDERS & NOTIFICATIONS (FIXED ACCEPT) ----------
             let lastOrderTime = new Date().toISOString();
             const ordersListEl = document.getElementById('ordersList');
             const orderBadge = document.getElementById('orderBadge');
@@ -771,7 +762,7 @@
                     const time = new Date(order.created_at).toLocaleTimeString();
                     const isNew = order.status === 'new';
                     html += `
-                        <div style="border-bottom:1px solid #444; padding:0.8rem 0;">
+                        <div style="border-bottom:1px solid #444; padding:0.8rem 0;" data-order-id="${order.id}">
                             <div style="display:flex; justify-content:space-between;">
                                 <strong>Table ${order.table_number}</strong>
                                 <small>${time}</small>
@@ -787,20 +778,23 @@
                 });
                 ordersListEl.innerHTML = html;
 
+                // Attach accept handlers (use separate event listener to avoid double‑fire)
                 document.querySelectorAll('.accept-btn').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const orderId = e.target.dataset.id;
-                        e.target.disabled = true;
-                        e.target.textContent = 'Accepting...';
+                    btn.addEventListener('click', async function(e) {
+                        e.stopPropagation();
+                        const orderId = this.dataset.id;
+                        this.disabled = true;
+                        this.textContent = 'Accepting...';
                         const { error } = await client.from('orders')
                             .update({ status: 'accepted' })
                             .eq('id', orderId);
                         if (error) {
                             alert('Error accepting order: ' + error.message);
-                            e.target.disabled = false;
-                            e.target.textContent = 'Accept';
+                            this.disabled = false;
+                            this.textContent = 'Accept';
                             return;
                         }
+                        // Refresh the list (button will be replaced with "✓ Accepted")
                         loadOrders();
                     });
                 });
@@ -830,7 +824,6 @@
 
             loadOrders();
 
-            // Logout
             document.getElementById('logoutBtn').addEventListener('click', async () => {
                 await client.auth.signOut();
                 window.location.href = 'index.html';
