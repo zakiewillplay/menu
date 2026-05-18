@@ -17,8 +17,7 @@
         h1 { color: #FF6B35; margin-bottom: 1.5rem; }
         .stats-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
         .stat-card {
-            flex: 1;
-            min-width: 120px;
+            flex: 1; min-width: 120px;
             background: #2a2a2c;
             padding: 1rem;
             border-radius: 16px;
@@ -56,6 +55,7 @@
             float: right;
         }
         .empty { text-align: center; opacity: 0.6; padding: 2rem; }
+        input { padding: 0.5rem; border-radius: 8px; border: 1px solid #444; background: #1e1e1e; color: #fff; width: 80px; }
     </style>
 </head>
 <body>
@@ -73,7 +73,7 @@
         </div>
         <div class="stat-card">
             <div class="stat-value" id="approvedCount">0</div>
-            <div class="stat-label">Approved Payments</div>
+            <div class="stat-label">Approved</div>
         </div>
         <div class="stat-card">
             <div class="stat-value" id="pendingCount">0</div>
@@ -81,11 +81,23 @@
         </div>
     </div>
 
+    <!-- Price Editor -->
+    <div class="card">
+        <h3>💲 Set Subscription Price (₹)</h3>
+        <div style="display:flex; align-items:center; gap:1rem;">
+            <input type="number" id="newPrice" value="200" step="1" min="1" />
+            <button class="approve-btn" id="savePriceBtn">Save Price</button>
+        </div>
+        <p id="priceMessage" style="margin-top:0.5rem; font-size:0.8rem; opacity:0.7;"></p>
+    </div>
+
+    <!-- Pending Approvals -->
     <div class="card">
         <h3>⏳ Pending Approvals</h3>
         <div id="requestsContainer"><p class="empty">Loading...</p></div>
     </div>
 
+    <!-- Approved Payments -->
     <div class="card">
         <h3>✅ Recent Approved Payments</h3>
         <div id="approvedContainer"><p class="empty">Loading...</p></div>
@@ -113,56 +125,36 @@
                 return;
             }
 
-            // Load stats: total cafes, revenue, pending/approved counts
+            // Load stats
             const loadStats = async () => {
-                // Total cafes
-                const { count: cafesCount, error: cafesErr } = await client
-                    .from('cafes')
-                    .select('*', { count: 'exact', head: true });
-                if (!cafesErr && cafesCount !== null) {
-                    document.getElementById('totalCafes').textContent = cafesCount;
-                }
+                const { count: cafesCount } = await client.from('cafes').select('*', { count: 'exact', head: true });
+                document.getElementById('totalCafes').textContent = cafesCount || 0;
 
-                // Revenue from approved payments
-                const { data: approvedData, error: revErr } = await client
-                    .from('payment_requests')
-                    .select('amount')
-                    .eq('status', 'approved');
-                if (!revErr && approvedData) {
-                    const total = approvedData.reduce((sum, r) => sum + parseFloat(r.amount), 0);
-                    document.getElementById('totalRevenue').textContent = `₹${total.toFixed(2)}`;
-                }
+                const { data: approved } = await client.from('payment_requests').select('amount').eq('status', 'approved');
+                const total = approved ? approved.reduce((s, r) => s + parseFloat(r.amount), 0) : 0;
+                document.getElementById('totalRevenue').textContent = `₹${total.toFixed(2)}`;
 
-                // Pending count
-                const { count: pendingCount } = await client
-                    .from('payment_requests')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('status', 'pending');
-                document.getElementById('pendingCount').textContent = pendingCount || 0;
-
-                // Approved count
-                const { count: approvedCount } = await client
-                    .from('payment_requests')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('status', 'approved');
+                const { count: approvedCount } = await client.from('payment_requests').select('*', { count: 'exact', head: true }).eq('status', 'approved');
                 document.getElementById('approvedCount').textContent = approvedCount || 0;
+
+                const { count: pendingCount } = await client.from('payment_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+                document.getElementById('pendingCount').textContent = pendingCount || 0;
             };
             await loadStats();
+
+            // Price editor
+            document.getElementById('savePriceBtn').addEventListener('click', async () => {
+                const newPrice = document.getElementById('newPrice').value;
+                const { error } = await client.from('payment_requests').update({ amount: parseFloat(newPrice) }).neq('id', '00000000-0000-0000-0000-000000000000');
+                document.getElementById('priceMessage').textContent = error ? 'Error: ' + error.message : `Price updated to ₹${newPrice} for all future payments.`;
+            });
 
             // Load pending requests
             const loadPending = async () => {
                 const container = document.getElementById('requestsContainer');
-                const { data, error } = await client
-                    .from('payment_requests')
-                    .select('*')
-                    .eq('status', 'pending')
-                    .order('created_at', { ascending: false });
-
-                if (error) { container.innerHTML = '<p class="empty">Error loading</p>'; return; }
-                if (!data || data.length === 0) {
-                    container.innerHTML = '<p class="empty">✅ No pending requests</p>';
-                    return;
-                }
+                const { data, error } = await client.from('payment_requests').select('*').eq('status', 'pending').order('created_at', { ascending: false });
+                if (error) { container.innerHTML = '<p class="empty">Error</p>'; return; }
+                if (!data || data.length === 0) { container.innerHTML = '<p class="empty">✅ No pending requests</p>'; return; }
 
                 let html = '<table><tr><th>User</th><th>Txn ID</th><th>Amount</th><th></th></tr>';
                 data.forEach(req => {
@@ -195,18 +187,9 @@
             // Load approved payments
             const loadApproved = async () => {
                 const container = document.getElementById('approvedContainer');
-                const { data, error } = await client
-                    .from('payment_requests')
-                    .select('*')
-                    .eq('status', 'approved')
-                    .order('created_at', { ascending: false })
-                    .limit(20);
-
-                if (error) { container.innerHTML = '<p class="empty">Error loading</p>'; return; }
-                if (!data || data.length === 0) {
-                    container.innerHTML = '<p class="empty">No approved payments yet</p>';
-                    return;
-                }
+                const { data, error } = await client.from('payment_requests').select('*').eq('status', 'approved').order('created_at', { ascending: false }).limit(20);
+                if (error) { container.innerHTML = '<p class="empty">Error</p>'; return; }
+                if (!data || data.length === 0) { container.innerHTML = '<p class="empty">No approved payments yet</p>'; return; }
 
                 let html = '<table><tr><th>User</th><th>Txn ID</th><th>Amount</th><th>Date</th></tr>';
                 data.forEach(req => {
