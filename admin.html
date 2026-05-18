@@ -168,15 +168,43 @@
                 html += '</table>';
                 container.innerHTML = html;
 
+                // FIXED APPROVE LOGIC
                 document.querySelectorAll('.approve-btn').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const reqId = e.target.dataset.id;
                         const ownerId = e.target.dataset.owner;
-                        await client.from('payment_requests').update({ status: 'approved' }).eq('id', reqId);
+                        
+                        // 1. Approve the payment request
+                        const { error: approveError } = await client
+                            .from('payment_requests')
+                            .update({ status: 'approved' })
+                            .eq('id', reqId);
+                            
+                        if (approveError) {
+                            alert('Error approving: ' + approveError.message);
+                            return;
+                        }
+                        
+                        // 2. Calculate new paid_until date (1 month from now)
                         const now = new Date();
-                        const paidUntil = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
-                        await client.from('subscriptions').update({ status: 'active', paid_until: paidUntil.toISOString() }).eq('owner_id', ownerId);
-                        alert('✅ Approved!');
+                        const paidUntil = new Date(now);
+                        paidUntil.setMonth(paidUntil.getMonth() + 1);
+                        
+                        // 3. Update subscription
+                        const { error: subError } = await client
+                            .from('subscriptions')
+                            .update({ 
+                                status: 'active', 
+                                paid_until: paidUntil.toISOString() 
+                            })
+                            .eq('owner_id', ownerId);
+                            
+                        if (subError) {
+                            alert('Error updating subscription: ' + subError.message);
+                            return;
+                        }
+                        
+                        alert('✅ Approved! Subscription extended to ' + paidUntil.toLocaleDateString());
                         loadPending();
                         loadApproved();
                         loadStats();
