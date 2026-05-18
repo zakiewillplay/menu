@@ -123,6 +123,8 @@
         .btn-accept { background: var(--success); color: white; }
         .btn-deliver { background: #2980b9; color: white; }
         .btn-pdf { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .toggle-avail-btn { background: #555; color: white; }
+        .toggle-avail-btn.available { background: var(--success); }
         .form-group { margin-bottom: 0.8rem; }
         label { display: block; font-size: 0.75rem; margin-bottom: 0.2rem; opacity: 0.7; }
         input, textarea {
@@ -493,7 +495,7 @@
             }, 30000);
             await loadAllOrders();
 
-            // ---------- ITEMS LOADING ----------
+            // ---------- ITEMS LOADING (FIXED) ----------
             const loadItems = async () => {
                 const { data, error } = await client.from('menu_items').select('*').eq('cafe_id', cafe.id).order('created_at');
                 if (error) return;
@@ -510,14 +512,24 @@
                     displayStr += ` <small>(${item.category})</small>`;
                     const div = document.createElement('div');
                     div.className = 'menu-item';
-                    div.innerHTML = `<div>${item.image_url ? `<img src="${item.image_url}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;margin-right:0.5rem;" />` : ''}${displayStr}</div><div><button class="btn-sm btn-accept" data-id="${item.id}" data-avail="${item.available}">${item.available ? 'On' : 'Off'}</button> <button class="btn-sm btn-outline edit-item-btn" data-id="${item.id}">Edit</button> <button class="btn-sm btn-deliver del-item-btn" data-id="${item.id}">Del</button></div>`;
+                    div.innerHTML = `<div>${item.image_url ? `<img src="${item.image_url}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;margin-right:0.5rem;" />` : ''}${displayStr}</div>
+                    <div>
+                      <button class="btn-sm toggle-avail-btn ${item.available ? 'available' : ''}" data-id="${item.id}" data-avail="${item.available}">${item.available ? 'On' : 'Off'}</button>
+                      <button class="btn-sm btn-outline edit-item-btn" data-id="${item.id}">Edit</button>
+                      <button class="btn-sm btn-deliver del-item-btn" data-id="${item.id}">Del</button>
+                    </div>`;
                     menuList.appendChild(div);
                 });
                 document.getElementById('totalItems').textContent = data.length || 0;
                 attachItemEvents(data);
             };
             const attachItemEvents = (data) => {
-                document.querySelectorAll('.btn-accept').forEach(b => b.addEventListener('click', async function() { await client.from('menu_items').update({ available: this.dataset.avail !== 'true' }).eq('id', this.dataset.id); loadItems(); }));
+                document.querySelectorAll('.toggle-avail-btn').forEach(b => b.addEventListener('click', async function() {
+                    const id = this.dataset.id;
+                    const current = this.dataset.avail === 'true';
+                    await client.from('menu_items').update({ available: !current }).eq('id', id);
+                    loadItems();
+                }));
                 document.querySelectorAll('.del-item-btn').forEach(b => b.addEventListener('click', async function() { if (confirm('Delete?')) { await client.from('menu_items').delete().eq('id', this.dataset.id); loadItems(); } }));
                 document.querySelectorAll('.edit-item-btn').forEach(b => b.addEventListener('click', async function() {
                     const item = data.find(i => i.id === this.dataset.id);
@@ -583,7 +595,7 @@
                 }
                 const { error } = id ? await client.from('menu_items').update(payload).eq('id', id) : await client.from('menu_items').insert(payload);
                 if (error) alert(error.message);
-                else { document.getElementById('editId').value = ''; document.getElementById('menuForm').reset(); document.getElementById('variantsContainer').innerHTML = '<div style="display:flex; gap:0.3rem;"><input type="text" class="vname" placeholder="Name" /><input type="number" class="vprice" step="0.01" placeholder="Price" /></div>'; document.getElementById('saveItemBtn').textContent = 'Add Item'; loadItems(); }
+                else { document.getElementById('editId').value = ''; document.getElementById('menuForm').reset(); document.getElementById('variantsContainer').innerHTML = '<div style="display:flex; gap:0.3rem;"><input type="text" class="vname" placeholder="Name" /><input type="number" class="vprice" step="0.01" placeholder="Price" /></div>'; document.getElementById('saveItemBtn').textContent = 'Add Item'; loadItems(); loadCategories(); }
             });
 
             // Bulk paste
@@ -597,7 +609,7 @@
                 if (!items.length) return document.getElementById('bulkMessage').textContent = 'No valid items';
                 const { error } = await client.from('menu_items').insert(items);
                 document.getElementById('bulkMessage').textContent = error ? error.message : `Added ${items.length} items!`;
-                if (!error) { document.getElementById('bulkTextarea').value = ''; loadItems(); }
+                if (!error) { document.getElementById('bulkTextarea').value = ''; loadItems(); loadCategories(); }
             });
 
             // Category datalist
@@ -609,7 +621,7 @@
             };
             await loadCategories();
 
-            // Smart Menu Builder (OCR) – abbreviated but functional
+            // Smart Menu Builder (OCR)
             const cameraInput = document.getElementById('cameraInput');
             const galleryInput = document.getElementById('galleryInput');
             const imagePreview = document.getElementById('imagePreview');
@@ -651,7 +663,7 @@
                 if (!toInsert.length) return alert('No valid items');
                 const { error } = await client.from('menu_items').insert(toInsert);
                 if (error) alert(error.message);
-                else { alert(`Added ${toInsert.length} items!`); extractedItems = []; scanResult.innerHTML = ''; categoryAssign.style.display = 'none'; imagePreview.style.display = 'none'; scanBtn.style.display = 'none'; cameraInput.value = galleryInput.value = ''; loadItems(); }
+                else { alert(`Added ${toInsert.length} items!`); extractedItems = []; scanResult.innerHTML = ''; categoryAssign.style.display = 'none'; imagePreview.style.display = 'none'; scanBtn.style.display = 'none'; cameraInput.value = galleryInput.value = ''; loadItems(); loadCategories(); }
             });
 
             document.getElementById('logoutBtn').addEventListener('click', async () => { await client.auth.signOut(); window.location.href = 'index.html'; });
