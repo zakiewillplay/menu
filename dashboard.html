@@ -40,85 +40,54 @@
         .header h1 { color: var(--primary); font-size: 1.4rem; }
         .header-right { display: flex; align-items: center; gap: 1rem; }
         .sub-badge {
-            background: var(--success);
-            color: white;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            white-space: nowrap;
+            background: var(--success); color: white;
+            padding: 0.3rem 0.8rem; border-radius: 20px;
+            font-size: 0.75rem; font-weight: 600; white-space: nowrap;
         }
         .sub-badge.expired { background: #c0392b; }
         .sub-badge.trial { background: var(--warning); }
         .btn-logout {
-            background: none;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 0.4rem 1rem;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.85rem;
+            background: none; border: 1px solid var(--primary);
+            color: var(--primary); padding: 0.4rem 1rem;
+            border-radius: 20px; cursor: pointer; font-size: 0.85rem;
         }
         .stats-row { display: flex; gap: 0.8rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
         .stat-card {
-            flex: 1; min-width: 90px;
-            background: var(--card-bg);
-            padding: 0.9rem;
-            border-radius: 14px;
-            text-align: center;
+            flex: 1; min-width: 90px; background: var(--card-bg);
+            padding: 0.9rem; border-radius: 14px; text-align: center;
             box-shadow: 0 3px 10px rgba(0,0,0,0.3);
         }
         .stat-card .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
         .stat-card .stat-label { font-size: 0.7rem; opacity: 0.7; margin-top: 0.2rem; }
         .card {
-            background: var(--card-bg);
-            padding: 1.3rem;
-            border-radius: 14px;
-            margin-bottom: 1.3rem;
+            background: var(--card-bg); padding: 1.3rem;
+            border-radius: 14px; margin-bottom: 1.3rem;
             box-shadow: 0 3px 10px rgba(0,0,0,0.3);
         }
         .card h3 { color: var(--primary); margin-bottom: 0.8rem; font-size: 1rem; }
         .card h3 .badge {
-            background: var(--primary);
-            color: white;
-            border-radius: 12px;
-            padding: 0.15rem 0.5rem;
-            font-size: 0.7rem;
-            margin-left: 0.4rem;
+            background: var(--primary); color: white;
+            border-radius: 12px; padding: 0.15rem 0.5rem; font-size: 0.7rem; margin-left: 0.4rem;
         }
         .order-tabs { display: flex; gap: 0.4rem; margin-bottom: 1rem; flex-wrap: wrap; }
         .order-tab {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: #aaa;
-            padding: 0.4rem 0.9rem;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            font-weight: 500;
+            background: transparent; border: 1px solid var(--border);
+            color: #aaa; padding: 0.4rem 0.9rem; border-radius: 20px;
+            cursor: pointer; font-size: 0.8rem; font-weight: 500;
         }
         .order-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
         .order-list { max-height: 350px; overflow-y: auto; }
         .order-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 0.7rem 0;
-            border-bottom: 1px solid #333;
-            gap: 0.8rem;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: 0.7rem 0; border-bottom: 1px solid #333; gap: 0.8rem;
         }
         .order-info { flex: 1; min-width: 0; }
         .order-info strong { font-size: 0.9rem; }
         .order-info div { font-size: 0.75rem; opacity: 0.7; margin-top: 0.2rem; }
         .order-actions { display: flex; gap: 0.3rem; align-items: center; }
         .btn-sm {
-            padding: 0.3rem 0.7rem;
-            border-radius: 14px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            white-space: nowrap;
+            padding: 0.3rem 0.7rem; border-radius: 14px;
+            font-size: 0.7rem; font-weight: 600; border: none; cursor: pointer; white-space: nowrap;
         }
         .btn-accept { background: var(--success); color: white; }
         .btn-deliver { background: #2980b9; color: white; }
@@ -128,23 +97,14 @@
         .form-group { margin-bottom: 0.8rem; }
         label { display: block; font-size: 0.75rem; margin-bottom: 0.2rem; opacity: 0.7; }
         input, textarea {
-            width: 100%;
-            padding: 0.6rem 0.8rem;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: #1e1e1e;
-            color: var(--cream);
-            font-size: 0.9rem;
+            width: 100%; padding: 0.6rem 0.8rem; border-radius: 8px;
+            border: 1px solid var(--border); background: #1e1e1e;
+            color: var(--cream); font-size: 0.9rem;
         }
         button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.6rem 1.3rem;
-            border-radius: 24px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.85rem;
+            background: var(--primary); color: white; border: none;
+            padding: 0.6rem 1.3rem; border-radius: 24px;
+            font-weight: 600; cursor: pointer; font-size: 0.85rem;
         }
         .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
         .note { font-size: 0.7rem; opacity: 0.6; margin-top: 0.2rem; }
@@ -171,6 +131,12 @@
         <div class="stat-card"><div class="stat-value" id="totalViews">0</div><div class="stat-label">Views</div></div>
         <div class="stat-card"><div class="stat-value" id="totalItems">0</div><div class="stat-label">Items</div></div>
         <div class="stat-card"><div class="stat-value" id="totalOrders">0</div><div class="stat-label">Orders</div></div>
+    </div>
+
+    <!-- Menu Items (loaded first, always visible) -->
+    <div class="card">
+        <h3>📃 Menu Items</h3>
+        <div id="menuList"><p class="note">Loading items...</p></div>
     </div>
 
     <!-- Orders -->
@@ -293,12 +259,6 @@
                 <button type="submit" id="saveItemBtn">Add Item</button>
             </form>
         </div>
-    </div>
-
-    <!-- Current Items -->
-    <div class="card">
-        <h3>📃 Menu Items</h3>
-        <div id="menuList"><p class="note">Loading items...</p></div>
     </div>
 
     <footer>Cafe Boss © 2026</footer>
@@ -495,35 +455,39 @@
             }, 30000);
             await loadAllOrders();
 
-            // ---------- ITEMS LOADING ----------
+            // ---------- ITEMS LOADING (FIXED) ----------
             const loadItems = async () => {
                 const menuList = document.getElementById('menuList');
                 menuList.innerHTML = '<p class="note">Loading items...</p>';
-                const { data, error } = await client.from('menu_items').select('*').eq('cafe_id', cafe.id).order('created_at');
-                if (error) { menuList.innerHTML = `<p class="note">Error: ${error.message}</p>`; return; }
-                if (!data || data.length === 0) { menuList.innerHTML = '<p class="note">No items yet.</p>'; document.getElementById('totalItems').textContent = '0'; return; }
-                menuList.innerHTML = '';
-                data.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'menu-item';
-                    const hasVariants = item.description && item.description.startsWith('VAR::');
-                    let displayStr = `<strong>${item.name}</strong>`;
-                    if (item.featured) displayStr += ' 🔥';
-                    if (hasVariants) {
-                        const variants = item.description.replace('VAR::', '').split('|').map(v => { const [n, p] = v.split('='); return `${n} ₹${p}`; }).join(', ');
-                        displayStr += ` (${variants})`;
-                    } else displayStr += ` · ₹${item.price}`;
-                    displayStr += ` <small>(${item.category})</small>`;
-                    div.innerHTML = `<div>${item.image_url ? `<img src="${item.image_url}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;margin-right:0.5rem;" />` : ''}${displayStr}</div>
-                    <div>
-                      <button class="btn-sm toggle-avail-btn ${item.available ? 'available' : ''}" data-id="${item.id}" data-avail="${item.available}">${item.available ? 'On' : 'Off'}</button>
-                      <button class="btn-sm btn-outline edit-item-btn" data-id="${item.id}">Edit</button>
-                      <button class="btn-sm btn-deliver del-item-btn" data-id="${item.id}">Del</button>
-                    </div>`;
-                    menuList.appendChild(div);
-                });
-                document.getElementById('totalItems').textContent = data.length || 0;
-                attachItemEvents(data);
+                try {
+                    const { data, error } = await client.from('menu_items').select('*').eq('cafe_id', cafe.id).order('created_at');
+                    if (error) throw error;
+                    if (!data || data.length === 0) { menuList.innerHTML = '<p class="note">No items yet.</p>'; document.getElementById('totalItems').textContent = '0'; return; }
+                    menuList.innerHTML = '';
+                    data.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'menu-item';
+                        const hasVariants = item.description && item.description.startsWith('VAR::');
+                        let displayStr = `<strong>${item.name}</strong>`;
+                        if (item.featured) displayStr += ' 🔥';
+                        if (hasVariants) {
+                            const variants = item.description.replace('VAR::', '').split('|').map(v => { const [n, p] = v.split('='); return `${n} ₹${p}`; }).join(', ');
+                            displayStr += ` (${variants})`;
+                        } else displayStr += ` · ₹${item.price}`;
+                        displayStr += ` <small>(${item.category})</small>`;
+                        div.innerHTML = `<div>${item.image_url ? `<img src="${item.image_url}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;margin-right:0.5rem;" />` : ''}${displayStr}</div>
+                        <div>
+                          <button class="btn-sm toggle-avail-btn ${item.available ? 'available' : ''}" data-id="${item.id}" data-avail="${item.available}">${item.available ? 'On' : 'Off'}</button>
+                          <button class="btn-sm btn-outline edit-item-btn" data-id="${item.id}">Edit</button>
+                          <button class="btn-sm btn-deliver del-item-btn" data-id="${item.id}">Del</button>
+                        </div>`;
+                        menuList.appendChild(div);
+                    });
+                    document.getElementById('totalItems').textContent = data.length || 0;
+                    attachItemEvents(data);
+                } catch (err) {
+                    menuList.innerHTML = `<p class="note">Error: ${err.message}</p>`;
+                }
             };
             const attachItemEvents = (data) => {
                 document.querySelectorAll('.toggle-avail-btn').forEach(b => b.addEventListener('click', async function() {
