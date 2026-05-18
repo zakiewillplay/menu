@@ -298,7 +298,7 @@
     <!-- Current Items -->
     <div class="card">
         <h3>📃 Menu Items</h3>
-        <div id="menuList"></div>
+        <div id="menuList"><p class="note">Loading items...</p></div>
     </div>
 
     <footer>Cafe Boss © 2026</footer>
@@ -495,13 +495,17 @@
             }, 30000);
             await loadAllOrders();
 
-            // ---------- ITEMS LOADING (FIXED) ----------
+            // ---------- ITEMS LOADING ----------
             const loadItems = async () => {
-                const { data, error } = await client.from('menu_items').select('*').eq('cafe_id', cafe.id).order('created_at');
-                if (error) return;
                 const menuList = document.getElementById('menuList');
+                menuList.innerHTML = '<p class="note">Loading items...</p>';
+                const { data, error } = await client.from('menu_items').select('*').eq('cafe_id', cafe.id).order('created_at');
+                if (error) { menuList.innerHTML = `<p class="note">Error: ${error.message}</p>`; return; }
+                if (!data || data.length === 0) { menuList.innerHTML = '<p class="note">No items yet.</p>'; document.getElementById('totalItems').textContent = '0'; return; }
                 menuList.innerHTML = '';
                 data.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'menu-item';
                     const hasVariants = item.description && item.description.startsWith('VAR::');
                     let displayStr = `<strong>${item.name}</strong>`;
                     if (item.featured) displayStr += ' 🔥';
@@ -510,8 +514,6 @@
                         displayStr += ` (${variants})`;
                     } else displayStr += ` · ₹${item.price}`;
                     displayStr += ` <small>(${item.category})</small>`;
-                    const div = document.createElement('div');
-                    div.className = 'menu-item';
                     div.innerHTML = `<div>${item.image_url ? `<img src="${item.image_url}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;margin-right:0.5rem;" />` : ''}${displayStr}</div>
                     <div>
                       <button class="btn-sm toggle-avail-btn ${item.available ? 'available' : ''}" data-id="${item.id}" data-avail="${item.available}">${item.available ? 'On' : 'Off'}</button>
@@ -525,9 +527,7 @@
             };
             const attachItemEvents = (data) => {
                 document.querySelectorAll('.toggle-avail-btn').forEach(b => b.addEventListener('click', async function() {
-                    const id = this.dataset.id;
-                    const current = this.dataset.avail === 'true';
-                    await client.from('menu_items').update({ available: !current }).eq('id', id);
+                    await client.from('menu_items').update({ available: this.dataset.avail !== 'true' }).eq('id', this.dataset.id);
                     loadItems();
                 }));
                 document.querySelectorAll('.del-item-btn').forEach(b => b.addEventListener('click', async function() { if (confirm('Delete?')) { await client.from('menu_items').delete().eq('id', this.dataset.id); loadItems(); } }));
