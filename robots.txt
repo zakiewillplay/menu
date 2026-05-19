@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://zakiewillplay-cmyk.github.io/menu/sitemap.xml
