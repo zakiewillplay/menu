@@ -1,116 +1,247 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <head>
-  <meta name="google-site-verification" content="XRvTp0exsgXVrxi3KrhTlQxLiXozqw4WTafEL6vM5l4" />
-  <title>Cafe Boss - QR Menus for Cafes</title>
-  ...
-</head>
-  <meta name="google-site-verification" content="XRvTp0exsgXVrxi3KrhTlQxLiXozqw4WTafEL6vM5l4" />
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Cafe Boss - QR Menus for Cafes</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cafe Boss - Free digital QR menus. Instant setup, easy ordering, your brand.">
+    <meta name="keywords" content="QR menu, digital menu, cafe, restaurant, free QR code menu">
+    <meta name="robots" content="index, follow">
+    <title>Cafe Boss – Free Digital QR Menus</title>
     <style>
         :root {
             --primary: #FF6B35;
+            --primary-glow: #FF8C5A;
             --accent: #2F3E46;
-            --cream: #FDFCDC;
-            --bg: #1a1c1d;
+            --bg: #0f0f13;
+            --surface: rgba(255,255,255,0.05);
             --text: #f0f0f0;
-            --card-bg: #2a2a2c;
+            --muted: #a0a0b0;
+            --card-bg: rgba(25,25,30,0.8);
+            --border: rgba(255,255,255,0.08);
+            --radius: 20px;
+            --shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            --glass: blur(12px);
+        }
+        body.light-mode {
+            --bg: #f8f7f4;
+            --surface: rgba(255,255,255,0.7);
+            --text: #1a1a1a;
+            --muted: #5a5a5a;
+            --card-bg: rgba(255,255,255,0.9);
+            --border: rgba(0,0,0,0.1);
+            --shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
         }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: 'Inter', system-ui, sans-serif;
             background: var(--bg);
             color: var(--text);
-            line-height: 1.6;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem 1rem;
             min-height: 100vh;
+            transition: background 0.4s, color 0.4s;
+            overflow-x: hidden;
+        }
+        .bg-glow {
+            position: fixed;
+            top: -20%;
+            left: -10%;
+            width: 70vw;
+            height: 70vw;
+            background: radial-gradient(circle, rgba(255,107,53,0.15) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+            animation: floatGlow 12s ease-in-out infinite;
+        }
+        @keyframes floatGlow {
+            0%,100% { transform: translate(0,0) scale(1); }
+            50% { transform: translate(5%,10%) scale(1.1); }
         }
         .container {
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
         .logo {
-            font-size: 2.8rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FF6B35, #FF8C5A);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        .tagline {
-            font-size: 1.1rem;
-            color: var(--cream);
-            opacity: 0.9;
-            margin-bottom: 2.5rem;
+        .theme-toggle {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            backdrop-filter: var(--glass);
+            font-size: 0.9rem;
+            transition: all 0.2s;
         }
-        .cta {
+        .theme-toggle:hover { border-color: var(--primary); }
+        .hero {
+            text-align: center;
+            padding: 5rem 1rem 4rem;
+        }
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #FF6B35, #FFB380);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        .hero .tagline {
+            font-size: 1.3rem;
+            color: var(--muted);
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+            line-height: 1.5;
+        }
+        .btn-primary {
             display: inline-block;
-            background: var(--primary);
+            background: linear-gradient(135deg, #FF6B35, #FF8C5A);
             color: #fff;
-            padding: 0.9rem 2.2rem;
-            border-radius: 30px;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 700;
             font-size: 1.1rem;
-            font-weight: 600;
             text-decoration: none;
-            box-shadow: 0 6px 18px rgba(255,107,53,0.3);
-            transition: transform 0.2s;
+            box-shadow: 0 10px 25px rgba(255,107,53,0.35);
+            transition: transform 0.2s, box-shadow 0.3s;
+            letter-spacing: 0.3px;
         }
-        .cta:active { transform: scale(0.97); }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(255,107,53,0.5); }
         .features {
-            display: flex;
-            flex-direction: column;
-            gap: 1.2rem;
-            margin: 3rem 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            padding: 2rem 0 4rem;
         }
         .feature-card {
             background: var(--card-bg);
-            padding: 1.5rem;
-            border-radius: 16px;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+            backdrop-filter: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2.5rem 1.8rem;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: var(--shadow);
         }
-        .feature-icon { font-size: 2rem; min-width: 50px; text-align: center; }
-        .feature-text h3 { color: var(--primary); font-size: 1.1rem; margin-bottom: 0.3rem; }
-        .feature-text p { font-size: 0.9rem; opacity: 0.8; }
-        footer { margin-top: auto; padding: 1rem 0; opacity: 0.6; font-size: 0.85rem; }
+        .feature-card:hover { transform: translateY(-8px); box-shadow: 0 30px 60px -10px rgba(0,0,0,0.6); }
+        .feature-icon { font-size: 3rem; margin-bottom: 1.2rem; }
+        .feature-card h3 { color: var(--primary); margin-bottom: 0.8rem; font-size: 1.3rem; }
+        .feature-card p { color: var(--muted); line-height: 1.6; font-size: 0.95rem; }
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--muted);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+        }
+        .floating-icons {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .floating-icons span {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.15;
+            animation: drift 15s linear infinite;
+        }
+        @keyframes drift {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.15; }
+            90% { opacity: 0.15; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+        }
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 2.5rem; }
+            header { flex-direction: column; align-items: flex-start; }
+        }
     </style>
 </head>
-<body>
+<body class="light-mode">
+    <div class="bg-glow"></div>
+    <div class="floating-icons">
+        <span style="left:5%; animation-delay:0s;">☕</span>
+        <span style="left:85%; animation-delay:3s;">🍰</span>
+        <span style="left:45%; animation-delay:6s;">🥐</span>
+        <span style="left:20%; animation-delay:9s;">🍵</span>
+    </div>
     <div class="container">
-        <div class="logo">☕ Cafe Boss</div>
-        <p class="tagline">Beautiful QR menus that make ordering effortless</p>
-        <a href="auth.html" class="cta">Get Started Free</a>
+        <header>
+            <div class="logo">☕ Cafe Boss</div>
+            <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+        </header>
+        <section class="hero">
+            <h1>Cafe Boss</h1>
+            <p class="tagline">Free digital QR menus for your cafe. <br>Beautiful, instant, and your brand.</p>
+            <a href="auth.html" class="btn-primary">Get Started Free</a>
+        </section>
         <div class="features">
             <div class="feature-card">
                 <div class="feature-icon">🚀</div>
-                <div class="feature-text">
-                    <h3>Instant QR Menu</h3>
-                    <p>Create your digital menu in minutes – no coding.</p>
-                </div>
+                <h3>Instant QR Menu</h3>
+                <p>Generate a branded QR code in seconds. Your customers scan and browse your menu instantly.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">📱</div>
-                <div class="feature-text">
-                    <h3>WhatsApp Ordering</h3>
-                    <p>Customers scan, browse, and order directly.</p>
-                </div>
+                <h3>Easy Ordering</h3>
+                <p>Customers order directly from their phone. You get real-time sound & notification alerts.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">🎨</div>
-                <div class="feature-text">
-                    <h3>Your Brand Colors</h3>
-                    <p>Match your cafe’s vibe with custom colors & logo.</p>
-                </div>
+                <h3>Your Brand, Your Colors</h3>
+                <p>Customize colors, upload logo & images. Make the menu unmistakably yours.</p>
             </div>
         </div>
-        <footer>© 2026 Cafe Boss</footer>
+        <footer>© 2026 Cafe Boss – 100% Free. Built with ☕</footer>
     </div>
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (!localStorage.getItem('theme')) {
+            document.body.classList.toggle('light-mode', !prefersDark);
+        } else {
+            document.body.classList.toggle('light-mode', localStorage.getItem('theme') === 'light');
+        }
+        updateToggleText();
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            updateToggleText();
+        });
+        function updateToggleText() {
+            themeToggle.textContent = document.body.classList.contains('light-mode') ? '🌙 Dark Mode' : '☀️ Light Mode';
+        }
+        // Floating icons animation
+        const icons = document.querySelectorAll('.floating-icons span');
+        icons.forEach(icon => {
+            icon.style.left = Math.random() * 90 + '%';
+            icon.style.animationDelay = Math.random() * 15 + 's';
+            icon.style.fontSize = (Math.random() * 2 + 1.5) + 'rem';
+        });
+    </script>
 </body>
 </html>
