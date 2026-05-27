@@ -241,8 +241,11 @@
             statusDiv.className = '';
 
             try {
-                // Send data to the Node.js backend
-                const response = await fetch('http://localhost:3000/api/send-bulk', {
+                // IMPORTANT: Replace 'YOUR_SECURE_TUNNEL_URL_HERE' with your actual localtunnel or ngrok URL
+                // Example: 'https://smooth-wombat-44.loca.lt/api/send-bulk'
+                const backendUrl = 'YOUR_SECURE_TUNNEL_URL_HERE';
+                
+                const response = await fetch(backendUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -258,7 +261,7 @@
                     statusDiv.classList.add('error');
                 }
             } catch (error) {
-                statusDiv.innerText = "Failed to connect to backend. Is your Node.js server running on localhost:3000?";
+                statusDiv.innerText = "Failed to connect to backend. Is your tunnel running and URL updated?";
                 statusDiv.classList.add('error');
                 console.error("Error:", error);
             } finally {
