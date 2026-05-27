@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Bulk Sender (Project)</title>
+    <title>WhatsApp Bulk Sender (Frontend Only)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -147,14 +147,14 @@
                 <div class="input-group">
                     <label for="myNumber">Your Number (Sender)</label>
                     <input type="text" id="myNumber" placeholder="e.g., 1234567890">
-                    <p class="hint">Note: You can type here, but the backend still sends from whichever phone scans the QR code.</p>
+                    <p class="hint">Note: This will open WhatsApp using whatever account is currently logged into your browser/app.</p>
                 </div>
 
                 <div class="input-group">
                     <label>Recipient Number(s)</label>
                     <div id="recipientsContainer">
                         <div class="recipient-row">
-                            <input type="text" class="recipient-input" placeholder="e.g., 1234567890" required>
+                            <input type="text" class="recipient-input" placeholder="e.g., 919876543210 (Include Country Code)" required>
                         </div>
                     </div>
                     <button type="button" class="add-btn" id="addNumberBtn">+ Add Another Box</button>
@@ -165,7 +165,7 @@
                     <textarea id="customMessage" rows="5" placeholder="Type your test message here..." required></textarea>
                 </div>
 
-                <button type="submit" id="sendBtn" class="primary-btn">Send Messages</button>
+                <button type="submit" id="sendBtn" class="primary-btn">Prepare Messages</button>
 
                 <div id="statusMessage"></div>
             </form>
@@ -180,18 +180,15 @@
         const addNumberBtn = document.getElementById('addNumberBtn');
 
         addNumberBtn.addEventListener('click', () => {
-            // Create a new row
             const row = document.createElement('div');
             row.className = 'recipient-row';
 
-            // Create the input
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'recipient-input';
-            input.placeholder = 'e.g., 0987654321';
+            input.placeholder = 'e.g., 919876543210';
             input.required = true;
 
-            // Create the remove button
             const removeBtn = document.createElement('button');
             removeBtn.type = 'button';
             removeBtn.className = 'remove-btn';
@@ -200,23 +197,23 @@
                 recipientsContainer.removeChild(row);
             };
 
-            // Add them to the row, and the row to the container
             row.appendChild(input);
             row.appendChild(removeBtn);
             recipientsContainer.appendChild(row);
         });
 
         // ----------------------------------------------------
-        // Logic for submitting the form to the backend
+        // Logic for opening WhatsApp directly (Frontend Only)
         // ----------------------------------------------------
-        document.getElementById('waForm').addEventListener('submit', async function(e) {
+        document.getElementById('waForm').addEventListener('submit', function(e) {
             e.preventDefault(); 
             
             const btn = document.getElementById('sendBtn');
             const statusDiv = document.getElementById('statusMessage');
             
-            // Get the custom message
+            // Get the custom message and encode it for a URL
             const message = document.getElementById('customMessage').value;
+            const encodedMessage = encodeURIComponent(message);
 
             // Gather all the numbers from the individual boxes
             const inputElements = document.querySelectorAll('.recipient-input');
@@ -225,51 +222,34 @@
             inputElements.forEach(input => {
                 const num = input.value.trim();
                 if (num !== '') {
-                    contactsList.push({ name: "User", number: num });
+                    // Remove any spaces, dashes, or plus signs to ensure clean links
+                    const cleanNum = num.replace(/\D/g, '');
+                    contactsList.push(cleanNum);
                 }
             });
 
-            const payload = {
-                baseMessage: message,
-                contacts: contactsList
-            };
-
-            // Update UI to show loading state
-            btn.disabled = true;
-            btn.innerText = "Sending... Please wait";
-            statusDiv.style.display = 'none';
-            statusDiv.className = '';
-
-            try {
-                // IMPORTANT: Replace 'YOUR_SECURE_TUNNEL_URL_HERE' with your actual localtunnel or ngrok URL
-                // Example: 'https://smooth-wombat-44.loca.lt/api/send-bulk'
-                const backendUrl = 'YOUR_SECURE_TUNNEL_URL_HERE';
-                
-                const response = await fetch(backendUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    statusDiv.innerText = result.message || "Messages sent successfully!";
-                    statusDiv.classList.add('success');
-                } else {
-                    statusDiv.innerText = result.error || "An error occurred.";
-                    statusDiv.classList.add('error');
-                }
-            } catch (error) {
-                statusDiv.innerText = "Failed to connect to backend. Is your tunnel running and URL updated?";
-                statusDiv.classList.add('error');
-                console.error("Error:", error);
-            } finally {
-                // Reset UI
+            // Prevent submission if no valid numbers exist
+            if (contactsList.length === 0) {
                 statusDiv.style.display = 'block';
-                btn.disabled = false;
-                btn.innerText = "Send Messages";
+                statusDiv.innerText = "Please enter at least one valid number.";
+                statusDiv.className = 'error';
+                return;
             }
+
+            // Loop through numbers and open WhatsApp tabs
+            contactsList.forEach((number, index) => {
+                const waLink = `https://wa.me/${number}?text=${encodedMessage}`;
+                
+                // Add a small delay between opening tabs so the browser doesn't block them all instantly
+                setTimeout(() => {
+                    window.open(waLink, '_blank');
+                }, index * 800); 
+            });
+
+            // Update UI to let the user know it worked
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'success';
+            statusDiv.innerText = "Opening WhatsApp tabs! Make sure to ALLOW POP-UPS in your browser.";
         });
     </script>
 
