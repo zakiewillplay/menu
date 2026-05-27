@@ -10,7 +10,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
         body {
-            background-color: #ECE5DD; /* WhatsApp chat background color */
+            background-color: #ECE5DD; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -27,7 +27,7 @@
             overflow: hidden;
         }
         .header {
-            background-color: #075E54; /* WhatsApp Green */
+            background-color: #075E54; 
             color: white;
             padding: 20px;
             text-align: center;
@@ -68,7 +68,43 @@
             font-size: 12px;
             color: #777;
         }
-        button {
+        
+        /* Styles for dynamic recipient rows */
+        .recipient-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .remove-btn {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 0 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 45px;
+        }
+        .remove-btn:hover {
+            background-color: #cc0000;
+        }
+        .add-btn {
+            background-color: #e0e0e0;
+            color: #333;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            margin-bottom: 16px;
+            width: 100%;
+            font-weight: 600;
+        }
+        .add-btn:hover {
+            background-color: #d0d0d0;
+        }
+
+        .primary-btn {
             width: 100%;
             background-color: #25D366;
             color: white;
@@ -80,10 +116,10 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
-        button:hover {
+        .primary-btn:hover {
             background-color: #128C7E;
         }
-        button:disabled {
+        .primary-btn:disabled {
             background-color: #a5d6a7;
             cursor: not-allowed;
         }
@@ -108,52 +144,90 @@
         <div class="form-body">
             <form id="waForm">
                 
-                <!-- Sender Number (Visual Only) -->
                 <div class="input-group">
                     <label for="myNumber">Your Number (Sender)</label>
-                    <input type="text" id="myNumber" placeholder="e.g., 1234567890" disabled value="Linked via Terminal QR Code">
-                    <p class="hint">The sending number is determined by the phone you linked to the backend.</p>
+                    <input type="text" id="myNumber" placeholder="e.g., 1234567890">
+                    <p class="hint">Note: You can type here, but the backend still sends from whichever phone scans the QR code.</p>
                 </div>
 
-                <!-- Recipient Numbers -->
                 <div class="input-group">
-                    <label for="recipientNumbers">Recipient Number(s)</label>
-                    <textarea id="recipientNumbers" rows="3" placeholder="Enter numbers separated by commas. Include country code, no + or spaces (e.g., 1234567890, 0987654321)" required></textarea>
+                    <label>Recipient Number(s)</label>
+                    <div id="recipientsContainer">
+                        <div class="recipient-row">
+                            <input type="text" class="recipient-input" placeholder="e.g., 1234567890" required>
+                        </div>
+                    </div>
+                    <button type="button" class="add-btn" id="addNumberBtn">+ Add Another Box</button>
                 </div>
 
-                <!-- Custom Message -->
                 <div class="input-group">
                     <label for="customMessage">Custom Message</label>
                     <textarea id="customMessage" rows="5" placeholder="Type your test message here..." required></textarea>
                 </div>
 
-                <button type="submit" id="sendBtn">Send Messages</button>
+                <button type="submit" id="sendBtn" class="primary-btn">Send Messages</button>
 
-                <!-- Status Display -->
                 <div id="statusMessage"></div>
             </form>
         </div>
     </div>
 
     <script>
+        // ----------------------------------------------------
+        // Logic for adding/removing recipient boxes
+        // ----------------------------------------------------
+        const recipientsContainer = document.getElementById('recipientsContainer');
+        const addNumberBtn = document.getElementById('addNumberBtn');
+
+        addNumberBtn.addEventListener('click', () => {
+            // Create a new row
+            const row = document.createElement('div');
+            row.className = 'recipient-row';
+
+            // Create the input
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'recipient-input';
+            input.placeholder = 'e.g., 0987654321';
+            input.required = true;
+
+            // Create the remove button
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'remove-btn';
+            removeBtn.innerText = 'X';
+            removeBtn.onclick = function() {
+                recipientsContainer.removeChild(row);
+            };
+
+            // Add them to the row, and the row to the container
+            row.appendChild(input);
+            row.appendChild(removeBtn);
+            recipientsContainer.appendChild(row);
+        });
+
+        // ----------------------------------------------------
+        // Logic for submitting the form to the backend
+        // ----------------------------------------------------
         document.getElementById('waForm').addEventListener('submit', async function(e) {
-            e.preventDefault(); // Prevent page reload
+            e.preventDefault(); 
             
             const btn = document.getElementById('sendBtn');
             const statusDiv = document.getElementById('statusMessage');
             
-            // Get values from the UI
-            const rawNumbers = document.getElementById('recipientNumbers').value;
+            // Get the custom message
             const message = document.getElementById('customMessage').value;
 
-            // Process numbers (split by comma, trim spaces)
-            const numberArray = rawNumbers.split(',').map(num => num.trim()).filter(num => num !== '');
+            // Gather all the numbers from the individual boxes
+            const inputElements = document.querySelectorAll('.recipient-input');
+            const contactsList = [];
             
-            // Format data into the JSON structure our Node.js backend expects
-            const contactsList = numberArray.map(num => ({ 
-                name: "User", // Hardcoded name for this simple UI
-                number: num 
-            }));
+            inputElements.forEach(input => {
+                const num = input.value.trim();
+                if (num !== '') {
+                    contactsList.push({ name: "User", number: num });
+                }
+            });
 
             const payload = {
                 baseMessage: message,
@@ -167,7 +241,7 @@
             statusDiv.className = '';
 
             try {
-                // Send data to the Node.js backend we built earlier
+                // Send data to the Node.js backend
                 const response = await fetch('http://localhost:3000/api/send-bulk', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -184,7 +258,6 @@
                     statusDiv.classList.add('error');
                 }
             } catch (error) {
-                // If fetch fails (usually because the Node server isn't running)
                 statusDiv.innerText = "Failed to connect to backend. Is your Node.js server running on localhost:3000?";
                 statusDiv.classList.add('error');
                 console.error("Error:", error);
