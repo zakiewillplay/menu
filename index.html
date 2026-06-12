@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Easy Prompt Builder ✨</title>
+  <title>Prompt Crafter Pro ✨</title>
   <style>
     :root {
       --bg: #fff;
@@ -16,7 +16,7 @@
       font-family: system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
-      max-width: 600px;
+      max-width: 700px;
       margin: 2rem auto;
       padding: 0 1rem;
     }
@@ -28,7 +28,7 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     h1 { font-size: 1.6rem; margin: 0 0 0.5rem; }
-    label { display: block; font-weight: 600; margin: 1rem 0 0.25rem; }
+    label { display: block; font-weight: 600; margin: 1.2rem 0 0.25rem; }
     small { color: #666; font-weight: normal; }
     select, textarea, input {
       width: 100%;
@@ -48,7 +48,7 @@
       font-weight: 600;
       cursor: pointer;
       width: 100%;
-      margin-top: 1rem;
+      margin-top: 1.5rem;
     }
     button:disabled { opacity: 0.6; }
     .output {
@@ -56,7 +56,7 @@
       border: 1px solid #eee;
       border-radius: 0.5rem;
       padding: 1rem;
-      min-height: 60px;
+      min-height: 80px;
       white-space: pre-wrap;
       font-family: monospace;
       margin: 0.5rem 0 1rem;
@@ -74,14 +74,15 @@
     #status { font-size: 0.9rem; color: #666; }
     .conditional { display: none; }
     .show { display: block; }
+    hr { border: 0; border-top: 1px solid #ddd; margin: 1.5rem 0; }
   </style>
 </head>
 <body>
-  <h1>✨ Easy Prompt Builder</h1>
-  <p style="color:#666;">Answer these simple questions and get a perfect AI prompt.</p>
+  <h1>✨ Prompt Crafter Pro</h1>
+  <p style="color:#666;">Answer a few detailed questions and get a **perfect, AI‑ready prompt**.</p>
 
   <div class="card">
-    <!-- Basic questions (everyone answers) -->
+    <!-- SECTION 1: WHAT -->
     <label>1. What do you want to create?</label>
     <select id="type" onchange="showConditional()">
       <option value="">-- Choose --</option>
@@ -92,65 +93,176 @@
       <option value="Other">Other</option>
     </select>
 
-    <label>2. In one short sentence, what is it for?</label>
+    <label>2. Describe your goal in one sentence</label>
     <textarea id="goal" rows="2" placeholder="e.g. A landing page to sell handmade candles"></textarea>
 
-    <!-- Conditional questions – shown based on media type -->
+    <!-- SECTION 2: CONDITIONAL DETAILS (depends on type) -->
+
+    <!-- ---- WEBSITE ---- -->
     <div id="websiteQ" class="conditional">
-      <label>3. What kind of website? <small>(e.g. business, portfolio, online store, blog)</small></label>
-      <input type="text" id="websiteType" placeholder="business site">
+      <hr>
+      <h3 style="margin:0 0 0.5rem;">🌐 Website Details</h3>
 
-      <label>4. Who is it for? <small>(target audience)</small></label>
-      <input type="text" id="audience" placeholder="young adults, local customers">
+      <label>3. Website type</label>
+      <select id="webType">
+        <option value="Business site">Business site</option>
+        <option value="Online store">Online store</option>
+        <option value="Portfolio">Portfolio</option>
+        <option value="Blog">Blog</option>
+        <option value="Landing page">Landing page</option>
+        <option value="Educational">Educational</option>
+        <option value="Other">Other</option>
+      </select>
 
-      <label>5. Where is the business or idea based? <small>(optional)</small></label>
-      <input type="text" id="location" placeholder="New York, online only">
+      <label>4. Business / project name</label>
+      <input type="text" id="webName" placeholder="e.g. Candle Bliss">
 
-      <label>6. What’s the main action you want visitors to take?</label>
-      <input type="text" id="action" placeholder="call us, buy now, sign up">
+      <label>5. Industry / niche</label>
+      <input type="text" id="webIndustry" placeholder="handmade goods, technology, health">
 
-      <label>7. Any specific features? <small>(optional)</small></label>
-      <textarea id="features" rows="2" placeholder="gallery, booking system, contact form"></textarea>
+      <label>6. Target audience</label>
+      <input type="text" id="webAudience" placeholder="young adults, parents, tech enthusiasts">
+
+      <label>7. Location (if relevant)</label>
+      <input type="text" id="webLocation" placeholder="New York, worldwide, online only">
+
+      <label>8. Main goal for visitors</label>
+      <input type="text" id="webGoal" placeholder="purchase, sign up, contact, learn more">
+
+      <label>9. Key pages / sections needed</label>
+      <textarea id="webPages" rows="3" placeholder="Home, About, Products, Contact, Blog"></textarea>
+
+      <label>10. Specific features</label>
+      <textarea id="webFeatures" rows="3" placeholder="booking system, gallery, newsletter signup, live chat, dark mode"></textarea>
+
+      <label>11. Preferred colours / visual style</label>
+      <input type="text" id="webColors" placeholder="soft pastels, blue and white, dark mode">
+
+      <label>12. Competitor or inspiration website (URL or description)</label>
+      <input type="text" id="webInspiration" placeholder="e.g. similar to apple.com">
+
+      <label>13. Must-have content / text</label>
+      <textarea id="webContent" rows="2" placeholder="slogan, tagline, special offer"></textarea>
     </div>
 
+    <!-- ---- WEB APP ---- -->
     <div id="appQ" class="conditional">
-      <label>3. What problem does it solve?</label>
-      <input type="text" id="appProblem" placeholder="helps people track expenses">
+      <hr>
+      <h3 style="margin:0 0 0.5rem;">📱 Web App Details</h3>
 
-      <label>4. Who will use it?</label>
-      <input type="text" id="appAudience" placeholder="students, freelancers">
+      <label>3. App name</label>
+      <input type="text" id="appName" placeholder="e.g. Expense Tracker Pro">
 
-      <label>5. Any must‑have features?</label>
-      <textarea id="appFeatures" rows="2" placeholder="login, dashboard, notifications"></textarea>
+      <label>4. Main problem it solves</label>
+      <textarea id="appProblem" rows="2" placeholder="helps people track daily spending easily"></textarea>
+
+      <label>5. Target users</label>
+      <input type="text" id="appAudience" placeholder="students, freelancers, small business owners">
+
+      <label>6. Core features</label>
+      <textarea id="appFeatures" rows="3" placeholder="user login, dashboard, data visualization, export to CSV, notifications"></textarea>
+
+      <label>7. Platform / device</label>
+      <select id="appPlatform">
+        <option value="Desktop & Mobile">Desktop & Mobile</option>
+        <option value="Desktop only">Desktop only</option>
+        <option value="Mobile only">Mobile only</option>
+      </select>
+
+      <label>8. Look and feel / design style</label>
+      <input type="text" id="appDesign" placeholder="minimalist, modern, colorful, professional">
+
+      <label>9. Any specific technologies required?</label>
+      <input type="text" id="appTech" placeholder="React, Vue, Firebase, etc.">
+
+      <label>10. Additional context</label>
+      <textarea id="appContext" rows="2" placeholder="e.g. needs offline support, must be fast"></textarea>
     </div>
 
+    <!-- ---- VIDEO ---- -->
     <div id="videoQ" class="conditional">
-      <label>3. What type of video? <small>(tutorial, promo, vlog, social media clip)</small></label>
-      <input type="text" id="videoType" placeholder="product demo">
+      <hr>
+      <h3 style="margin:0 0 0.5rem;">🎬 Video Details</h3>
 
-      <label>4. Desired length? <small>(short: 15-30 sec, medium: 1-2 min, long: 5+ min)</small></label>
-      <input type="text" id="videoLength" placeholder="1 minute">
+      <label>3. Video type</label>
+      <select id="videoCategory">
+        <option value="Tutorial">Tutorial / How-to</option>
+        <option value="Promo">Promotional / Ad</option>
+        <option value="Explainer">Explainer</option>
+        <option value="Vlog">Vlog</option>
+        <option value="Social media clip">Social media clip</option>
+        <option value="Product demo">Product demo</option>
+        <option value="Other">Other</option>
+      </select>
 
-      <label>5. Who is the audience?</label>
-      <input type="text" id="videoAudience" placeholder="tech enthusiasts">
+      <label>4. Video length</label>
+      <input type="text" id="videoLength" placeholder="30 seconds, 2 minutes, 10 minutes">
 
-      <label>6. Mood / tone?</label>
-      <input type="text" id="videoTone" placeholder="energetic, funny, serious">
+      <label>5. Target audience</label>
+      <input type="text" id="videoAudience" placeholder="tech enthusiasts, parents, students">
+
+      <label>6. Mood / tone</label>
+      <input type="text" id="videoTone" placeholder="energetic, serious, funny, inspirational">
+
+      <label>7. Key message / script outline</label>
+      <textarea id="videoMessage" rows="3" placeholder="Main points to cover, call to action..."></textarea>
+
+      <label>8. Visual style references</label>
+      <input type="text" id="videoStyle" placeholder="animated, live-action, minimalistic, like Apple ads">
+
+      <label>9. Music / sound preferences</label>
+      <input type="text" id="videoMusic" placeholder="upbeat background, soft piano, no music">
+
+      <label>10. Where will it be posted?</label>
+      <input type="text" id="videoPlatform" placeholder="YouTube, Instagram, TikTok, website">
+
+      <label>11. Any text / captions needed?</label>
+      <textarea id="videoCaptions" rows="2" placeholder="subtitles, on-screen text, lower thirds"></textarea>
     </div>
 
+    <!-- ---- IMAGE / GRAPHIC ---- -->
     <div id="imageQ" class="conditional">
-      <label>3. What is the image about? <small>(product, poster, logo, illustration)</small></label>
-      <input type="text" id="imageSubject" placeholder="logo for a bakery">
+      <hr>
+      <h3 style="margin:0 0 0.5rem;">🎨 Image / Graphic Details</h3>
 
-      <label>4. Style or vibe?</label>
-      <input type="text" id="imageStyle" placeholder="minimalist, vintage, colorful">
+      <label>3. Type of graphic</label>
+      <select id="imgType">
+        <option value="Logo">Logo</option>
+        <option value="Poster">Poster</option>
+        <option value="Social media post">Social media post</option>
+        <option value="Illustration">Illustration</option>
+        <option value="Banner">Banner</option>
+        <option value="Infographic">Infographic</option>
+        <option value="Other">Other</option>
+      </select>
 
-      <label>5. Any text to include?</label>
-      <input type="text" id="imageText" placeholder="'Fresh Baked Daily'">
+      <label>4. Subject / description</label>
+      <textarea id="imgSubject" rows="2" placeholder="a bakery logo with a croissant and coffee cup"></textarea>
+
+      <label>5. Style / vibe</label>
+      <input type="text" id="imgStyle" placeholder="minimalist, vintage, hand-drawn, modern flat">
+
+      <label>6. Colour palette</label>
+      <input type="text" id="imgColors" placeholder="warm tones, pastel blue and yellow, black & white">
+
+      <label>7. Any text to include</label>
+      <input type="text" id="imgText" placeholder="'Fresh Baked Daily'">
+
+      <label>8. Dimensions / format</label>
+      <input type="text" id="imgSize" placeholder="1080x1080 for Instagram, A4 print, etc.">
+
+      <label>9. Usage context</label>
+      <input type="text" id="imgUsage" placeholder="website header, social media profile, business card">
+
+      <label>10. Reference images or inspiration</label>
+      <textarea id="imgInspo" rows="2" placeholder="similar to Nike logo style, minimal like Apple"></textarea>
     </div>
 
-    <!-- Common final questions -->
-    <label>🎨 Style / Tone</label>
+    <!-- SECTION 3: GENERAL FINAL QUESTIONS (always shown) -->
+    <hr>
+    <h3 style="margin:0 0 0.5rem;">🎯 Final Touches</h3>
+
+    <label>Tone / Style</label>
     <select id="tone">
       <option value="Not specified">No preference</option>
       <option value="Professional">Professional</option>
@@ -160,15 +272,18 @@
       <option value="Modern">Modern & Sleek</option>
     </select>
 
-    <label>💬 Any extra details?</label>
-    <textarea id="extra" rows="2" placeholder="e.g. Use blue colors, avoid complicated code..."></textarea>
+    <label>Target AI model (optional)</label>
+    <input type="text" id="targetAI" placeholder="ChatGPT, Gemini, Claude, etc.">
 
-    <button id="generateBtn" onclick="generate()">✨ Create My Prompt</button>
+    <label>Any extra notes or special requests</label>
+    <textarea id="extra" rows="3" placeholder="e.g. avoid technical jargon, focus on accessibility, include examples"></textarea>
+
+    <button id="generateBtn" onclick="generate()">✨ Create My Perfect Prompt</button>
     <p id="status"></p>
   </div>
 
   <div class="card">
-    <label>Your Complete Prompt:</label>
+    <label>Your Complete AI Prompt:</label>
     <div class="output" id="result">Your prompt will appear here...</div>
     <button onclick="copyPrompt()" style="width:auto; padding:0.5rem 1rem;">📋 Copy</button>
   </div>
@@ -191,28 +306,52 @@
         mediaType: type,
         goal: document.getElementById("goal").value,
         tone: document.getElementById("tone").value,
+        targetAI: document.getElementById("targetAI").value,
         extra: document.getElementById("extra").value,
       };
+
       if (type === "Website") {
-        answers.websiteType = document.getElementById("websiteType").value;
-        answers.audience = document.getElementById("audience").value;
-        answers.location = document.getElementById("location").value;
-        answers.action = document.getElementById("action").value;
-        answers.features = document.getElementById("features").value;
+        answers.webType = document.getElementById("webType").value;
+        answers.webName = document.getElementById("webName").value;
+        answers.webIndustry = document.getElementById("webIndustry").value;
+        answers.webAudience = document.getElementById("webAudience").value;
+        answers.webLocation = document.getElementById("webLocation").value;
+        answers.webGoal = document.getElementById("webGoal").value;
+        answers.webPages = document.getElementById("webPages").value;
+        answers.webFeatures = document.getElementById("webFeatures").value;
+        answers.webColors = document.getElementById("webColors").value;
+        answers.webInspiration = document.getElementById("webInspiration").value;
+        answers.webContent = document.getElementById("webContent").value;
       } else if (type === "Web App") {
+        answers.appName = document.getElementById("appName").value;
         answers.appProblem = document.getElementById("appProblem").value;
         answers.appAudience = document.getElementById("appAudience").value;
         answers.appFeatures = document.getElementById("appFeatures").value;
+        answers.appPlatform = document.getElementById("appPlatform").value;
+        answers.appDesign = document.getElementById("appDesign").value;
+        answers.appTech = document.getElementById("appTech").value;
+        answers.appContext = document.getElementById("appContext").value;
       } else if (type === "Video") {
-        answers.videoType = document.getElementById("videoType").value;
+        answers.videoCategory = document.getElementById("videoCategory").value;
         answers.videoLength = document.getElementById("videoLength").value;
         answers.videoAudience = document.getElementById("videoAudience").value;
         answers.videoTone = document.getElementById("videoTone").value;
+        answers.videoMessage = document.getElementById("videoMessage").value;
+        answers.videoStyle = document.getElementById("videoStyle").value;
+        answers.videoMusic = document.getElementById("videoMusic").value;
+        answers.videoPlatform = document.getElementById("videoPlatform").value;
+        answers.videoCaptions = document.getElementById("videoCaptions").value;
       } else if (type === "Image / Graphic") {
-        answers.imageSubject = document.getElementById("imageSubject").value;
-        answers.imageStyle = document.getElementById("imageStyle").value;
-        answers.imageText = document.getElementById("imageText").value;
+        answers.imgType = document.getElementById("imgType").value;
+        answers.imgSubject = document.getElementById("imgSubject").value;
+        answers.imgStyle = document.getElementById("imgStyle").value;
+        answers.imgColors = document.getElementById("imgColors").value;
+        answers.imgText = document.getElementById("imgText").value;
+        answers.imgSize = document.getElementById("imgSize").value;
+        answers.imgUsage = document.getElementById("imgUsage").value;
+        answers.imgInspo = document.getElementById("imgInspo").value;
       }
+
       return answers;
     }
 
@@ -221,7 +360,7 @@
       const status = document.getElementById("status");
       btn.disabled = true;
       btn.innerHTML = '<span class="loader"></span> Creating...';
-      status.textContent = "Crafting your perfect prompt...";
+      status.textContent = "Crafting your detailed prompt...";
 
       const answers = collectAnswers();
       try {
@@ -245,7 +384,7 @@
         status.textContent = "❌ Error: " + err.message;
       } finally {
         btn.disabled = false;
-        btn.textContent = "✨ Create My Prompt";
+        btn.textContent = "✨ Create My Perfect Prompt";
       }
     }
 
