@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Easy Prompt Builder ✨</title>
+  <style>
+    :root {
+      --bg: #fff;
+      --card: #f5f5ff;
+      --text: #222;
+      --primary: #6366f1;
+      --radius: 1rem;
+    }
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    h1 { font-size: 1.6rem; margin: 0 0 0.5rem; }
+    label { display: block; font-weight: 600; margin: 1rem 0 0.25rem; }
+    small { color: #666; font-weight: normal; }
+    select, textarea, input {
+      width: 100%;
+      padding: 0.7rem;
+      border: 1px solid #ddd;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 1rem;
+    }
+    button:disabled { opacity: 0.6; }
+    .output {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      min-height: 60px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      margin: 0.5rem 0 1rem;
+    }
+    .loader {
+      display: inline-block;
+      width: 1rem; height: 1rem;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.6s linear infinite;
+      margin-right: 0.5rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #status { font-size: 0.9rem; color: #666; }
+    .conditional { display: none; }
+    .show { display: block; }
+  </style>
+</head>
+<body>
+  <h1>✨ Easy Prompt Builder</h1>
+  <p style="color:#666;">Answer these simple questions and get a perfect AI prompt.</p>
+
+  <div class="card">
+    <!-- Basic questions (everyone answers) -->
+    <label>1. What do you want to create?</label>
+    <select id="type" onchange="showConditional()">
+      <option value="">-- Choose --</option>
+      <option value="Website">Website</option>
+      <option value="Web App">Web App</option>
+      <option value="Video">Video</option>
+      <option value="Image / Graphic">Image / Graphic</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <label>2. In one short sentence, what is it for?</label>
+    <textarea id="goal" rows="2" placeholder="e.g. A landing page to sell handmade candles"></textarea>
+
+    <!-- Conditional questions – shown based on media type -->
+    <div id="websiteQ" class="conditional">
+      <label>3. What kind of website? <small>(e.g. business, portfolio, online store, blog)</small></label>
+      <input type="text" id="websiteType" placeholder="business site">
+
+      <label>4. Who is it for? <small>(target audience)</small></label>
+      <input type="text" id="audience" placeholder="young adults, local customers">
+
+      <label>5. Where is the business or idea based? <small>(optional)</small></label>
+      <input type="text" id="location" placeholder="New York, online only">
+
+      <label>6. What’s the main action you want visitors to take?</label>
+      <input type="text" id="action" placeholder="call us, buy now, sign up">
+
+      <label>7. Any specific features? <small>(optional)</small></label>
+      <textarea id="features" rows="2" placeholder="gallery, booking system, contact form"></textarea>
+    </div>
+
+    <div id="appQ" class="conditional">
+      <label>3. What problem does it solve?</label>
+      <input type="text" id="appProblem" placeholder="helps people track expenses">
+
+      <label>4. Who will use it?</label>
+      <input type="text" id="appAudience" placeholder="students, freelancers">
+
+      <label>5. Any must‑have features?</label>
+      <textarea id="appFeatures" rows="2" placeholder="login, dashboard, notifications"></textarea>
+    </div>
+
+    <div id="videoQ" class="conditional">
+      <label>3. What type of video? <small>(tutorial, promo, vlog, social media clip)</small></label>
+      <input type="text" id="videoType" placeholder="product demo">
+
+      <label>4. Desired length? <small>(short: 15-30 sec, medium: 1-2 min, long: 5+ min)</small></label>
+      <input type="text" id="videoLength" placeholder="1 minute">
+
+      <label>5. Who is the audience?</label>
+      <input type="text" id="videoAudience" placeholder="tech enthusiasts">
+
+      <label>6. Mood / tone?</label>
+      <input type="text" id="videoTone" placeholder="energetic, funny, serious">
+    </div>
+
+    <div id="imageQ" class="conditional">
+      <label>3. What is the image about? <small>(product, poster, logo, illustration)</small></label>
+      <input type="text" id="imageSubject" placeholder="logo for a bakery">
+
+      <label>4. Style or vibe?</label>
+      <input type="text" id="imageStyle" placeholder="minimalist, vintage, colorful">
+
+      <label>5. Any text to include?</label>
+      <input type="text" id="imageText" placeholder="'Fresh Baked Daily'">
+    </div>
+
+    <!-- Common final questions -->
+    <label>🎨 Style / Tone</label>
+    <select id="tone">
+      <option value="Not specified">No preference</option>
+      <option value="Professional">Professional</option>
+      <option value="Casual">Casual</option>
+      <option value="Fun">Fun / Playful</option>
+      <option value="Simple">Simple / Beginner</option>
+      <option value="Modern">Modern & Sleek</option>
+    </select>
+
+    <label>💬 Any extra details?</label>
+    <textarea id="extra" rows="2" placeholder="e.g. Use blue colors, avoid complicated code..."></textarea>
+
+    <button id="generateBtn" onclick="generate()">✨ Create My Prompt</button>
+    <p id="status"></p>
+  </div>
+
+  <div class="card">
+    <label>Your Complete Prompt:</label>
+    <div class="output" id="result">Your prompt will appear here...</div>
+    <button onclick="copyPrompt()" style="width:auto; padding:0.5rem 1rem;">📋 Copy</button>
+  </div>
+
+  <script>
+    const EDGE_URL = "https://udlmyspetkjzcdkfshgl.supabase.co/functions/v1/api-key";
+    const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkbG15c3BldGtqemNka2ZzaGdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxODIzMDksImV4cCI6MjA5NDc1ODMwOX0.oQL6hbwjQlU_2h4xcbD-v1yl7EubMz90VpIpTPBwEM4";
+
+    function showConditional() {
+      const type = document.getElementById("type").value;
+      document.getElementById("websiteQ").classList.toggle("show", type === "Website");
+      document.getElementById("appQ").classList.toggle("show", type === "Web App");
+      document.getElementById("videoQ").classList.toggle("show", type === "Video");
+      document.getElementById("imageQ").classList.toggle("show", type === "Image / Graphic");
+    }
+
+    function collectAnswers() {
+      const type = document.getElementById("type").value;
+      const answers = {
+        mediaType: type,
+        goal: document.getElementById("goal").value,
+        tone: document.getElementById("tone").value,
+        extra: document.getElementById("extra").value,
+      };
+      if (type === "Website") {
+        answers.websiteType = document.getElementById("websiteType").value;
+        answers.audience = document.getElementById("audience").value;
+        answers.location = document.getElementById("location").value;
+        answers.action = document.getElementById("action").value;
+        answers.features = document.getElementById("features").value;
+      } else if (type === "Web App") {
+        answers.appProblem = document.getElementById("appProblem").value;
+        answers.appAudience = document.getElementById("appAudience").value;
+        answers.appFeatures = document.getElementById("appFeatures").value;
+      } else if (type === "Video") {
+        answers.videoType = document.getElementById("videoType").value;
+        answers.videoLength = document.getElementById("videoLength").value;
+        answers.videoAudience = document.getElementById("videoAudience").value;
+        answers.videoTone = document.getElementById("videoTone").value;
+      } else if (type === "Image / Graphic") {
+        answers.imageSubject = document.getElementById("imageSubject").value;
+        answers.imageStyle = document.getElementById("imageStyle").value;
+        answers.imageText = document.getElementById("imageText").value;
+      }
+      return answers;
+    }
+
+    async function generate() {
+      const btn = document.getElementById("generateBtn");
+      const status = document.getElementById("status");
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loader"></span> Creating...';
+      status.textContent = "Crafting your perfect prompt...";
+
+      const answers = collectAnswers();
+      try {
+        const res = await fetch(EDGE_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${ANON_KEY}`,
+            "apikey": ANON_KEY
+          },
+          body: JSON.stringify(answers)
+        });
+        if (!res.ok) {
+          const err = await res.text();
+          throw new Error(err);
+        }
+        const data = await res.json();
+        document.getElementById("result").textContent = data.prompt || "No prompt returned.";
+        status.textContent = "✅ Complete! Your prompt is ready.";
+      } catch (err) {
+        status.textContent = "❌ Error: " + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "✨ Create My Prompt";
+      }
+    }
+
+    function copyPrompt() {
+      const text = document.getElementById("result").textContent;
+      navigator.clipboard.writeText(text).then(() => alert("Copied!"));
+    }
+  </script>
+</body>
+</html>
