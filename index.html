@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prompt Crafter – AI Prompt Builder</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #f9fafb;
+      --border: #e5e7eb;
+      --text: #111827;
+      --text-secondary: #6b7280;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --radius: 0.75rem;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    }
+    .dark {
+      --bg: #111827;
+      --surface: #1f2937;
+      --border: #374151;
+      --text: #f9fafb;
+      --text-secondary: #9ca3af;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background 0.2s;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-weight: 700; font-size: 1.25rem; }
+    .dark-toggle { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+    main {
+      flex: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      width: 100%;
+    }
+    .wizard {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      flex: 1 1 300px;
+      min-width: 0;
+      box-shadow: var(--shadow);
+    }
+    .steps {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .step {
+      width: 2rem; height: 2rem;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--border);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    .step.active { background: var(--primary); color: white; }
+    .step.done { background: #10b981; color: white; }
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    select, textarea, input {
+      width: 100%;
+      padding: 0.625rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      background: var(--bg);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: border 0.2s;
+    }
+    select:focus, textarea:focus, input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .btn-group {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    button {
+      padding: 0.625rem 1.25rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      background: var(--primary);
+      color: white;
+      transition: background 0.2s;
+    }
+    button:hover { background: var(--primary-hover); }
+    button.secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    button.secondary:hover { background: var(--border); }
+    .preview-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      min-height: 120px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: monospace;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    .output-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #10b981;
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      animation: fadeIn 0.3s;
+      display: none;
+      z-index: 999;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } }
+    .loader {
+      display: inline-block;
+      width: 1rem; height: 1rem;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.6s linear infinite;
+      margin-right: 0.5rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hidden { display: none; }
+    @media (max-width: 640px) {
+      .wizard { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">✨ Prompt Crafter</div>
+    <button class="dark-toggle" onclick="toggleDark()">🌓</button>
+  </header>
+  <main>
+    <div class="wizard">
+      <!-- Left Panel: Questions -->
+      <div class="panel" id="questionPanel">
+        <div class="steps" id="stepsContainer"></div>
+        <div id="questionArea"></div>
+        <div class="btn-group" id="navButtons">
+          <button id="prevBtn" class="secondary hidden" onclick="prevStep()">← Previous</button>
+          <button id="nextBtn" onclick="nextStep()">Next →</button>
+          <button id="finishBtn" class="hidden" onclick="finish()">✨ Craft Prompt</button>
+        </div>
+      </div>
+
+      <!-- Right Panel: Preview & Result -->
+      <div class="panel" id="previewPanel">
+        <h3 style="margin-bottom: 0.75rem;">Live Preview</h3>
+        <div class="preview-box" id="previewContent">No answers yet</div>
+        <div class="output-actions">
+          <button onclick="copyPrompt()">📋 Copy</button>
+          <button onclick="testPrompt()" id="testBtn" disabled>🧪 Test</button>
+        </div>
+        <div id="testResult" style="margin-top: 1rem;"></div>
+        <div id="apiStatus" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);"></div>
+      </div>
+    </div>
+    <div class="toast" id="toast">Copied to clipboard!</div>
+  </main>
+
+  <script>
+    // ---------- CONFIG ----------
+    const SUPABASE_URL = "https://udlmyspetkjzcdkfshgl.supabase.co";
+    const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkbG15c3BldGtqemNka2ZzaGdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxODIzMDksImV4cCI6MjA5NDc1ODMwOX0.oQL6hbwjQlU_2h4xcbD-v1yl7EubMz90VpIpTPBwEM4";
+    const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/api-key`;
+
+    // ---------- STATE ----------
+    const steps = [
+      { key: "mediaType", label: "Media Type", type: "select", options: ["Website", "Web App", "Video", "Image", "Other"] },
+      { key: "goal", label: "What do you want to create? Describe your goal.", type: "textarea" },
+      { key: "role", label: "Role/Persona for the AI", type: "text", placeholder: "e.g. Senior UI/UX designer" },
+      { key: "context", label: "Background / Context", type: "textarea", optional: true },
+      { key: "format", label: "Output Format", type: "select", options: ["Markdown", "JSON", "Plain Text", "Bullet List", "Code", "Email"] },
+      { key: "constraints", label: "Constraints (optional)", type: "text", placeholder: "e.g. max 200 words, no jargon" },
+      { key: "example", label: "Example of desired output (optional)", type: "textarea" },
+      { key: "tone", label: "Tone / Style", type: "select", options: ["Professional", "Casual", "Humorous", "Formal", "Enthusiastic"] },
+    ];
+
+    let currentStep = 0;
+    let answers = {};
+
+    // ---------- HELPERS ----------
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.style.display = "block";
+      setTimeout(() => t.style.display = "none", 2000);
+    }
+
+    function toggleDark() {
+      document.documentElement.classList.toggle("dark");
+      localStorage.setItem("theme", document.documentElement.classList.contains("dark") ? "dark" : "light");
+    }
+
+    // Load theme
+    if (localStorage.getItem("theme") === "dark") document.documentElement.classList.add("dark");
+
+    // Build preview string
+    function buildPreview() {
+      const a = answers;
+      if (Object.keys(a).length === 0) return "No answers yet";
+      return `Media Type: ${a.mediaType || 'Not specified'}
+Goal: ${a.goal || ''}
+Role: ${a.role || 'Not specified'}
+Context: ${a.context || 'None'}
+Format: ${a.format || 'Any'}
+Constraints: ${a.constraints || 'None'}
+Example: ${a.example || 'None'}
+Tone: ${a.tone || 'Neutral'}
+---\n(Your final AI‑generated prompt will appear after clicking "Craft Prompt")`;
+    }
+
+    function updatePreview() {
+      document.getElementById("previewContent").textContent = buildPreview();
+    }
+
+    function renderStepIndicator() {
+      const container = document.getElementById("stepsContainer");
+      container.innerHTML = steps.map((s, i) => {
+        let cls = "";
+        if (i === currentStep) cls = "active";
+        else if (answers[s.key]) cls = "done";
+        return `<div class="step ${cls}">${i+1}</div>`;
+      }).join("");
+    }
+
+    function getInputHTML(step, value) {
+      const s = steps[step];
+      if (s.type === "select") {
+        return `<select id="input_${s.key}">
+          ${s.options.map(opt => `<option value="${opt}" ${value === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+        </select>`;
+      } else if (s.type === "textarea") {
+        return `<textarea id="input_${s.key}" rows="4" placeholder="${s.placeholder || ''}">${value || ''}</textarea>`;
+      } else {
+        return `<input type="text" id="input_${s.key}" value="${value || ''}" placeholder="${s.placeholder || ''}">`;
+      }
+    }
+
+    function renderQuestion() {
+      const area = document.getElementById("questionArea");
+      const s = steps[currentStep];
+      area.innerHTML = `
+        <label>${s.label} ${s.optional ? '<small style="color:var(--text-secondary)">(optional)</small>' : ''}</label>
+        ${getInputHTML(currentStep, answers[s.key] || '')}
+      `;
+      // Update nav buttons
+      const prev = document.getElementById("prevBtn");
+      const next = document.getElementById("nextBtn");
+      const finish = document.getElementById("finishBtn");
+      prev.classList.toggle("hidden", currentStep === 0);
+      if (currentStep === steps.length - 1) {
+        next.classList.add("hidden");
+        finish.classList.remove("hidden");
+      } else {
+        next.classList.remove("hidden");
+        finish.classList.add("hidden");
+      }
+    }
+
+    function collectAnswers() {
+      const s = steps[currentStep];
+      const input = document.getElementById(`input_${s.key}`);
+      if (input) answers[s.key] = input.value.trim();
+    }
+
+    function nextStep() {
+      collectAnswers();
+      if (currentStep < steps.length - 1) {
+        currentStep++;
+        renderStepIndicator();
+        renderQuestion();
+        updatePreview();
+      }
+    }
+
+    function prevStep() {
+      collectAnswers();
+      if (currentStep > 0) {
+        currentStep--;
+        renderStepIndicator();
+        renderQuestion();
+        updatePreview();
+      }
+    }
+
+    async function finish() {
+      collectAnswers();
+      updatePreview();
+      // Call edge function to get final prompt
+      const btn = document.getElementById("finishBtn");
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loader"></span> Crafting...';
+      const statusDiv = document.getElementById("apiStatus");
+      statusDiv.textContent = "Generating prompt via AI...";
+      try {
+        const response = await fetch(EDGE_FUNCTION_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${ANON_KEY}`,
+            "apikey": ANON_KEY // Supabase expects this header for edge functions
+          },
+          body: JSON.stringify(answers)
+        });
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`Edge function error: ${response.status} ${errText}`);
+        }
+        const data = await response.json();
+        if (data.prompt) {
+          document.getElementById("previewContent").textContent = data.prompt;
+          statusDiv.textContent = "✅ Prompt generated successfully!";
+          document.getElementById("testBtn").disabled = false;
+        } else {
+          statusDiv.textContent = "⚠️ No prompt returned.";
+        }
+      } catch (err) {
+        console.error(err);
+        statusDiv.textContent = `❌ Error: ${err.message}`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "✨ Craft Prompt";
+      }
+    }
+
+    function copyPrompt() {
+      const text = document.getElementById("previewContent").textContent;
+      navigator.clipboard.writeText(text).then(() => showToast("Copied!"));
+    }
+
+    async function testPrompt() {
+      const prompt = document.getElementById("previewContent").textContent;
+      if (!prompt || prompt === "No answers yet") return;
+      const testBtn = document.getElementById("testBtn");
+      testBtn.disabled = true;
+      testBtn.innerHTML = '<span class="loader"></span> Testing...';
+      const resultDiv = document.getElementById("testResult");
+      resultDiv.innerHTML = "Running test...";
+      try {
+        // Reuse edge function with a test flag (the edge function can handle "test": true)
+        const response = await fetch(EDGE_FUNCTION_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${ANON_KEY}`,
+            "apikey": ANON_KEY
+          },
+          body: JSON.stringify({ ...answers, test: true, prompt })
+        });
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(errText);
+        }
+        const data = await response.json();
+        resultDiv.innerHTML = `<strong>AI Response:</strong><br><pre style="white-space:pre-wrap; background:var(--surface); padding:0.75rem; border-radius:0.5rem; margin-top:0.5rem;">${escapeHtml(data.response || 'No response')}</pre>`;
+      } catch (err) {
+        resultDiv.innerHTML = `<span style="color:red">Test failed: ${err.message}</span>`;
+      } finally {
+        testBtn.disabled = false;
+        testBtn.textContent = "🧪 Test";
+      }
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // Init
+    window.onload = () => {
+      renderStepIndicator();
+      renderQuestion();
+      updatePreview();
+    };
+  </script>
+</body>
+</html>
