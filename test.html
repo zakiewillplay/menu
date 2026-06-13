@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cerebras Model Tester</title>
+  <style>
+    body { font-family: system-ui; max-width: 500px; margin: 3rem auto; padding: 1rem; }
+    input, button { padding: 0.7rem; font-size: 1rem; margin: 0.5rem 0; width: 100%; border-radius: 6px; border: 1px solid #ccc; }
+    button { background: #6366f1; color: white; cursor: pointer; }
+    .result { padding: 1rem; border-radius: 6px; margin-top: 1rem; }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+  </style>
+</head>
+<body>
+  <h2>🔧 Cerebras Model Tester</h2>
+  <label>Enter model name:</label>
+  <input type="text" id="modelInput" value="llama-3.2-3b" placeholder="llama-3.2-3b">
+  <button onclick="testModel()">Test Model</button>
+  <div id="result"></div>
+
+  <script>
+    const EDGE_URL = "https://udlmyspetkjzcdkfshgl.supabase.co/functions/v1/api-key";
+    const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkbG15c3BldGtqemNka2ZzaGdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxODIzMDksImV4cCI6MjA5NDc1ODMwOX0.oQL6hbwjQlU_2h4xcbD-v1yl7EubMz90VpIpTPBwEM4";
+
+    async function testModel() {
+      const model = document.getElementById('modelInput').value.trim();
+      if (!model) return;
+      const resDiv = document.getElementById('result');
+      resDiv.innerHTML = 'Testing...';
+      try {
+        const res = await fetch(EDGE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${ANON_KEY}`, 'apikey':ANON_KEY },
+          body: JSON.stringify({ mode: 'testModel', model })
+        });
+        const data = await res.json();
+        if (data.success) {
+          resDiv.innerHTML = `<div class="result success">✅ Model "${data.model}" works!<br>Response: "${data.response}"</div>`;
+        } else {
+          resDiv.innerHTML = `<div class="result error">❌ Model "${data.model}" failed:<br>${data.error}</div>`;
+        }
+      } catch (err) {
+        resDiv.innerHTML = `<div class="result error">Network error: ${err.message}</div>`;
+      }
+    }
+  </script>
+</body>
+</html>
