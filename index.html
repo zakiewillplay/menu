@@ -81,7 +81,7 @@
   <header class="hero">
     <button class="dark-toggle" onclick="toggleDark()">🌓</button>
     <h1>✨ Prompt Crafter Pro</h1>
-    <p class="lead">Mostly tick boxes. Perfect prompt appears on a clean separate page.</p>
+    <p class="lead">Mostly tick boxes. Perfect prompts every time – template or AI.</p>
   </header>
 
   <!-- FORM PAGE -->
@@ -299,7 +299,6 @@
       if (sections[type]) sections[type].classList.add('show');
     });
 
-    // Page switching
     function goBack() {
       document.getElementById('formPage').classList.remove('hidden-page');
       document.getElementById('resultPage').classList.add('hidden-page');
@@ -312,7 +311,6 @@
       saveToHistory(text);
     }
 
-    // Helpers
     function getChecked(name) {
       return [...document.querySelectorAll(`#${name} input[type="checkbox"]:checked`)].map(cb => cb.value);
     }
@@ -337,48 +335,74 @@
       return ans;
     }
 
-    // Template builders
+    // ========== NEW: STRONG TEMPLATE BUILDERS ==========
     function buildWebsite(a) {
-      let p = `Act as a senior full‑stack web developer & UI/UX designer. Create a complete, responsive website for "${a.webName || 'the business'}".\n\n`;
-      p += `**Business & Audience**\n- Name: ${a.webName || 'N/A'}\n`;
-      if (a.webIndustry) p += `- Industry: ${a.webIndustry}\n`;
-      if (a.webAudience) p += `- Target audience: ${a.webAudience}\n`;
-      if (a.webLocation) p += `- Location: ${a.webLocation}\n`;
-      if (a.webGoalAction) p += `- Primary goal: ${a.webGoalAction}\n`;
-      if (a.instagram) p += `- Instagram: ${a.instagram}\n`;
-      if (a.facebook) p += `- Facebook: ${a.facebook}\n`;
-      if (a.googleBusiness) p += `- Google Business: ${a.googleBusiness}\n`;
-      p += '\n';
-      if (a.webTagline) p += `**Tagline:** "${a.webTagline}"\n\n`;
-      if (a.webPages) p += `**Pages / Sections:** ${a.webPages}\n\n`;
-      if (a.webFeatures) p += `**Features:** ${a.webFeatures}\n\n`;
-      if (a.webColors || a.webFonts || a.webInspiration) {
-        p += `**Design System**\n`;
-        if (a.webColors) p += `- Colors: ${a.webColors}\n`;
-        if (a.webFonts) p += `- Typography: ${a.webFonts}\n`;
-        if (a.webInspiration) p += `- Inspiration: ${a.webInspiration}\n`;
-        p += `- Layout: ${a.webLayoutStructure || 'single-page'}\n\n`;
-      }
-      p += `**Technical Requirements**\n- Responsive: ${a.webResponsive || 'mobile-first, 768px'}\n`;
-      if (a.extra) p += `\n**Additional Notes**\n${a.extra}\n`;
-      p += `\nDeliver a single HTML file with embedded CSS & vanilla JS. Use semantic HTML5 & CSS custom properties. Output only the complete code.`;
+      let p = `Act as a senior full‑stack web developer & UI/UX designer. Your task is to create a complete, production‑ready website for ${a.webName || 'the business'}.
+
+**PROJECT OVERVIEW**
+- Business: ${a.webName || 'N/A'}
+- Industry: ${a.webIndustry || 'N/A'}
+- Target Audience: ${a.webAudience || 'N/A'}
+- Location: ${a.webLocation || 'N/A'}
+- Primary Goal: ${a.webGoalAction || 'N/A'}
+${a.webTagline ? `- Tagline: "${a.webTagline}"\n` : ''}
+**SOCIAL LINKS** (use these in the footer and contact sections)
+${a.instagram ? `- Instagram: ${a.instagram}\n` : ''}${a.facebook ? `- Facebook: ${a.facebook}\n` : ''}${a.googleBusiness ? `- Google Business: ${a.googleBusiness}\n` : ''}
+**PAGES / SECTIONS**
+${a.webPages || 'Home, About, Contact'}
+**SPECIAL FEATURES**
+${a.webFeatures || 'none'}${a.webFeatures && a.webFeatures.includes('booking') ? '\n  Booking details: implement a front‑end form with date/time selection, name, phone, and a confirmation message.' : ''}${a.webFeatures && a.webFeatures.includes('gallery') ? '\n  Gallery: create a responsive grid with lightbox. Use high‑quality placeholders.' : ''}
+**DESIGN SYSTEM**
+- Colours: ${a.webColors || 'professional, harmonious palette'}
+- Typography: ${a.webFonts || 'clean sans‑serif'}
+- Inspiration: ${a.webInspiration || 'modern, minimal sites'}
+- Layout: ${a.webLayoutStructure || 'single scrolling page'}
+**TECHNICAL REQUIREMENTS**
+- Responsive: ${a.webResponsive || 'mobile‑first, 768px breakpoint'}
+- Accessibility: semantic HTML5, ARIA labels, keyboard navigation, good contrast
+- Performance: lazy load images, minified output, fast load
+${a.extra ? `**ADDITIONAL NOTES**\n${a.extra}\n` : ''}
+**OUTPUT**  
+Deliver a single HTML file with embedded CSS and vanilla JavaScript. Use CSS custom properties for theming. The code must be ready to open in a browser, fully functional.
+
+Write the complete code now.`;
       return p;
     }
 
     function buildWebApp(a) {
-      return `Act as a full‑stack developer. Build "${a.appName || 'the app'}".\nProblem: ${a.appProblem}\nAudience: ${a.appAudience}\nFeatures: ${a.appFeatures}\nDesign: ${a.appDesign}\nTech: ${a.appTech}\nCreate a single‑page app with only client‑side code. Output only the complete code.`;
+      return `Act as a full‑stack web developer. Build a single‑page web app "${a.appName || 'the app'}".
+
+**Problem Solved:** ${a.appProblem}
+**Target Users:** ${a.appAudience}
+**Core Features:** ${a.appFeatures}
+**Design Style:** ${a.appDesign}
+**Tech Stack:** ${a.appTech}
+
+Create a fully functional client‑side app using only HTML, CSS, and vanilla JS. Include all features as described. Use semantic HTML, a clean UI, and mobile‑responsive design. Output only the complete code.`;
     }
 
     function buildVideo(a) {
-      return `Act as a scriptwriter. Write a ${a.videoCategory || 'promo'} script (${a.videoLength || '2 min'}) about: "${a.goal || ''}".\nTone: ${a.videoTone}\nMessage: ${a.videoMessage}\nOutput only the full script.`;
+      return `Act as a professional scriptwriter. Write a ${a.videoCategory || 'promo'} video script (${a.videoLength || '2 minutes'}) about: "${a.goal || ''}".
+
+**Tone:** ${a.videoTone}
+**Key Message:** ${a.videoMessage}
+
+Structure the script with timestamps, scene descriptions, dialogue/narration, and on‑screen text. End with a clear call to action. Output only the full script.`;
     }
 
     function buildImage(a) {
-      return `Act as an AI image prompt creator. Generate a DALL·E/Midjourney prompt.\nSubject: ${a.imgSubject}\nStyle: ${a.imgStyle}\nColors: ${a.imgColors}\nType: ${a.imgType}\nOutput only the image prompt.`;
+      return `Act as an AI art director. Generate a detailed image prompt for DALL·E or Midjourney.
+
+**Type:** ${a.imgType}
+**Subject:** ${a.imgSubject}
+**Style:** ${a.imgStyle}
+**Colour Palette:** ${a.imgColors}
+${a.imgText ? `**Text to include:** "${a.imgText}"\n` : ''}${a.imgSize ? `**Dimensions:** ${a.imgSize}\n` : ''}
+Describe the composition, lighting, mood, and style references. Output only the image prompt, ready to copy into an image generator.`;
     }
 
     function buildGeneric(a) {
-      return `Act as a prompt engineer. Create a detailed prompt for: "${a.goal || ''}". Output only the final prompt.`;
+      return `Act as a prompt engineer. Create a detailed, ready‑to‑use prompt for: "${a.goal || ''}". Include all provided details. Output only the final prompt.`;
     }
 
     function buildTemplatePrompt(answers) {
@@ -497,7 +521,7 @@
       goBack();
     });
 
-    // ========== TEST CEREBRAS MODELS (inline) ==========
+    // Test Cerebras Models
     document.getElementById('testModelsBtn').addEventListener('click', async () => {
       const btn = document.getElementById('testModelsBtn');
       const resultDiv = document.getElementById('modelList');
