@@ -3,395 +3,409 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Prompt Crafter Pro ✨</title>
+  <title>Prompt Crafter – Create Perfect AI Prompts in Minutes</title>
+  <meta name="description" content="Free tool that asks you simple questions and builds detailed, ready-to-use AI prompts for websites, videos, images, and more." />
   <style>
+    /* ========== GLOBAL STYLES ========== */
     :root {
-      --bg: #fff;
-      --card: #f5f5ff;
-      --text: #222;
-      --primary: #6366f1;
-      --radius: 1rem;
+      --clr-primary: #6366f1;
+      --clr-primary-hover: #4f46e5;
+      --clr-primary-light: #e0e7ff;
+      --clr-text: #1e1b4b;
+      --clr-text-muted: #6b7280;
+      --clr-bg: #ffffff;
+      --clr-bg-card: #f5f3ff;
+      --clr-border: #e5e7eb;
+      --clr-success: #10b981;
+      --radius: 12px;
+      --shadow: 0 4px 14px rgba(0,0,0,0.06);
     }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      max-width: 700px;
-      margin: 2rem auto;
-      padding: 0 1rem;
+      font-family: 'Inter', system-ui, sans-serif;
+      line-height: 1.6;
+      color: var(--clr-text);
+      background: var(--clr-bg);
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
     }
-    .card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    /* Hero */
+    .hero { text-align: center; margin-bottom: 2.5rem; }
+    .hero h1 { font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 700; margin-bottom: 0.5rem; }
+    .lead { font-size: 1.2rem; color: var(--clr-text-muted); }
+    /* Progress */
+    .progress { background: var(--clr-border); height: 8px; border-radius: 4px; margin-bottom: 1.5rem; position: relative; overflow: hidden; }
+    .progress-fill { background: var(--clr-primary); height: 100%; border-radius: 4px; width: 0%; transition: width 0.3s; }
+    .progress-label { position: absolute; right: 0; top: -1.4rem; font-size: 0.85rem; color: var(--clr-text-muted); }
+    /* Cards */
+    .card { background: var(--clr-bg-card); border-radius: var(--radius); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow); }
+    /* Form */
+    .form-group { margin-bottom: 1.5rem; }
+    label { display: block; font-weight: 600; margin-bottom: 0.4rem; }
+    select, textarea, input[type="text"] {
+      width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--clr-border); border-radius: 6px;
+      font-family: inherit; font-size: 1rem; background: white;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    h1 { font-size: 1.6rem; margin: 0 0 0.5rem; }
-    label { display: block; font-weight: 600; margin: 1.2rem 0 0.25rem; }
-    small { color: #666; font-weight: normal; }
-    select, textarea, input {
-      width: 100%;
-      padding: 0.7rem;
-      border: 1px solid #ddd;
-      border-radius: 0.5rem;
-      font-size: 1rem;
-      font-family: inherit;
-    }
+    select:focus, textarea:focus, input:focus { outline: none; border-color: var(--clr-primary); box-shadow: 0 0 0 3px var(--clr-primary-light); }
+    /* Conditional sections (smooth reveal) */
+    .conditional { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease; margin-top: 0; }
+    .conditional.show { max-height: 4000px; opacity: 1; margin-top: 1.5rem; }
+    /* Buttons */
+    .button-group { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem; }
     button {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.8rem 1.5rem;
-      border-radius: 0.5rem;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-      margin-top: 1.5rem;
+      border: none; border-radius: 6px; padding: 0.75rem 1.5rem; font-size: 1rem;
+      font-weight: 600; cursor: pointer; min-height: 48px; background: var(--clr-primary);
+      color: white; transition: background 0.2s, transform 0.1s;
     }
-    button:disabled { opacity: 0.6; }
-    .output {
-      background: white;
-      border: 1px solid #eee;
-      border-radius: 0.5rem;
-      padding: 1rem;
-      min-height: 80px;
-      white-space: pre-wrap;
-      font-family: monospace;
-      margin: 0.5rem 0 1rem;
+    button:hover { background: var(--clr-primary-hover); }
+    button:active { transform: scale(0.97); }
+    button:focus-visible { outline: 3px solid var(--clr-primary); outline-offset: 2px; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .secondary-btn { background: transparent; color: var(--clr-primary); border: 1px solid var(--clr-primary); }
+    .secondary-btn:hover { background: var(--clr-primary-light); }
+    /* Output */
+    .output { background: white; border: 1px solid var(--clr-border); border-radius: 6px; padding: 1.5rem; min-height: 120px; white-space: pre-wrap; font-family: monospace; margin: 1rem 0; }
+    /* Toast */
+    .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--clr-success); color: white; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 500; box-shadow: var(--shadow); opacity: 0; transform: translateY(20px); transition: opacity 0.3s, transform 0.3s; pointer-events: none; z-index: 1000; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    /* History */
+    .history-item { border-bottom: 1px solid var(--clr-border); padding: 0.75rem 0; font-size: 0.9rem; }
+    .history-item:last-child { border-bottom: none; }
+    /* Footer */
+    footer { text-align: center; margin-top: 2rem; color: var(--clr-text-muted); font-size: 0.9rem; }
+    /* Responsive */
+    @media (max-width: 600px) {
+      body { padding: 1.5rem 1rem; }
+      .card { padding: 1.5rem; }
+      .button-group { flex-direction: column; }
+      button { width: 100%; }
     }
-    .loader {
-      display: inline-block;
-      width: 1rem; height: 1rem;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-radius: 50%;
-      border-top-color: white;
-      animation: spin 0.6s linear infinite;
-      margin-right: 0.5rem;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    #status { font-size: 0.9rem; color: #666; }
-    .conditional { display: none; }
-    .show { display: block; }
-    hr { border: 0; border-top: 1px solid #ddd; margin: 1.5rem 0; }
   </style>
 </head>
 <body>
-  <h1>✨ Prompt Crafter Pro</h1>
-  <p style="color:#666;">Answer a few detailed questions and get a **perfect, AI‑ready prompt**.</p>
+  <header class="hero">
+    <h1>✨ Prompt Crafter</h1>
+    <p class="lead">Answer a few questions and get a perfect AI‑ready prompt in seconds.</p>
+  </header>
 
-  <div class="card">
-    <!-- SECTION 1: WHAT -->
-    <label>1. What do you want to create?</label>
-    <select id="type" onchange="showConditional()">
-      <option value="">-- Choose --</option>
-      <option value="Website">Website</option>
-      <option value="Web App">Web App</option>
-      <option value="Video">Video</option>
-      <option value="Image / Graphic">Image / Graphic</option>
-      <option value="Other">Other</option>
-    </select>
-
-    <label>2. Describe your goal in one sentence</label>
-    <textarea id="goal" rows="2" placeholder="e.g. A landing page to sell handmade candles"></textarea>
-
-    <!-- SECTION 2: CONDITIONAL DETAILS (depends on type) -->
-
-    <!-- ---- WEBSITE ---- -->
-    <div id="websiteQ" class="conditional">
-      <hr>
-      <h3 style="margin:0 0 0.5rem;">🌐 Website Details</h3>
-
-      <label>3. Website type</label>
-      <select id="webType">
-        <option value="Business site">Business site</option>
-        <option value="Online store">Online store</option>
-        <option value="Portfolio">Portfolio</option>
-        <option value="Blog">Blog</option>
-        <option value="Landing page">Landing page</option>
-        <option value="Educational">Educational</option>
-        <option value="Other">Other</option>
-      </select>
-
-      <label>4. Business / project name</label>
-      <input type="text" id="webName" placeholder="e.g. Candle Bliss">
-
-      <label>5. Industry / niche</label>
-      <input type="text" id="webIndustry" placeholder="handmade goods, technology, health">
-
-      <label>6. Target audience</label>
-      <input type="text" id="webAudience" placeholder="young adults, parents, tech enthusiasts">
-
-      <label>7. Location (if relevant)</label>
-      <input type="text" id="webLocation" placeholder="New York, worldwide, online only">
-
-      <label>8. Main goal for visitors</label>
-      <input type="text" id="webGoal" placeholder="purchase, sign up, contact, learn more">
-
-      <label>9. Key pages / sections needed</label>
-      <textarea id="webPages" rows="3" placeholder="Home, About, Products, Contact, Blog"></textarea>
-
-      <label>10. Specific features</label>
-      <textarea id="webFeatures" rows="3" placeholder="booking system, gallery, newsletter signup, live chat, dark mode"></textarea>
-
-      <label>11. Preferred colours / visual style</label>
-      <input type="text" id="webColors" placeholder="soft pastels, blue and white, dark mode">
-
-      <label>12. Competitor or inspiration website (URL or description)</label>
-      <input type="text" id="webInspiration" placeholder="e.g. similar to apple.com">
-
-      <label>13. Must-have content / text</label>
-      <textarea id="webContent" rows="2" placeholder="slogan, tagline, special offer"></textarea>
+  <main>
+    <div class="progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress-fill" id="progressFill"></div>
+      <span class="progress-label" id="progressLabel">Step 0 of 0</span>
     </div>
 
-    <!-- ---- WEB APP ---- -->
-    <div id="appQ" class="conditional">
-      <hr>
-      <h3 style="margin:0 0 0.5rem;">📱 Web App Details</h3>
+    <section class="card" id="formCard">
+      <!-- Basic questions -->
+      <div class="form-group">
+        <label for="type">1. What do you want to create?</label>
+        <select id="type">
+          <option value="">-- Choose --</option>
+          <option value="Website">Website</option>
+          <option value="Web App">Web App</option>
+          <option value="Video">Video</option>
+          <option value="Image / Graphic">Image / Graphic</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="goal">2. Describe your goal in one sentence</label>
+        <textarea id="goal" rows="2" placeholder="e.g. A landing page to sell handmade candles"></textarea>
+      </div>
 
-      <label>3. App name</label>
-      <input type="text" id="appName" placeholder="e.g. Expense Tracker Pro">
+      <!-- Website conditional -->
+      <div id="websiteQ" class="conditional" aria-hidden="true">
+        <hr><h2>🌐 Website Details</h2>
+        <div class="form-group"><label for="webType">Website type</label><select id="webType"><option value="Business site">Business site</option><option value="Online store">Online store</option><option value="Portfolio">Portfolio</option><option value="Blog">Blog</option><option value="Landing page">Landing page</option><option value="Educational">Educational</option><option value="Other">Other</option></select></div>
+        <div class="form-group"><label for="webName">Business / project name</label><input type="text" id="webName" placeholder="e.g. Candle Bliss"></div>
+        <div class="form-group"><label for="webIndustry">Industry / niche</label><input type="text" id="webIndustry" placeholder="handmade goods, technology, health"></div>
+        <div class="form-group"><label for="webAudience">Target audience</label><input type="text" id="webAudience" placeholder="young adults, parents, tech enthusiasts"></div>
+        <div class="form-group"><label for="webLocation">Location (if relevant)</label><input type="text" id="webLocation" placeholder="New York, worldwide, online only"></div>
+        <div class="form-group"><label for="webGoal">Main goal for visitors</label><input type="text" id="webGoal" placeholder="purchase, sign up, contact, learn more"></div>
+        <div class="form-group"><label for="webPages">Key pages / sections</label><textarea id="webPages" rows="3" placeholder="Home, About, Products, Contact, Blog"></textarea></div>
+        <div class="form-group"><label for="webFeatures">Specific features</label><textarea id="webFeatures" rows="3" placeholder="booking system, gallery, newsletter signup, live chat, dark mode"></textarea></div>
+        <div class="form-group"><label for="webColors">Preferred colours / visual style</label><input type="text" id="webColors" placeholder="soft pastels, blue and white, dark mode"></div>
+        <div class="form-group"><label for="webInspiration">Competitor or inspiration</label><input type="text" id="webInspiration" placeholder="e.g. similar to apple.com"></div>
+        <div class="form-group"><label for="webContent">Must‑have content / text</label><textarea id="webContent" rows="2" placeholder="slogan, tagline, special offer"></textarea></div>
+      </div>
 
-      <label>4. Main problem it solves</label>
-      <textarea id="appProblem" rows="2" placeholder="helps people track daily spending easily"></textarea>
+      <!-- Web App conditional -->
+      <div id="appQ" class="conditional" aria-hidden="true">
+        <hr><h2>📱 Web App Details</h2>
+        <div class="form-group"><label for="appName">App name</label><input type="text" id="appName" placeholder="e.g. Expense Tracker Pro"></div>
+        <div class="form-group"><label for="appProblem">Main problem it solves</label><textarea id="appProblem" rows="2" placeholder="helps people track daily spending easily"></textarea></div>
+        <div class="form-group"><label for="appAudience">Target users</label><input type="text" id="appAudience" placeholder="students, freelancers, small business owners"></div>
+        <div class="form-group"><label for="appFeatures">Core features</label><textarea id="appFeatures" rows="3" placeholder="user login, dashboard, data visualization, export to CSV, notifications"></textarea></div>
+        <div class="form-group"><label for="appPlatform">Platform / device</label><select id="appPlatform"><option value="Desktop & Mobile">Desktop & Mobile</option><option value="Desktop only">Desktop only</option><option value="Mobile only">Mobile only</option></select></div>
+        <div class="form-group"><label for="appDesign">Look and feel</label><input type="text" id="appDesign" placeholder="minimalist, modern, colorful, professional"></div>
+        <div class="form-group"><label for="appTech">Technologies required</label><input type="text" id="appTech" placeholder="React, Vue, Firebase, etc."></div>
+        <div class="form-group"><label for="appContext">Additional context</label><textarea id="appContext" rows="2" placeholder="e.g. needs offline support, must be fast"></textarea></div>
+      </div>
 
-      <label>5. Target users</label>
-      <input type="text" id="appAudience" placeholder="students, freelancers, small business owners">
+      <!-- Video conditional -->
+      <div id="videoQ" class="conditional" aria-hidden="true">
+        <hr><h2>🎬 Video Details</h2>
+        <div class="form-group"><label for="videoCategory">Video type</label><select id="videoCategory"><option value="Tutorial">Tutorial / How-to</option><option value="Promo">Promotional / Ad</option><option value="Explainer">Explainer</option><option value="Vlog">Vlog</option><option value="Social media clip">Social media clip</option><option value="Product demo">Product demo</option><option value="Other">Other</option></select></div>
+        <div class="form-group"><label for="videoLength">Video length</label><input type="text" id="videoLength" placeholder="30 seconds, 2 minutes, 10 minutes"></div>
+        <div class="form-group"><label for="videoAudience">Target audience</label><input type="text" id="videoAudience" placeholder="tech enthusiasts, parents, students"></div>
+        <div class="form-group"><label for="videoTone">Mood / tone</label><input type="text" id="videoTone" placeholder="energetic, serious, funny, inspirational"></div>
+        <div class="form-group"><label for="videoMessage">Key message / script outline</label><textarea id="videoMessage" rows="3" placeholder="Main points to cover, call to action..."></textarea></div>
+        <div class="form-group"><label for="videoStyle">Visual style</label><input type="text" id="videoStyle" placeholder="animated, live-action, minimalistic"></div>
+        <div class="form-group"><label for="videoMusic">Music / sound</label><input type="text" id="videoMusic" placeholder="upbeat background, soft piano, no music"></div>
+        <div class="form-group"><label for="videoPlatform">Where to post</label><input type="text" id="videoPlatform" placeholder="YouTube, Instagram, TikTok, website"></div>
+        <div class="form-group"><label for="videoCaptions">Text / captions</label><textarea id="videoCaptions" rows="2" placeholder="subtitles, on-screen text"></textarea></div>
+      </div>
 
-      <label>6. Core features</label>
-      <textarea id="appFeatures" rows="3" placeholder="user login, dashboard, data visualization, export to CSV, notifications"></textarea>
+      <!-- Image / Graphic conditional -->
+      <div id="imageQ" class="conditional" aria-hidden="true">
+        <hr><h2>🎨 Image / Graphic Details</h2>
+        <div class="form-group"><label for="imgType">Type of graphic</label><select id="imgType"><option value="Logo">Logo</option><option value="Poster">Poster</option><option value="Social media post">Social media post</option><option value="Illustration">Illustration</option><option value="Banner">Banner</option><option value="Infographic">Infographic</option><option value="Other">Other</option></select></div>
+        <div class="form-group"><label for="imgSubject">Subject / description</label><textarea id="imgSubject" rows="2" placeholder="a bakery logo with a croissant and coffee cup"></textarea></div>
+        <div class="form-group"><label for="imgStyle">Style / vibe</label><input type="text" id="imgStyle" placeholder="minimalist, vintage, hand-drawn"></div>
+        <div class="form-group"><label for="imgColors">Colour palette</label><input type="text" id="imgColors" placeholder="warm tones, pastel blue"></div>
+        <div class="form-group"><label for="imgText">Any text</label><input type="text" id="imgText" placeholder="'Fresh Baked Daily'"></div>
+        <div class="form-group"><label for="imgSize">Dimensions / format</label><input type="text" id="imgSize" placeholder="1080x1080, A4 print"></div>
+        <div class="form-group"><label for="imgUsage">Usage context</label><input type="text" id="imgUsage" placeholder="website header, social profile"></div>
+        <div class="form-group"><label for="imgInspo">Reference images</label><textarea id="imgInspo" rows="2" placeholder="similar to Nike logo style"></textarea></div>
+      </div>
 
-      <label>7. Platform / device</label>
-      <select id="appPlatform">
-        <option value="Desktop & Mobile">Desktop & Mobile</option>
-        <option value="Desktop only">Desktop only</option>
-        <option value="Mobile only">Mobile only</option>
-      </select>
+      <!-- Final touches -->
+      <hr><h2>🎯 Final Touches</h2>
+      <div class="form-group"><label for="tone">Tone / Style</label><select id="tone"><option value="Not specified">No preference</option><option value="Professional">Professional</option><option value="Casual">Casual</option><option value="Fun">Fun / Playful</option><option value="Simple">Simple / Beginner</option><option value="Modern">Modern & Sleek</option></select></div>
+      <div class="form-group"><label for="targetAI">Target AI model (optional)</label><input type="text" id="targetAI" placeholder="ChatGPT, Gemini, Claude, etc."></div>
+      <div class="form-group"><label for="extra">Any extra notes</label><textarea id="extra" rows="3" placeholder="e.g. avoid technical jargon, focus on accessibility"></textarea></div>
 
-      <label>8. Look and feel / design style</label>
-      <input type="text" id="appDesign" placeholder="minimalist, modern, colorful, professional">
+      <div class="button-group">
+        <button id="suggestBtn" class="secondary-btn">💡 Get Smart Follow‑up Questions</button>
+        <button id="finalBtn">✨ Craft My Ultimate Prompt</button>
+      </div>
+      <p id="status" role="status" aria-live="polite"></p>
+    </section>
 
-      <label>9. Any specific technologies required?</label>
-      <input type="text" id="appTech" placeholder="React, Vue, Firebase, etc.">
+    <!-- Result card -->
+    <section class="card" id="resultCard" style="display: none;">
+      <h2>Your Complete AI Prompt</h2>
+      <div class="output" id="result"></div>
+      <button id="copyBtn" class="secondary-btn">📋 Copy</button>
+    </section>
 
-      <label>10. Additional context</label>
-      <textarea id="appContext" rows="2" placeholder="e.g. needs offline support, must be fast"></textarea>
-    </div>
+    <!-- History -->
+    <section class="card">
+      <h2>📚 Recent Prompts</h2>
+      <div id="historyList">No saved prompts yet.</div>
+    </section>
+  </main>
 
-    <!-- ---- VIDEO ---- -->
-    <div id="videoQ" class="conditional">
-      <hr>
-      <h3 style="margin:0 0 0.5rem;">🎬 Video Details</h3>
+  <footer><p>Built with ❤️ – Prompt Crafter</p></footer>
 
-      <label>3. Video type</label>
-      <select id="videoCategory">
-        <option value="Tutorial">Tutorial / How-to</option>
-        <option value="Promo">Promotional / Ad</option>
-        <option value="Explainer">Explainer</option>
-        <option value="Vlog">Vlog</option>
-        <option value="Social media clip">Social media clip</option>
-        <option value="Product demo">Product demo</option>
-        <option value="Other">Other</option>
-      </select>
-
-      <label>4. Video length</label>
-      <input type="text" id="videoLength" placeholder="30 seconds, 2 minutes, 10 minutes">
-
-      <label>5. Target audience</label>
-      <input type="text" id="videoAudience" placeholder="tech enthusiasts, parents, students">
-
-      <label>6. Mood / tone</label>
-      <input type="text" id="videoTone" placeholder="energetic, serious, funny, inspirational">
-
-      <label>7. Key message / script outline</label>
-      <textarea id="videoMessage" rows="3" placeholder="Main points to cover, call to action..."></textarea>
-
-      <label>8. Visual style references</label>
-      <input type="text" id="videoStyle" placeholder="animated, live-action, minimalistic, like Apple ads">
-
-      <label>9. Music / sound preferences</label>
-      <input type="text" id="videoMusic" placeholder="upbeat background, soft piano, no music">
-
-      <label>10. Where will it be posted?</label>
-      <input type="text" id="videoPlatform" placeholder="YouTube, Instagram, TikTok, website">
-
-      <label>11. Any text / captions needed?</label>
-      <textarea id="videoCaptions" rows="2" placeholder="subtitles, on-screen text, lower thirds"></textarea>
-    </div>
-
-    <!-- ---- IMAGE / GRAPHIC ---- -->
-    <div id="imageQ" class="conditional">
-      <hr>
-      <h3 style="margin:0 0 0.5rem;">🎨 Image / Graphic Details</h3>
-
-      <label>3. Type of graphic</label>
-      <select id="imgType">
-        <option value="Logo">Logo</option>
-        <option value="Poster">Poster</option>
-        <option value="Social media post">Social media post</option>
-        <option value="Illustration">Illustration</option>
-        <option value="Banner">Banner</option>
-        <option value="Infographic">Infographic</option>
-        <option value="Other">Other</option>
-      </select>
-
-      <label>4. Subject / description</label>
-      <textarea id="imgSubject" rows="2" placeholder="a bakery logo with a croissant and coffee cup"></textarea>
-
-      <label>5. Style / vibe</label>
-      <input type="text" id="imgStyle" placeholder="minimalist, vintage, hand-drawn, modern flat">
-
-      <label>6. Colour palette</label>
-      <input type="text" id="imgColors" placeholder="warm tones, pastel blue and yellow, black & white">
-
-      <label>7. Any text to include</label>
-      <input type="text" id="imgText" placeholder="'Fresh Baked Daily'">
-
-      <label>8. Dimensions / format</label>
-      <input type="text" id="imgSize" placeholder="1080x1080 for Instagram, A4 print, etc.">
-
-      <label>9. Usage context</label>
-      <input type="text" id="imgUsage" placeholder="website header, social media profile, business card">
-
-      <label>10. Reference images or inspiration</label>
-      <textarea id="imgInspo" rows="2" placeholder="similar to Nike logo style, minimal like Apple"></textarea>
-    </div>
-
-    <!-- SECTION 3: GENERAL FINAL QUESTIONS (always shown) -->
-    <hr>
-    <h3 style="margin:0 0 0.5rem;">🎯 Final Touches</h3>
-
-    <label>Tone / Style</label>
-    <select id="tone">
-      <option value="Not specified">No preference</option>
-      <option value="Professional">Professional</option>
-      <option value="Casual">Casual</option>
-      <option value="Fun">Fun / Playful</option>
-      <option value="Simple">Simple / Beginner</option>
-      <option value="Modern">Modern & Sleek</option>
-    </select>
-
-    <label>Target AI model (optional)</label>
-    <input type="text" id="targetAI" placeholder="ChatGPT, Gemini, Claude, etc.">
-
-    <label>Any extra notes or special requests</label>
-    <textarea id="extra" rows="3" placeholder="e.g. avoid technical jargon, focus on accessibility, include examples"></textarea>
-
-    <button id="generateBtn" onclick="generate()">✨ Create My Perfect Prompt</button>
-    <p id="status"></p>
-  </div>
-
-  <div class="card">
-    <label>Your Complete AI Prompt:</label>
-    <div class="output" id="result">Your prompt will appear here...</div>
-    <button onclick="copyPrompt()" style="width:auto; padding:0.5rem 1rem;">📋 Copy</button>
-  </div>
+  <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 
   <script>
-    const EDGE_URL = "https://udlmyspetkjzcdkfshgl.supabase.co/functions/v1/api-key";
-    const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkbG15c3BldGtqemNka2ZzaGdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxODIzMDksImV4cCI6MjA5NDc1ODMwOX0.oQL6hbwjQlU_2h4xcbD-v1yl7EubMz90VpIpTPBwEM4";
+    (function() {
+      // Config
+      const EDGE_URL = 'https://udlmyspetkjzcdkfshgl.supabase.co/functions/v1/api-key';
+      const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkbG15c3BldGtqemNka2ZzaGdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxODIzMDksImV4cCI6MjA5NDc1ODMwOX0.oQL6hbwjQlU_2h4xcbD-v1yl7EubMz90VpIpTPBwEM4';
 
-    function showConditional() {
-      const type = document.getElementById("type").value;
-      document.getElementById("websiteQ").classList.toggle("show", type === "Website");
-      document.getElementById("appQ").classList.toggle("show", type === "Web App");
-      document.getElementById("videoQ").classList.toggle("show", type === "Video");
-      document.getElementById("imageQ").classList.toggle("show", type === "Image / Graphic");
-    }
+      // State
+      const state = {};
+      document.querySelectorAll('input, select, textarea').forEach(el => {
+        if (el.id) {
+          state[el.id] = '';
+          el.addEventListener('input', () => { state[el.id] = el.value; updateProgress(); });
+          el.addEventListener('change', () => { state[el.id] = el.value; updateProgress(); });
+        }
+      });
 
-    function collectAnswers() {
-      const type = document.getElementById("type").value;
-      const answers = {
-        mediaType: type,
-        goal: document.getElementById("goal").value,
-        tone: document.getElementById("tone").value,
-        targetAI: document.getElementById("targetAI").value,
-        extra: document.getElementById("extra").value,
+      // DOM refs
+      const typeSelect = document.getElementById('type');
+      const progressFill = document.getElementById('progressFill');
+      const progressLabel = document.getElementById('progressLabel');
+      const statusDiv = document.getElementById('status');
+      const resultCard = document.getElementById('resultCard');
+      const resultDiv = document.getElementById('result');
+      const historyList = document.getElementById('historyList');
+      const toast = document.getElementById('toast');
+      const sections = {
+        website: document.getElementById('websiteQ'),
+        app: document.getElementById('appQ'),
+        video: document.getElementById('videoQ'),
+        image: document.getElementById('imageQ')
       };
 
-      if (type === "Website") {
-        answers.webType = document.getElementById("webType").value;
-        answers.webName = document.getElementById("webName").value;
-        answers.webIndustry = document.getElementById("webIndustry").value;
-        answers.webAudience = document.getElementById("webAudience").value;
-        answers.webLocation = document.getElementById("webLocation").value;
-        answers.webGoal = document.getElementById("webGoal").value;
-        answers.webPages = document.getElementById("webPages").value;
-        answers.webFeatures = document.getElementById("webFeatures").value;
-        answers.webColors = document.getElementById("webColors").value;
-        answers.webInspiration = document.getElementById("webInspiration").value;
-        answers.webContent = document.getElementById("webContent").value;
-      } else if (type === "Web App") {
-        answers.appName = document.getElementById("appName").value;
-        answers.appProblem = document.getElementById("appProblem").value;
-        answers.appAudience = document.getElementById("appAudience").value;
-        answers.appFeatures = document.getElementById("appFeatures").value;
-        answers.appPlatform = document.getElementById("appPlatform").value;
-        answers.appDesign = document.getElementById("appDesign").value;
-        answers.appTech = document.getElementById("appTech").value;
-        answers.appContext = document.getElementById("appContext").value;
-      } else if (type === "Video") {
-        answers.videoCategory = document.getElementById("videoCategory").value;
-        answers.videoLength = document.getElementById("videoLength").value;
-        answers.videoAudience = document.getElementById("videoAudience").value;
-        answers.videoTone = document.getElementById("videoTone").value;
-        answers.videoMessage = document.getElementById("videoMessage").value;
-        answers.videoStyle = document.getElementById("videoStyle").value;
-        answers.videoMusic = document.getElementById("videoMusic").value;
-        answers.videoPlatform = document.getElementById("videoPlatform").value;
-        answers.videoCaptions = document.getElementById("videoCaptions").value;
-      } else if (type === "Image / Graphic") {
-        answers.imgType = document.getElementById("imgType").value;
-        answers.imgSubject = document.getElementById("imgSubject").value;
-        answers.imgStyle = document.getElementById("imgStyle").value;
-        answers.imgColors = document.getElementById("imgColors").value;
-        answers.imgText = document.getElementById("imgText").value;
-        answers.imgSize = document.getElementById("imgSize").value;
-        answers.imgUsage = document.getElementById("imgUsage").value;
-        answers.imgInspo = document.getElementById("imgInspo").value;
+      // Toggle conditional sections
+      function toggleSections() {
+        const type = state.type || typeSelect.value;
+        sections.website.classList.toggle('show', type === 'Website');
+        sections.website.setAttribute('aria-hidden', type !== 'Website');
+        sections.app.classList.toggle('show', type === 'Web App');
+        sections.app.setAttribute('aria-hidden', type !== 'Web App');
+        sections.video.classList.toggle('show', type === 'Video');
+        sections.video.setAttribute('aria-hidden', type !== 'Video');
+        sections.image.classList.toggle('show', type === 'Image / Graphic');
+        sections.image.setAttribute('aria-hidden', type !== 'Image / Graphic');
+        updateProgress();
       }
+      typeSelect.addEventListener('change', toggleSections);
 
-      return answers;
-    }
-
-    async function generate() {
-      const btn = document.getElementById("generateBtn");
-      const status = document.getElementById("status");
-      btn.disabled = true;
-      btn.innerHTML = '<span class="loader"></span> Creating...';
-      status.textContent = "Crafting your detailed prompt...";
-
-      const answers = collectAnswers();
-      try {
-        const res = await fetch(EDGE_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${ANON_KEY}`,
-            "apikey": ANON_KEY
-          },
-          body: JSON.stringify(answers)
-        });
-        if (!res.ok) {
-          const err = await res.text();
-          throw new Error(err);
+      // Progress
+      function getTotalFields() {
+        let total = 5; // type, goal, tone, targetAI, extra (always visible)
+        const type = state.type || typeSelect.value;
+        if (type === 'Website') total += 11;
+        else if (type === 'Web App') total += 8;
+        else if (type === 'Video') total += 9;
+        else if (type === 'Image / Graphic') total += 7;
+        return total;
+      }
+      function countFilled() {
+        let count = 0;
+        for (let key in state) {
+          if (state[key] && state[key].toString().trim() !== '') count++;
         }
-        const data = await res.json();
-        document.getElementById("result").textContent = data.prompt || "No prompt returned.";
-        status.textContent = "✅ Complete! Your prompt is ready.";
-      } catch (err) {
-        status.textContent = "❌ Error: " + err.message;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "✨ Create My Perfect Prompt";
+        return count;
       }
-    }
+      function updateProgress() {
+        const total = getTotalFields();
+        const filled = countFilled();
+        const percent = total ? Math.round((filled / total) * 100) : 0;
+        progressFill.style.width = percent + '%';
+        progressLabel.textContent = `Step ${filled} of ${total}`;
+      }
 
-    function copyPrompt() {
-      const text = document.getElementById("result").textContent;
-      navigator.clipboard.writeText(text).then(() => alert("Copied!"));
-    }
+      // Collect answers
+      function collectAnswers() {
+        const answers = {};
+        for (let key in state) {
+          if (state[key] && state[key].toString().trim() !== '') {
+            answers[key] = state[key].trim();
+          }
+        }
+        return answers;
+      }
+
+      // Follow-up questions
+      let followupQuestions = [];
+      const suggestBtn = document.getElementById('suggestBtn');
+      const finalBtn = document.getElementById('finalBtn');
+
+      suggestBtn.addEventListener('click', async () => {
+        suggestBtn.disabled = true;
+        suggestBtn.innerHTML = '<span class="loader"></span> Thinking...';
+        statusDiv.textContent = 'AI is generating smart questions...';
+        try {
+          const answers = collectAnswers();
+          const res = await fetch(EDGE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', Authorization: `Bearer ${ANON_KEY}`, apikey: ANON_KEY },
+            body: JSON.stringify({ mode: 'generateQuestions', answers })
+          });
+          if (!res.ok) throw new Error(await res.text());
+          const data = await res.json();
+          if (data.questions && data.questions.length > 0) {
+            followupQuestions = data.questions;
+            renderDynamicQuestions(data.questions);
+            statusDiv.textContent = 'Great! Answer the extra questions, then click "Craft My Ultimate Prompt".';
+          } else {
+            statusDiv.textContent = 'No more questions needed – you can craft the prompt now.';
+          }
+        } catch (err) {
+          statusDiv.textContent = '⚠️ Could not get follow-up questions. You can still craft the prompt.';
+        } finally {
+          suggestBtn.disabled = false;
+          suggestBtn.textContent = '💡 Get Smart Follow‑up Questions';
+        }
+      });
+
+      function renderDynamicQuestions(questions) {
+        let section = document.getElementById('dynamicSection');
+        if (!section) {
+          section = document.createElement('div');
+          section.id = 'dynamicSection';
+          document.getElementById('formCard').appendChild(section);
+        }
+        section.innerHTML = '<h2>🔍 AI Follow‑up Questions</h2>';
+        questions.forEach((q, i) => {
+          section.innerHTML += `
+            <div class="form-group dynamic-question">
+              <label for="dq${i}">${q}</label>
+              <input type="text" id="dq${i}" placeholder="Your answer...">
+            </div>`;
+        });
+        questions.forEach((_, i) => {
+          const input = document.getElementById(`dq${i}`);
+          input.addEventListener('input', () => { state[`followup_${i}`] = input.value; });
+        });
+      }
+
+      // Craft final prompt
+      finalBtn.addEventListener('click', async () => {
+        finalBtn.disabled = true;
+        finalBtn.innerHTML = '<span class="loader"></span> Crafting...';
+        statusDiv.textContent = 'Generating the ultimate prompt...';
+        const staticAnswers = collectAnswers();
+        const dynamicAnswers = {};
+        for (let key in state) {
+          if (key.startsWith('followup_')) dynamicAnswers[key] = state[key];
+        }
+        try {
+          const res = await fetch(EDGE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', Authorization: `Bearer ${ANON_KEY}`, apikey: ANON_KEY },
+            body: JSON.stringify({ mode: 'generatePrompt', answers: staticAnswers, dynamicAnswers, followupQuestions })
+          });
+          if (!res.ok) throw new Error(await res.text());
+          const data = await res.json();
+          if (data.prompt) {
+            resultDiv.textContent = data.prompt;
+            resultCard.style.display = 'block';
+            statusDiv.textContent = '✅ Ultimate prompt ready!';
+            saveToHistory(data.prompt);
+          }
+        } catch (err) {
+          statusDiv.textContent = '❌ Error: ' + err.message;
+        } finally {
+          finalBtn.disabled = false;
+          finalBtn.textContent = '✨ Craft My Ultimate Prompt';
+        }
+      });
+
+      // Copy
+      document.getElementById('copyBtn').addEventListener('click', () => {
+        navigator.clipboard.writeText(resultDiv.textContent).then(() => showToast('Copied to clipboard!'));
+      });
+
+      // Toast
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+      }
+
+      // History
+      function saveToHistory(prompt) {
+        const history = JSON.parse(localStorage.getItem('promptHistory') || '[]');
+        history.unshift({ date: new Date().toISOString(), prompt });
+        localStorage.setItem('promptHistory', JSON.stringify(history.slice(0, 10)));
+        renderHistory();
+      }
+      function renderHistory() {
+        const history = JSON.parse(localStorage.getItem('promptHistory') || '[]');
+        if (history.length === 0) {
+          historyList.innerHTML = 'No saved prompts yet.';
+          return;
+        }
+        historyList.innerHTML = history.map(item => `
+          <div class="history-item">
+            <small>${new Date(item.date).toLocaleString()}</small>
+            <pre>${item.prompt.substring(0, 100)}...</pre>
+          </div>`).join('');
+      }
+      renderHistory();
+
+      // Initial
+      toggleSections();
+    })();
   </script>
 </body>
 </html>
