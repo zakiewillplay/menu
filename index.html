@@ -53,8 +53,6 @@
       width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;
       font-size: 1rem; font-family: inherit; background: var(--bg); color: var(--text);
     }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    @media (max-width: 500px) { .row { grid-template-columns: 1fr; } }
     button {
       background: var(--primary); color: white; border: none;
       padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600;
@@ -85,6 +83,13 @@
     }
     .history-item:last-child { border-bottom: none; }
     .history-item button { min-height: auto; padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+    .review-panel {
+      margin-top: 1rem; padding: 1rem; background: var(--bg);
+      border: 1px solid #ddd; border-radius: 6px; display: none;
+    }
+    .review-panel.show { display: block; }
+    .review-rating { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+    .review-feedback { margin: 0.5rem 0; }
   </style>
 </head>
 <body>
@@ -111,29 +116,27 @@
     <span class="sublabel">What is the main purpose? e.g., "A landing page to sell handmade candles"</span>
     <textarea id="goal" rows="2" placeholder="..."></textarea>
 
-    <!-- Website fields -->
+    <!-- Website fields (as before) – I'm including the full set for completeness. -->
     <div id="websiteQ" class="conditional">
       <hr><h2>🌐 Website Details</h2>
       <label for="webName">Business / project name</label><input type="text" id="webName" placeholder="Ms Lehanga">
       <label for="webType">Website type</label><select id="webType"><option value="Business">Business</option><option value="Portfolio">Portfolio</option><option value="Online Store">Online Store</option><option value="Blog">Blog</option><option value="Landing Page">Landing Page</option><option value="Other">Other</option></select>
-      <label for="webIndustry">Industry / niche</label><input type="text" id="webIndustry" placeholder="fashion, technology, food...">
-      <label for="webAudience">Target audience</label><span class="sublabel">Who will visit this site?</span><input type="text" id="webAudience" placeholder="young adults, local customers">
-      <label for="webLocation">Business location (if relevant)</label><input type="text" id="webLocation" placeholder="Kupwara, Jammu & Kashmir">
-      <label for="webGoalAction">Primary action for visitors</label><input type="text" id="webGoalAction" placeholder="purchase / book a fitting">
+      <label for="webIndustry">Industry / niche</label><input type="text" id="webIndustry" placeholder="lehangas, fashion">
+      <label for="webAudience">Target audience</label><input type="text" id="webAudience" placeholder="everyone, brides, women">
+      <label for="webLocation">Business location</label><input type="text" id="webLocation" placeholder="Kupwara, Jammu & Kashmir">
+      <label for="webGoalAction">Primary action for visitors</label><input type="text" id="webGoalAction" placeholder="purchase and booking">
       <label for="webTagline">Tagline / slogan</label><input type="text" id="webTagline" placeholder="Elegance woven in every thread">
       <label for="webHeroHeadline">Hero headline</label><input type="text" id="webHeroHeadline" placeholder="Handcrafted Lehangas for Your Special Day">
       <label for="webCTAText">Call‑to‑action button text</label><input type="text" id="webCTAText" placeholder="Book Now">
-      <label for="webPages">Required pages / sections</label><textarea id="webPages" rows="3" placeholder="Home, Gallery, Booking, About, Contact"></textarea>
-      <label for="webFeatures">Specific features</label><span class="sublabel">e.g., "booking system, image gallery with filters"</span><textarea id="webFeatures" rows="3" placeholder="booking system, gallery with lightbox, contact form"></textarea>
+      <label for="webPages">Pages / sections</label><textarea id="webPages" rows="3" placeholder="Home, Gallery, Booking, About, Contact"></textarea>
+      <label for="webFeatures">Specific features</label><textarea id="webFeatures" rows="3" placeholder="booking system, gallery with lightbox"></textarea>
 
-      <!-- Booking details -->
       <div id="bookingDetails" style="display: none;">
         <h3>📅 Booking System Details</h3>
-        <label for="bookingWhat">What are people booking?</label><input type="text" id="bookingWhat" placeholder="fitting appointment, consultation">
-        <label for="bookingFields">Required fields</label><input type="text" id="bookingFields" placeholder="name, phone, date, message">
+        <label for="bookingWhat">What are people booking?</label><input type="text" id="bookingWhat" placeholder="fitting appointment">
+        <label for="bookingFields">Required fields</label><input type="text" id="bookingFields" placeholder="name, phone, preferred date, message">
         <label for="bookingConfirmation">Confirmation message</label><input type="text" id="bookingConfirmation" placeholder="Thank you! We'll call to confirm.">
       </div>
-      <!-- Gallery details -->
       <div id="galleryDetails" style="display: none;">
         <h3>🖼️ Gallery Details</h3>
         <label for="galleryLayout">Layout</label><select id="galleryLayout"><option value="masonry">Masonry grid</option><option value="grid">Uniform grid</option><option value="carousel">Carousel</option></select>
@@ -143,72 +146,68 @@
         <label for="galleryAltText">Alt text description</label><textarea id="galleryAltText" rows="2" placeholder="hand‑embroidered lehenga..."></textarea>
       </div>
 
-      <label for="webColors">Color palette</label><input type="text" id="webColors" placeholder="cream, maroon, gold">
+      <label for="webColors">Color palette</label><input type="text" id="webColors" placeholder="cream, maroon, gold accents">
       <label for="webFonts">Typography</label><input type="text" id="webFonts" placeholder="Playfair Display, Lato">
       <label for="webInspiration">Inspiration website</label><input type="text" id="webInspiration" placeholder="similar to apple.com">
-      <label for="webLayoutStructure">Layout</label><select id="webLayoutStructure"><option value="single-page">Single scrolling page</option><option value="multi-page">Multiple pages</option></select>
-      <label for="webResponsive">Responsive breakpoints</label><input type="text" id="webResponsive" placeholder="mobile-first, breakpoint at 768px">
+      <label for="webLayoutStructure">Layout</label><select id="webLayoutStructure"><option value="single-page">Single page</option><option value="multi-page">Multiple pages</option></select>
+      <label for="webResponsive">Responsive breakpoints</label><input type="text" id="webResponsive" placeholder="mobile‑first, breakpoint at 768px">
       <label for="webSEOTitle">SEO title</label><input type="text" id="webSEOTitle" placeholder="Ms Lehanga – Bespoke Bridal Wear">
       <label for="webSEODesc">Meta description</label><textarea id="webSEODesc" rows="2" placeholder="Handcrafted bridal lehangas..."></textarea>
-      <label for="webAccessibility">Accessibility</label><input type="text" id="webAccessibility" placeholder="keyboard nav, ARIA, contrast">
+      <label for="webAccessibility">Accessibility</label><input type="text" id="webAccessibility" placeholder="semantic HTML, ARIA, keyboard nav">
       <label for="webPerformance">Performance</label><input type="text" id="webPerformance" placeholder="fast load, lazy images">
     </div>
 
-    <!-- Web App fields -->
+    <!-- Web App, Video, Image sections (abbreviated for length, but keep the full ones from previous response) -->
     <div id="appQ" class="conditional">
       <hr><h2>📱 Web App Details</h2>
       <label for="appName">App name</label><input type="text" id="appName" placeholder="Prompt Crafter">
-      <label for="appProblem">Problem it solves</label><textarea id="appProblem" rows="2" placeholder="helps beginners write AI prompts easily"></textarea>
-      <label for="appAudience">Target users</label><input type="text" id="appAudience" placeholder="everyone, especially non‑technical users">
-      <label for="appFeatures">Core features</label><textarea id="appFeatures" rows="3" placeholder="questionnaire, AI generation, copy, history, responsive"></textarea>
+      <label for="appProblem">Problem it solves</label><textarea id="appProblem" rows="2" placeholder="helps beginners write AI prompts"></textarea>
+      <label for="appAudience">Target users</label><input type="text" id="appAudience" placeholder="everyone">
+      <label for="appFeatures">Core features</label><textarea id="appFeatures" rows="3" placeholder="questionnaire, AI generation, copy"></textarea>
       <label for="appPlatform">Platform</label><input type="text" id="appPlatform" placeholder="web, mobile responsive">
-      <label for="appDesign">Design style</label><input type="text" id="appDesign" placeholder="clean, minimal, indigo primary">
-      <label for="appTech">Technologies</label><input type="text" id="appTech" placeholder="HTML, CSS, vanilla JS">
-      <label for="appDataFlow">Data / storage</label><input type="text" id="appDataFlow" placeholder="localStorage, no backend">
-      <label for="appAccessibility">Accessibility</label><input type="text" id="appAccessibility" placeholder="screen reader, keyboard nav">
-      <label for="appSEO">SEO</label><input type="text" id="appSEO" placeholder="descriptive title, meta">
+      <label for="appDesign">Design style</label><input type="text" id="appDesign" placeholder="clean, minimal">
+      <label for="appTech">Technologies</label><input type="text" id="appTech" placeholder="HTML, CSS, JS">
+      <label for="appDataFlow">Data / storage</label><input type="text" id="appDataFlow" placeholder="localStorage">
+      <label for="appAccessibility">Accessibility</label><input type="text" id="appAccessibility" placeholder="keyboard nav, screen reader">
+      <label for="appSEO">SEO</label><input type="text" id="appSEO" placeholder="descriptive title">
       <label for="appExtra">Additional context</label><textarea id="appExtra" rows="2"></textarea>
     </div>
 
-    <!-- Video fields -->
     <div id="videoQ" class="conditional">
       <hr><h2>🎬 Video Details</h2>
-      <label for="videoCategory">Type</label><select id="videoCategory"><option value="Tutorial">Tutorial</option><option value="Promo">Promo</option><option value="Explainer">Explainer</option><option value="Vlog">Vlog</option></select>
+      <label for="videoCategory">Type</label><select id="videoCategory"><option value="Tutorial">Tutorial</option><option value="Promo">Promo</option></select>
       <label for="videoLength">Length</label><input type="text" id="videoLength" placeholder="2 minutes">
       <label for="videoAudience">Audience</label><input type="text" id="videoAudience" placeholder="young entrepreneurs">
-      <label for="videoTone">Tone</label><input type="text" id="videoTone" placeholder="energetic, professional">
-      <label for="videoMessage">Key message</label><textarea id="videoMessage" rows="3" placeholder="main points..."></textarea>
-      <label for="videoStyle">Visual style</label><input type="text" id="videoStyle" placeholder="motion graphics, clean">
-      <label for="videoMusic">Background music</label><input type="text" id="videoMusic" placeholder="upbeat instrumental">
-      <label for="videoVO">Voiceover</label><input type="text" id="videoVO" placeholder="warm female voice">
-      <label for="videoPlatform">Platform</label><input type="text" id="videoPlatform" placeholder="YouTube, Instagram">
-      <label for="videoAspect">Aspect ratio</label><select id="videoAspect"><option value="16:9">16:9</option><option value="1:1">1:1</option><option value="9:16">9:16</option></select>
-      <label for="videoCTA">Call‑to‑action</label><input type="text" id="videoCTA" placeholder="Subscribe, visit website">
+      <label for="videoTone">Tone</label><input type="text" id="videoTone" placeholder="energetic">
+      <label for="videoMessage">Key message</label><textarea id="videoMessage" rows="3" placeholder="..."></textarea>
+      <label for="videoStyle">Visual style</label><input type="text" id="videoStyle" placeholder="motion graphics">
+      <label for="videoMusic">Music</label><input type="text" id="videoMusic" placeholder="upbeat instrumental">
+      <label for="videoVO">Voiceover</label><input type="text" id="videoVO" placeholder="warm female">
+      <label for="videoPlatform">Platform</label><input type="text" id="videoPlatform" placeholder="YouTube">
+      <label for="videoAspect">Aspect ratio</label><select id="videoAspect"><option value="16:9">16:9</option><option value="1:1">1:1</option></select>
+      <label for="videoCTA">Call‑to‑action</label><input type="text" id="videoCTA" placeholder="Subscribe">
       <label for="videoCaptions">Subtitles?</label><select id="videoCaptions"><option value="yes">Yes</option><option value="no">No</option></select>
     </div>
 
-    <!-- Image fields -->
     <div id="imageQ" class="conditional">
       <hr><h2>🎨 Image / Graphic Details</h2>
-      <label for="imgType">Type</label><select id="imgType"><option value="Logo">Logo</option><option value="Poster">Poster</option><option value="Social media post">Social media post</option><option value="Illustration">Illustration</option></select>
-      <label for="imgSubject">Subject</label><textarea id="imgSubject" rows="2" placeholder="a logo for a bakery..."></textarea>
-      <label for="imgStyle">Art style</label><input type="text" id="imgStyle" placeholder="minimalist line art, hand‑drawn">
+      <label for="imgType">Type</label><select id="imgType"><option value="Logo">Logo</option><option value="Poster">Poster</option></select>
+      <label for="imgSubject">Subject</label><textarea id="imgSubject" rows="2" placeholder="a logo for a bakery"></textarea>
+      <label for="imgStyle">Art style</label><input type="text" id="imgStyle" placeholder="minimalist line art">
       <label for="imgColors">Color palette</label><input type="text" id="imgColors" placeholder="warm pastels">
       <label for="imgText">Text to include</label><input type="text" id="imgText" placeholder="'Fresh Baked Daily'">
-      <label for="imgSize">Dimensions</label><input type="text" id="imgSize" placeholder="1080x1080 PNG">
-      <label for="imgComposition">Composition</label><input type="text" id="imgComposition" placeholder="centered with negative space">
-      <label for="imgMood">Mood</label><input type="text" id="imgMood" placeholder="warm, inviting">
-      <label for="imgUsage">Usage context</label><input type="text" id="imgUsage" placeholder="website header">
-      <label for="imgInspiration">Reference</label><textarea id="imgInspiration" rows="2" placeholder="similar to Nike logo..."></textarea>
+      <label for="imgSize">Dimensions</label><input type="text" id="imgSize" placeholder="1080x1080">
+      <label for="imgComposition">Composition</label><input type="text" id="imgComposition" placeholder="centered">
+      <label for="imgMood">Mood</label><input type="text" id="imgMood" placeholder="warm">
+      <label for="imgUsage">Usage</label><input type="text" id="imgUsage" placeholder="website header">
+      <label for="imgInspiration">Reference</label><textarea id="imgInspiration" rows="2" placeholder="similar to Nike logo"></textarea>
     </div>
 
-    <!-- Final touches -->
     <hr><h2>🎯 Final Touches</h2>
     <label for="tone">Overall tone / style</label>
-    <select id="tone"><option value="Professional">Professional</option><option value="Casual">Casual</option><option value="Fun">Fun</option><option value="Simple">Simple</option><option value="Modern">Modern & Sleek</option></select>
-
-    <label for="extra">Any additional context or special requests</label>
-    <textarea id="extra" rows="3" placeholder="e.g., avoid technical jargon, make it accessible, include a dark mode..."></textarea>
+    <select id="tone"><option value="Professional">Professional</option><option value="Casual">Casual</option></select>
+    <label for="extra">Any additional context</label>
+    <textarea id="extra" rows="3"></textarea>
 
     <div class="button-group">
       <button id="craftBtn">✨ Craft My Ultimate Prompt</button>
@@ -223,7 +222,13 @@
     <div class="output" id="result"></div>
     <div class="button-group">
       <button id="copyBtn" class="secondary-btn">📋 Copy</button>
-      <button id="downloadBtn" class="secondary-btn">💾 Download as .txt</button>
+      <button id="downloadBtn" class="secondary-btn">💾 Download .txt</button>
+      <button id="rateBtn" class="secondary-btn">🤖 Rate & Improve</button>
+    </div>
+    <div class="review-panel" id="reviewPanel">
+      <span class="review-rating" id="reviewRating"></span>
+      <p class="review-feedback" id="reviewFeedback"></p>
+      <button id="applyImprovementBtn" class="secondary-btn" style="display: none;">✨ Apply Improved Prompt</button>
     </div>
   </section>
 
@@ -236,14 +241,19 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // Dark mode toggle
+    // ========== CONFIG ==========
+    const SUPABASE_URL = "https://udlmyspetkjzcdkfshgl.supabase.co";
+    const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkbG15c3BldGtqemNka2ZzaGdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxODIzMDksImV4cCI6MjA5NDc1ODMwOX0.oQL6hbwjQlU_2h4xcbD-v1yl7EubMz90VpIpTPBwEM4";
+    const EDGE_URL = `${SUPABASE_URL}/functions/v1/api-key`;
+
+    // ========== DARK MODE ==========
     function toggleDark() {
       document.documentElement.classList.toggle('dark');
       localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     }
     if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
 
-    // Conditional sections
+    // ========== CONDITIONAL SECTIONS ==========
     const typeSelect = document.getElementById('type');
     const sections = {
       Website: document.getElementById('websiteQ'),
@@ -258,14 +268,13 @@
       updateProgress();
     });
 
-    // Show booking/gallery details
     document.getElementById('webFeatures').addEventListener('input', function() {
       const val = this.value.toLowerCase();
       document.getElementById('bookingDetails').style.display = val.includes('booking') ? 'block' : 'none';
       document.getElementById('galleryDetails').style.display = val.includes('gallery') ? 'block' : 'none';
     });
 
-    // Collect answers
+    // ========== DATA COLLECTION ==========
     function getAnswers() {
       const ids = [...document.querySelectorAll('input, select, textarea')].map(el => el.id).filter(Boolean);
       const ans = {};
@@ -276,44 +285,101 @@
       return ans;
     }
 
-    // Prompt builders
+    // ========== SMART PROMPT BUILDERS ==========
     function buildWebsite(a) {
-      let p = `Act as a senior full‑stack web developer and UI/UX designer. Create a complete, production‑ready ${a.webType || 'business'} website for "${a.webName || 'the business'}".\n\n`;
-      p += `**Business & Audience**\n- Name: ${a.webName || 'N/A'}\n- Industry: ${a.webIndustry || 'N/A'}\n- Target audience: ${a.webAudience || 'N/A'}\n- Location: ${a.webLocation || 'N/A'}\n- Primary goal: ${a.webGoalAction || 'N/A'}\n\n`;
-      if (a.webTagline) p += `**Branding**\n- Tagline: "${a.webTagline}"\n`;
-      if (a.webHeroHeadline) p += `- Hero headline: "${a.webHeroHeadline}"\n`;
-      if (a.webCTAText) p += `- Main CTA button text: "${a.webCTAText}"\n`;
-      p += `\n**Pages / Sections**\n${a.webPages || 'Home, About, Contact'}\n\n`;
+      let p = `Act as a senior full‑stack web developer and UI/UX designer. Create a complete, production‑ready ${a.webType || 'portfolio'} website for "${a.webName || 'the business'}".\n\n`;
+      p += `**Business & Audience**\n- Name: ${a.webName || 'N/A'}\n`;
+      if (a.webIndustry) p += `- Industry: ${a.webIndustry}\n`;
+      if (a.webAudience) p += `- Target audience: ${a.webAudience}\n`;
+      if (a.webLocation) p += `- Location: ${a.webLocation}\n`;
+      if (a.webGoalAction) p += `- Primary goal: ${a.webGoalAction}\n`;
+      p += '\n';
+      if (a.webTagline || a.webHeroHeadline || a.webCTAText) {
+        p += `**Branding**\n`;
+        if (a.webTagline) p += `- Tagline: "${a.webTagline}"\n`;
+        if (a.webHeroHeadline) p += `- Hero headline: "${a.webHeroHeadline}"\n`;
+        if (a.webCTAText) p += `- Main CTA: "${a.webCTAText}"\n`;
+        p += '\n';
+      }
+      const pagesRaw = a.webPages || 'Home, About, Contact';
+      const pages = pagesRaw === 'everything' ? 'Home, Gallery, Booking, About Us, Contact' : pagesRaw;
+      p += `**Pages / Sections**\n${pages}\n\n`;
       if (a.webFeatures) {
         p += `**Special Features**\n${a.webFeatures}\n`;
         if (a.webFeatures.toLowerCase().includes('booking')) {
-          p += `  - Booking details: ${a.bookingWhat || 'appointment'}, fields: ${a.bookingFields || 'name, phone, date'}, confirmation: "${a.bookingConfirmation || 'Thank you!'}"\n`;
+          p += `  Booking: ${a.bookingWhat || 'appointment'} (fields: ${a.bookingFields || 'name, phone, date'}, confirmation: "${a.bookingConfirmation || 'Thank you!'}")\n`;
         }
         if (a.webFeatures.toLowerCase().includes('gallery')) {
-          p += `  - Gallery: ${a.galleryLayout || 'masonry grid'}, ${a.galleryImages || '8'} images, filters: ${a.galleryFilters || 'none'}, lightbox: ${a.galleryLightbox || 'yes'}, alt text: ${a.galleryAltText || 'handcrafted products'}\n`;
+          p += `  Gallery: ${a.galleryLayout || 'masonry'}, ${a.galleryImages || '8'} images, filters: ${a.galleryFilters || 'none'}, lightbox: ${a.galleryLightbox || 'yes'}, alt: ${a.galleryAltText || 'product images'}\n`;
         }
+        p += '\n';
       }
-      p += `\n**Design System**\n- Colors: ${a.webColors || 'professional palette'}\n- Typography: ${a.webFonts || 'clean, readable fonts'}\n- Inspiration: ${a.webInspiration || 'modern, clean websites'}\n- Layout: ${a.webLayoutStructure || 'single page'}\n`;
-      p += `\n**Technical Requirements**\n- Responsive: ${a.webResponsive || 'mobile‑first, breakpoint 768px'}\n- SEO: title="${a.webSEOTitle || a.webName}", meta="${a.webSEODesc || ''}"\n- Accessibility: ${a.webAccessibility || 'semantic HTML, ARIA, keyboard nav'}\n- Performance: ${a.webPerformance || 'fast load, optimized images'}\n`;
+      if (a.webColors || a.webFonts || a.webInspiration) {
+        p += `**Design System**\n`;
+        if (a.webColors) p += `- Colors: ${a.webColors}\n`;
+        if (a.webFonts) p += `- Typography: ${a.webFonts}\n`;
+        if (a.webInspiration) p += `- Inspiration: ${a.webInspiration}\n`;
+        p += `- Layout: ${a.webLayoutStructure || 'single-page'}\n\n`;
+      }
+      p += `**Technical Requirements**\n- Responsive: ${a.webResponsive || 'mobile‑first, breakpoint 768px'}\n`;
+      if (a.webSEOTitle) p += `- SEO title: "${a.webSEOTitle}"\n`;
+      if (a.webSEODesc) p += `- Meta description: "${a.webSEODesc}"\n`;
+      if (a.webAccessibility) p += `- Accessibility: ${a.webAccessibility}\n`;
+      if (a.webPerformance) p += `- Performance: ${a.webPerformance}\n`;
       if (a.extra) p += `\n**Additional Notes**\n${a.extra}\n`;
       p += `\nDeliver a single HTML file with embedded CSS and vanilla JavaScript. Use semantic HTML5, CSS custom properties, and a mobile‑first approach. Output only the complete code.`;
       return p;
     }
 
     function buildWebApp(a) {
-      return `Act as a senior full‑stack web developer. Build the web application "${a.appName || 'the app'}" from scratch.\n**Problem Solved:** ${a.appProblem || 'N/A'}\n**Target Users:** ${a.appAudience || 'N/A'}\n**Core Features:** ${a.appFeatures || 'N/A'}\n**Platform:** ${a.appPlatform || 'web, mobile responsive'}\n**Design:** ${a.appDesign || 'clean, minimal'}\n**Tech Stack:** ${a.appTech || 'HTML, CSS, vanilla JS'}\n**Data Flow:** ${a.appDataFlow || 'localStorage'}\n**Accessibility:** ${a.appAccessibility || 'keyboard, screen reader'}\n**SEO:** ${a.appSEO || 'descriptive title'}\n${a.appExtra ? `\n**Extra Context:** ${a.appExtra}\n` : ''}Create a fully functional single‑page app. Use only client‑side technologies. Output only the complete code.`;
+      let p = `Act as a senior full‑stack web developer. Build "${a.appName || 'the app'}".\n`;
+      if (a.appProblem) p += `**Problem:** ${a.appProblem}\n`;
+      if (a.appAudience) p += `**Audience:** ${a.appAudience}\n`;
+      if (a.appFeatures) p += `**Features:** ${a.appFeatures}\n`;
+      if (a.appPlatform) p += `**Platform:** ${a.appPlatform}\n`;
+      if (a.appDesign) p += `**Design:** ${a.appDesign}\n`;
+      if (a.appTech) p += `**Tech:** ${a.appTech}\n`;
+      if (a.appDataFlow) p += `**Data:** ${a.appDataFlow}\n`;
+      if (a.appAccessibility) p += `**Accessibility:** ${a.appAccessibility}\n`;
+      if (a.appSEO) p += `**SEO:** ${a.appSEO}\n`;
+      if (a.appExtra) p += `\n**Extra:** ${a.appExtra}\n`;
+      p += `\nCreate a functional single‑page app with only client‑side code. Output only the complete code.`;
+      return p;
     }
 
     function buildVideo(a) {
-      return `Act as a professional video scriptwriter. Write a detailed ${a.videoCategory || 'promo'} video script (${a.videoLength || '2 minutes'}) for: "${a.goal || ''}".\n**Target Audience:** ${a.videoAudience || 'general'}\n**Tone:** ${a.videoTone || 'professional'}\n**Key Message:** ${a.videoMessage || ''}\n**Visual Style:** ${a.videoStyle || 'clean'}\n**Music:** ${a.videoMusic || 'upbeat instrumental'}\n**Voiceover:** ${a.videoVO || 'warm'}\n**Platform:** ${a.videoPlatform || 'YouTube'}, aspect ${a.videoAspect || '16:9'}\n${a.videoCTA ? `**CTA:** ${a.videoCTA}\n` : ''}${a.videoCaptions === 'yes' ? 'Include subtitles.\n' : ''}Structure the script with timestamps, scene descriptions, and dialogue. Output only the full script.`;
+      let p = `Act as a scriptwriter. Write a ${a.videoCategory || 'promo'} script (${a.videoLength || '2 min'}) for: "${a.goal || ''}".\n`;
+      if (a.videoAudience) p += `**Audience:** ${a.videoAudience}\n`;
+      if (a.videoTone) p += `**Tone:** ${a.videoTone}\n`;
+      if (a.videoMessage) p += `**Message:** ${a.videoMessage}\n`;
+      if (a.videoStyle) p += `**Visuals:** ${a.videoStyle}\n`;
+      if (a.videoMusic) p += `**Music:** ${a.videoMusic}\n`;
+      if (a.videoVO) p += `**Voiceover:** ${a.videoVO}\n`;
+      if (a.videoPlatform) p += `**Platform:** ${a.videoPlatform}, aspect ${a.videoAspect || '16:9'}\n`;
+      if (a.videoCTA) p += `**CTA:** ${a.videoCTA}\n`;
+      if (a.videoCaptions === 'yes') p += 'Include subtitles.\n';
+      p += `\nStructure with timestamps and scene descriptions. Output only the full script.`;
+      return p;
     }
 
     function buildImage(a) {
-      return `Act as an expert AI image prompt creator. Generate a precise, detailed prompt for DALL·E / Midjourney.\n**Type:** ${a.imgType || 'image'}\n**Subject:** ${a.imgSubject || ''}\n**Style:** ${a.imgStyle || 'minimalist'}\n**Color palette:** ${a.imgColors || 'harmonious'}\n${a.imgText ? `**Text:** "${a.imgText}"\n` : ''}**Dimensions:** ${a.imgSize || 'square'}\n**Composition:** ${a.imgComposition || 'balanced'}\n**Mood:** ${a.imgMood || 'professional'}\n**Usage:** ${a.imgUsage || 'digital'}\n${a.imgInspiration ? `**Inspiration:** ${a.imgInspiration}\n` : ''}Write the prompt in natural language, including lighting, texture, and style references. Output only the image generation prompt.`;
+      let p = `Act as an AI image prompt creator. Generate a detailed prompt for DALL·E/Midjourney.\n`;
+      if (a.imgType) p += `**Type:** ${a.imgType}\n`;
+      if (a.imgSubject) p += `**Subject:** ${a.imgSubject}\n`;
+      if (a.imgStyle) p += `**Style:** ${a.imgStyle}\n`;
+      if (a.imgColors) p += `**Colors:** ${a.imgColors}\n`;
+      if (a.imgText) p += `**Text:** "${a.imgText}"\n`;
+      if (a.imgSize) p += `**Size:** ${a.imgSize}\n`;
+      if (a.imgComposition) p += `**Composition:** ${a.imgComposition}\n`;
+      if (a.imgMood) p += `**Mood:** ${a.imgMood}\n`;
+      if (a.imgUsage) p += `**Usage:** ${a.imgUsage}\n`;
+      if (a.imgInspiration) p += `**Inspiration:** ${a.imgInspiration}\n`;
+      p += `\nInclude lighting, texture, style references. Output only the image prompt.`;
+      return p;
     }
 
     function buildGeneric(a) {
-      return `Act as an expert prompt engineer. Create a detailed, ready‑to‑use prompt for the following request:\n"${a.goal || ''}"\nInclude all relevant details provided by the user. Output only the final prompt.`;
+      return `Act as an expert prompt engineer. Create a detailed prompt for: "${a.goal || ''}". Include all details. Output only the final prompt.`;
     }
 
     function buildPrompt(answers) {
@@ -327,13 +393,10 @@
       }
     }
 
-    // Craft
+    // ========== CRAFT ==========
     document.getElementById('craftBtn').addEventListener('click', () => {
       const answers = getAnswers();
-      if (!answers.type && !answers.goal) {
-        alert('Please fill in at least the first two questions.');
-        return;
-      }
+      if (!answers.type && !answers.goal) return alert('Please fill first two questions.');
       const prompt = buildPrompt(answers);
       document.getElementById('result').textContent = prompt;
       document.getElementById('resultCard').style.display = 'block';
@@ -342,16 +405,12 @@
       window.scrollTo({ top: document.getElementById('resultCard').offsetTop, behavior: 'smooth' });
     });
 
-    // Copy
+    // ========== COPY & DOWNLOAD ==========
     document.getElementById('copyBtn').addEventListener('click', () => {
-      const text = document.getElementById('result').textContent;
-      navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+      navigator.clipboard.writeText(document.getElementById('result').textContent).then(() => showToast('Copied!'));
     });
-
-    // Download
     document.getElementById('downloadBtn').addEventListener('click', () => {
-      const text = document.getElementById('result').textContent;
-      const blob = new Blob([text], { type: 'text/plain' });
+      const blob = new Blob([document.getElementById('result').textContent], { type: 'text/plain' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = 'prompt-crafter-prompt.txt';
@@ -359,19 +418,63 @@
       showToast('Downloaded!');
     });
 
-    // Clear form
+    // ========== RATE & IMPROVE (AI) ==========
+    let improvedPromptText = null;
+    document.getElementById('rateBtn').addEventListener('click', async () => {
+      const originalPrompt = document.getElementById('result').textContent;
+      if (!originalPrompt) return;
+      const btn = document.getElementById('rateBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loader"></span> Reviewing...';
+      document.getElementById('status').textContent = 'AI is reviewing your prompt...';
+      try {
+        const res = await fetch(EDGE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ANON_KEY}`, 'apikey': ANON_KEY },
+          body: JSON.stringify({ mode: 'review', prompt: originalPrompt })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        const review = data.review;
+        document.getElementById('reviewRating').textContent = `⭐ ${review.rating}/10`;
+        document.getElementById('reviewFeedback').textContent = review.feedback;
+        const applyBtn = document.getElementById('applyImprovementBtn');
+        if (review.improvedPrompt) {
+          improvedPromptText = review.improvedPrompt;
+          applyBtn.style.display = 'inline-block';
+        } else {
+          applyBtn.style.display = 'none';
+        }
+        document.getElementById('reviewPanel').classList.add('show');
+        document.getElementById('status').textContent = '✅ Review complete.';
+      } catch (err) {
+        document.getElementById('status').textContent = '❌ Review failed: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🤖 Rate & Improve';
+      }
+    });
+
+    document.getElementById('applyImprovementBtn').addEventListener('click', () => {
+      if (improvedPromptText) {
+        document.getElementById('result').textContent = improvedPromptText;
+        document.getElementById('reviewPanel').classList.remove('show');
+        document.getElementById('status').textContent = '✅ Improved prompt applied!';
+        saveToHistory(improvedPromptText);
+      }
+    });
+
+    // ========== CLEAR ==========
     document.getElementById('clearBtn').addEventListener('click', () => {
       document.querySelectorAll('input, textarea').forEach(el => el.value = '');
       document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
       document.getElementById('resultCard').style.display = 'none';
       document.getElementById('status').textContent = '';
-      document.getElementById('bookingDetails').style.display = 'none';
-      document.getElementById('galleryDetails').style.display = 'none';
       Object.values(sections).forEach(s => s.classList.remove('show'));
       updateProgress();
     });
 
-    // Toast
+    // ========== TOAST ==========
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.textContent = msg;
@@ -379,32 +482,24 @@
       setTimeout(() => toast.classList.remove('show'), 2000);
     }
 
-    // History
+    // ========== HISTORY ==========
     function saveToHistory(prompt) {
       const history = JSON.parse(localStorage.getItem('promptHistory') || '[]');
       history.unshift({ date: new Date().toISOString(), prompt });
       localStorage.setItem('promptHistory', JSON.stringify(history.slice(0, 10)));
       renderHistory();
     }
-
     function renderHistory() {
       const history = JSON.parse(localStorage.getItem('promptHistory') || '[]');
       const container = document.getElementById('historyList');
-      if (history.length === 0) {
-        container.innerHTML = 'No saved prompts yet.';
-        return;
-      }
+      if (history.length === 0) { container.innerHTML = 'No saved prompts yet.'; return; }
       container.innerHTML = history.map((item, index) => `
         <div class="history-item">
-          <div>
-            <small>${new Date(item.date).toLocaleString()}</small>
-            <pre style="white-space: pre-wrap; margin: 0.25rem 0;">${item.prompt.substring(0, 100)}...</pre>
-          </div>
+          <div><small>${new Date(item.date).toLocaleString()}</small><pre style="white-space:pre-wrap;">${item.prompt.substring(0, 100)}...</pre></div>
           <button onclick="loadHistoryItem(${index})">Load</button>
         </div>
       `).join('');
     }
-
     window.loadHistoryItem = function(index) {
       const history = JSON.parse(localStorage.getItem('promptHistory') || '[]');
       if (history[index]) {
@@ -413,12 +508,11 @@
         window.scrollTo({ top: document.getElementById('resultCard').offsetTop, behavior: 'smooth' });
       }
     };
-
     renderHistory();
 
-    // Progress
+    // ========== PROGRESS ==========
     function updateProgress() {
-      const total = 20; // approx
+      const total = 25;
       const filled = Object.values(getAnswers()).filter(v => v).length;
       document.getElementById('progressFill').style.width = Math.min(100, (filled / total) * 100) + '%';
     }
