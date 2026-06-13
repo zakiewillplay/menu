@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Prompt Crafter Ultimate – Perfect Prompts, Zero Compromise</title>
+  <title>Prompt Crafter – Lazy Edition ✨</title>
   <style>
     :root {
       --primary: #6366f1;
@@ -13,95 +13,73 @@
       --text: #1e1b4b;
       --muted: #6b7280;
       --radius: 12px;
-      --shadow: 0 4px 14px rgba(0,0,0,0.05);
     }
     .dark {
       --bg: #111827;
       --bg-card: #1f2937;
       --text: #f9fafb;
       --muted: #9ca3af;
-      --shadow: 0 4px 14px rgba(0,0,0,0.3);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
-      max-width: 800px;
+      max-width: 750px;
       margin: 2rem auto;
       padding: 0 1rem;
       line-height: 1.6;
-      transition: background 0.3s, color 0.3s;
     }
     .hero { text-align: center; margin-bottom: 2rem; position: relative; }
-    .hero h1 { font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 700; }
-    .lead { color: var(--muted); font-size: 1.2rem; }
-    .dark-toggle {
-      position: absolute; top: 0; right: 0; background: none; border: none;
-      font-size: 1.5rem; cursor: pointer; min-height: auto; padding: 0.3rem;
-    }
-    .progress { background: #e5e7eb; height: 6px; border-radius: 3px; margin-bottom: 1rem; }
-    .progress-fill { height: 100%; background: var(--primary); border-radius: 3px; width: 0%; transition: width 0.3s; }
-    .card {
-      background: var(--bg-card); border-radius: var(--radius);
-      padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow);
-    }
-    h2 { margin: 1.5rem 0 0.75rem; font-size: 1.3rem; }
-    label { display: block; font-weight: 600; margin: 1rem 0 0.3rem; }
-    .sublabel { font-weight: normal; font-size: 0.9rem; color: var(--muted); display: block; }
+    .hero h1 { font-size: 2rem; }
+    .lead { color: var(--muted); }
+    .dark-toggle { position: absolute; top: 0; right: 0; background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+    .card { background: var(--bg-card); border-radius: var(--radius); padding: 1.8rem; margin-bottom: 2rem; box-shadow: 0 4px 14px rgba(0,0,0,0.05); }
+    h2 { margin: 1.5rem 0 0.5rem; font-size: 1.2rem; }
+    label { display: block; font-weight: 600; margin: 1rem 0 0.2rem; }
+    .sublabel { font-weight: normal; font-size: 0.9rem; color: var(--muted); }
     input, select, textarea {
-      width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;
+      width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 6px;
       font-size: 1rem; font-family: inherit; background: var(--bg); color: var(--text);
     }
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 0.6rem 1.2rem; margin-top: 0.3rem; }
+    .checkbox-group label { font-weight: normal; display: flex; align-items: center; gap: 0.3rem; margin: 0; }
     button {
       background: var(--primary); color: white; border: none;
       padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600;
-      cursor: pointer; transition: background 0.2s; min-height: 48px; font-size: 1rem;
+      cursor: pointer; min-height: 48px; font-size: 1rem;
     }
     button:hover { background: var(--primary-hover); }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    button:disabled { opacity: 0.6; }
     .secondary-btn { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
     .secondary-btn:hover { background: #e0e7ff; }
     .button-group { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
     .output {
       background: var(--bg); border: 1px solid #ddd; border-radius: 6px;
-      padding: 1.5rem; min-height: 100px; white-space: pre-wrap;
-      font-family: monospace; margin-top: 0.5rem; max-height: 500px; overflow-y: auto;
+      padding: 1.5rem; white-space: pre-wrap; font-family: monospace; max-height: 400px; overflow-y: auto;
     }
     .conditional { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s, opacity 0.3s; }
-    .conditional.show { max-height: 8000px; opacity: 1; }
+    .conditional.show { max-height: 6000px; opacity: 1; }
     .toast {
       position: fixed; bottom: 2rem; right: 2rem; background: #10b981; color: white;
-      padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 500;
-      opacity: 0; transform: translateY(20px); transition: 0.3s; pointer-events: none; z-index: 1000;
+      padding: 0.75rem 1.5rem; border-radius: 6px; opacity: 0; transform: translateY(20px);
+      transition: 0.3s; pointer-events: none; z-index: 1000;
     }
     .toast.show { opacity: 1; transform: translateY(0); }
-    hr { border: 0; border-top: 1px solid #ddd; margin: 1.5rem 0; }
-    .history-item {
-      border-bottom: 1px solid #ddd; padding: 0.75rem 0; font-size: 0.9rem;
-      display: flex; justify-content: space-between; align-items: flex-start;
-    }
-    .history-item:last-child { border-bottom: none; }
-    .history-item button { min-height: auto; padding: 0.3rem 0.6rem; font-size: 0.8rem; }
-    .review-panel {
-      margin-top: 1rem; padding: 1rem; background: var(--bg);
-      border: 1px solid #ddd; border-radius: 6px; display: none;
-    }
+    .review-panel { margin-top: 1rem; padding: 1rem; background: var(--bg); border: 1px solid #ddd; border-radius: 6px; display: none; }
     .review-panel.show { display: block; }
     .review-rating { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
-    .review-feedback { margin: 0.5rem 0; }
   </style>
 </head>
 <body>
   <header class="hero">
-    <button class="dark-toggle" onclick="toggleDark()" aria-label="Toggle dark mode">🌓</button>
-    <h1>✨ Prompt Crafter Ultimate</h1>
-    <p class="lead">Answer every question — get a perfect, AI‑ready prompt. No API, no limits, 100% free.</p>
+    <button class="dark-toggle" onclick="toggleDark()">🌓</button>
+    <h1>✨ Prompt Crafter (Lazy Edition)</h1>
+    <p class="lead">Mostly tick boxes, barely any typing. Still perfect prompts.</p>
   </header>
 
-  <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
-
   <section class="card">
+    <!-- Type -->
     <label for="type">1. What do you want to create?</label>
     <select id="type">
       <option value="">-- Choose --</option>
@@ -109,151 +87,187 @@
       <option value="Web App">Web App</option>
       <option value="Video">Video</option>
       <option value="Image / Graphic">Image / Graphic</option>
-      <option value="Other">Other</option>
     </select>
 
-    <label for="goal">2. Describe your goal in one short sentence</label>
-    <span class="sublabel">What is the main purpose? e.g., "A landing page to sell handmade candles"</span>
-    <textarea id="goal" rows="2" placeholder="..."></textarea>
+    <!-- Goal (only short text) -->
+    <label for="goal">2. In one short sentence, what’s it for?</label>
+    <textarea id="goal" rows="2" placeholder="e.g. A portfolio site for a lehenga boutique"></textarea>
 
-    <!-- Website fields (as before) – I'm including the full set for completeness. -->
+    <!-- ============ WEBSITE ============ -->
     <div id="websiteQ" class="conditional">
-      <hr><h2>🌐 Website Details</h2>
-      <label for="webName">Business / project name</label><input type="text" id="webName" placeholder="Ms Lehanga">
-      <label for="webType">Website type</label><select id="webType"><option value="Business">Business</option><option value="Portfolio">Portfolio</option><option value="Online Store">Online Store</option><option value="Blog">Blog</option><option value="Landing Page">Landing Page</option><option value="Other">Other</option></select>
-      <label for="webIndustry">Industry / niche</label><input type="text" id="webIndustry" placeholder="lehangas, fashion">
-      <label for="webAudience">Target audience</label><input type="text" id="webAudience" placeholder="everyone, brides, women">
-      <label for="webLocation">Business location</label><input type="text" id="webLocation" placeholder="Kupwara, Jammu & Kashmir">
-      <label for="webGoalAction">Primary action for visitors</label><input type="text" id="webGoalAction" placeholder="purchase and booking">
-      <label for="webTagline">Tagline / slogan</label><input type="text" id="webTagline" placeholder="Elegance woven in every thread">
-      <label for="webHeroHeadline">Hero headline</label><input type="text" id="webHeroHeadline" placeholder="Handcrafted Lehangas for Your Special Day">
-      <label for="webCTAText">Call‑to‑action button text</label><input type="text" id="webCTAText" placeholder="Book Now">
-      <label for="webPages">Pages / sections</label><textarea id="webPages" rows="3" placeholder="Home, Gallery, Booking, About, Contact"></textarea>
-      <label for="webFeatures">Specific features</label><textarea id="webFeatures" rows="3" placeholder="booking system, gallery with lightbox"></textarea>
+      <hr><h2>🌐 Website (tick what you need)</h2>
 
-      <div id="bookingDetails" style="display: none;">
-        <h3>📅 Booking System Details</h3>
-        <label for="bookingWhat">What are people booking?</label><input type="text" id="bookingWhat" placeholder="fitting appointment">
-        <label for="bookingFields">Required fields</label><input type="text" id="bookingFields" placeholder="name, phone, preferred date, message">
-        <label for="bookingConfirmation">Confirmation message</label><input type="text" id="bookingConfirmation" placeholder="Thank you! We'll call to confirm.">
-      </div>
-      <div id="galleryDetails" style="display: none;">
-        <h3>🖼️ Gallery Details</h3>
-        <label for="galleryLayout">Layout</label><select id="galleryLayout"><option value="masonry">Masonry grid</option><option value="grid">Uniform grid</option><option value="carousel">Carousel</option></select>
-        <label for="galleryImages">Number of images</label><input type="number" id="galleryImages" value="8" min="1">
-        <label for="galleryFilters">Filter categories</label><input type="text" id="galleryFilters" placeholder="Bridal, Party Wear, Traditional">
-        <label for="galleryLightbox">Lightbox?</label><select id="galleryLightbox"><option value="yes">Yes</option><option value="no">No</option></select>
-        <label for="galleryAltText">Alt text description</label><textarea id="galleryAltText" rows="2" placeholder="hand‑embroidered lehenga..."></textarea>
+      <label for="webName">Business name</label>
+      <input type="text" id="webName" placeholder="Ms Lehanga">
+
+      <label>Industry</label>
+      <select id="webIndustry">
+        <option value="">-- Pick --</option>
+        <option value="Fashion">Fashion</option>
+        <option value="Food">Food</option>
+        <option value="Technology">Technology</option>
+        <option value="Health">Health</option>
+        <option value="Education">Education</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label>Target audience (tick all that apply)</label>
+      <div class="checkbox-group" id="audienceCheckboxes">
+        <label><input type="checkbox" value="Everyone"> Everyone</label>
+        <label><input type="checkbox" value="Women"> Women</label>
+        <label><input type="checkbox" value="Men"> Men</label>
+        <label><input type="checkbox" value="Brides"> Brides</label>
+        <label><input type="checkbox" value="Grooms"> Grooms</label>
+        <label><input type="checkbox" value="Local customers"> Local customers</label>
       </div>
 
-      <label for="webColors">Color palette</label><input type="text" id="webColors" placeholder="cream, maroon, gold accents">
-      <label for="webFonts">Typography</label><input type="text" id="webFonts" placeholder="Playfair Display, Lato">
-      <label for="webInspiration">Inspiration website</label><input type="text" id="webInspiration" placeholder="similar to apple.com">
-      <label for="webLayoutStructure">Layout</label><select id="webLayoutStructure"><option value="single-page">Single page</option><option value="multi-page">Multiple pages</option></select>
-      <label for="webResponsive">Responsive breakpoints</label><input type="text" id="webResponsive" placeholder="mobile‑first, breakpoint at 768px">
-      <label for="webSEOTitle">SEO title</label><input type="text" id="webSEOTitle" placeholder="Ms Lehanga – Bespoke Bridal Wear">
-      <label for="webSEODesc">Meta description</label><textarea id="webSEODesc" rows="2" placeholder="Handcrafted bridal lehangas..."></textarea>
-      <label for="webAccessibility">Accessibility</label><input type="text" id="webAccessibility" placeholder="semantic HTML, ARIA, keyboard nav">
-      <label for="webPerformance">Performance</label><input type="text" id="webPerformance" placeholder="fast load, lazy images">
+      <label for="webLocation">Location (city, region)</label>
+      <input type="text" id="webLocation" placeholder="Kupwara, Jammu & Kashmir">
+
+      <label>Main goal for visitors</label>
+      <select id="webGoalAction">
+        <option value="">-- Pick --</option>
+        <option value="purchase">Buy / Purchase</option>
+        <option value="booking">Book appointment</option>
+        <option value="contact">Get in touch</option>
+        <option value="subscribe">Subscribe</option>
+        <option value="learn">Learn more</option>
+      </select>
+
+      <label for="webTagline">Tagline (optional)</label>
+      <input type="text" id="webTagline" placeholder="Elegance woven in every thread">
+
+      <label>Pages / sections you want</label>
+      <div class="checkbox-group" id="pagesCheckboxes">
+        <label><input type="checkbox" value="Home"> Home</label>
+        <label><input type="checkbox" value="About"> About</label>
+        <label><input type="checkbox" value="Gallery"> Gallery</label>
+        <label><input type="checkbox" value="Booking"> Booking</label>
+        <label><input type="checkbox" value="Contact"> Contact</label>
+        <label><input type="checkbox" value="Testimonials"> Testimonials</label>
+      </div>
+
+      <label>Special features</label>
+      <div class="checkbox-group" id="featuresCheckboxes">
+        <label><input type="checkbox" value="booking system"> Booking system</label>
+        <label><input type="checkbox" value="image gallery"> Image gallery</label>
+        <label><input type="checkbox" value="contact form"> Contact form</label>
+        <label><input type="checkbox" value="Google Maps"> Google Maps</label>
+      </div>
+
+      <label>Colour vibe</label>
+      <select id="webColors">
+        <option value="">-- Pick --</option>
+        <option value="soft pastels">Soft pastels</option>
+        <option value="warm earth tones">Warm earth tones</option>
+        <option value="dark & elegant">Dark & elegant</option>
+        <option value="bright & bold">Bright & bold</option>
+        <option value="minimal black & white">Minimal B&W</option>
+      </select>
+
+      <label>Typography preference</label>
+      <select id="webFonts">
+        <option value="">-- Pick --</option>
+        <option value="elegant serif">Elegant serif (Playfair Display)</option>
+        <option value="clean sans-serif">Clean sans‑serif (Lato)</option>
+        <option value="modern monospace">Modern monospace</option>
+      </select>
+
+      <label for="webInspiration">Inspiration website (URL or name)</label>
+      <input type="text" id="webInspiration" placeholder="apple.com, tartinebakery.com">
+
+      <!-- Social links -->
+      <label>Your social / business links</label>
+      <input type="text" id="instagram" placeholder="Instagram URL (optional)">
+      <input type="text" id="facebook" placeholder="Facebook URL (optional)" style="margin-top:0.5rem;">
+      <input type="text" id="googleBusiness" placeholder="Google Business link (optional)" style="margin-top:0.5rem;">
+
+      <label>Layout</label>
+      <select id="webLayoutStructure">
+        <option value="single-page">Single scrolling page</option>
+        <option value="multi-page">Multiple pages</option>
+      </select>
+
+      <label>Responsive behaviour</label>
+      <select id="webResponsive">
+        <option value="mobile-first">Mobile‑first (breakpoint 768px)</option>
+        <option value="desktop-first">Desktop‑first</option>
+      </select>
     </div>
 
-    <!-- Web App, Video, Image sections (abbreviated for length, but keep the full ones from previous response) -->
+    <!-- ============ WEB APP (simplified) ============ -->
     <div id="appQ" class="conditional">
-      <hr><h2>📱 Web App Details</h2>
-      <label for="appName">App name</label><input type="text" id="appName" placeholder="Prompt Crafter">
-      <label for="appProblem">Problem it solves</label><textarea id="appProblem" rows="2" placeholder="helps beginners write AI prompts"></textarea>
-      <label for="appAudience">Target users</label><input type="text" id="appAudience" placeholder="everyone">
-      <label for="appFeatures">Core features</label><textarea id="appFeatures" rows="3" placeholder="questionnaire, AI generation, copy"></textarea>
-      <label for="appPlatform">Platform</label><input type="text" id="appPlatform" placeholder="web, mobile responsive">
-      <label for="appDesign">Design style</label><input type="text" id="appDesign" placeholder="clean, minimal">
-      <label for="appTech">Technologies</label><input type="text" id="appTech" placeholder="HTML, CSS, JS">
-      <label for="appDataFlow">Data / storage</label><input type="text" id="appDataFlow" placeholder="localStorage">
-      <label for="appAccessibility">Accessibility</label><input type="text" id="appAccessibility" placeholder="keyboard nav, screen reader">
-      <label for="appSEO">SEO</label><input type="text" id="appSEO" placeholder="descriptive title">
-      <label for="appExtra">Additional context</label><textarea id="appExtra" rows="2"></textarea>
+      <hr><h2>📱 Web App</h2>
+      <label for="appName">App name</label><input type="text" id="appName" placeholder="My App">
+      <label>Problem it solves</label><input type="text" id="appProblem" placeholder="helps people...">
+      <label>Target users</label><input type="text" id="appAudience" placeholder="everyone">
+      <label>Core features</label><textarea id="appFeatures" rows="2" placeholder="login, dashboard, notifications"></textarea>
+      <label>Design style</label><input type="text" id="appDesign" placeholder="clean, minimal">
+      <label>Technologies</label><input type="text" id="appTech" placeholder="HTML, CSS, JS">
     </div>
 
+    <!-- ============ VIDEO (simplified) ============ -->
     <div id="videoQ" class="conditional">
-      <hr><h2>🎬 Video Details</h2>
-      <label for="videoCategory">Type</label><select id="videoCategory"><option value="Tutorial">Tutorial</option><option value="Promo">Promo</option></select>
-      <label for="videoLength">Length</label><input type="text" id="videoLength" placeholder="2 minutes">
-      <label for="videoAudience">Audience</label><input type="text" id="videoAudience" placeholder="young entrepreneurs">
-      <label for="videoTone">Tone</label><input type="text" id="videoTone" placeholder="energetic">
-      <label for="videoMessage">Key message</label><textarea id="videoMessage" rows="3" placeholder="..."></textarea>
-      <label for="videoStyle">Visual style</label><input type="text" id="videoStyle" placeholder="motion graphics">
-      <label for="videoMusic">Music</label><input type="text" id="videoMusic" placeholder="upbeat instrumental">
-      <label for="videoVO">Voiceover</label><input type="text" id="videoVO" placeholder="warm female">
-      <label for="videoPlatform">Platform</label><input type="text" id="videoPlatform" placeholder="YouTube">
-      <label for="videoAspect">Aspect ratio</label><select id="videoAspect"><option value="16:9">16:9</option><option value="1:1">1:1</option></select>
-      <label for="videoCTA">Call‑to‑action</label><input type="text" id="videoCTA" placeholder="Subscribe">
-      <label for="videoCaptions">Subtitles?</label><select id="videoCaptions"><option value="yes">Yes</option><option value="no">No</option></select>
+      <hr><h2>🎬 Video</h2>
+      <label>Type</label><select id="videoCategory"><option value="Promo">Promo</option><option value="Tutorial">Tutorial</option></select>
+      <label>Length</label><input type="text" id="videoLength" placeholder="2 minutes">
+      <label>Tone</label><input type="text" id="videoTone" placeholder="energetic">
+      <label>Key message</label><textarea id="videoMessage" rows="2" placeholder="main points..."></textarea>
     </div>
 
+    <!-- ============ IMAGE ============ -->
     <div id="imageQ" class="conditional">
-      <hr><h2>🎨 Image / Graphic Details</h2>
-      <label for="imgType">Type</label><select id="imgType"><option value="Logo">Logo</option><option value="Poster">Poster</option></select>
-      <label for="imgSubject">Subject</label><textarea id="imgSubject" rows="2" placeholder="a logo for a bakery"></textarea>
-      <label for="imgStyle">Art style</label><input type="text" id="imgStyle" placeholder="minimalist line art">
-      <label for="imgColors">Color palette</label><input type="text" id="imgColors" placeholder="warm pastels">
-      <label for="imgText">Text to include</label><input type="text" id="imgText" placeholder="'Fresh Baked Daily'">
-      <label for="imgSize">Dimensions</label><input type="text" id="imgSize" placeholder="1080x1080">
-      <label for="imgComposition">Composition</label><input type="text" id="imgComposition" placeholder="centered">
-      <label for="imgMood">Mood</label><input type="text" id="imgMood" placeholder="warm">
-      <label for="imgUsage">Usage</label><input type="text" id="imgUsage" placeholder="website header">
-      <label for="imgInspiration">Reference</label><textarea id="imgInspiration" rows="2" placeholder="similar to Nike logo"></textarea>
+      <hr><h2>🎨 Image / Graphic</h2>
+      <label>Type</label><select id="imgType"><option value="Logo">Logo</option><option value="Poster">Poster</option></select>
+      <label>Subject</label><textarea id="imgSubject" rows="2" placeholder="a logo for..."></textarea>
+      <label>Style</label><input type="text" id="imgStyle" placeholder="minimalist">
+      <label>Colours</label><input type="text" id="imgColors" placeholder="warm pastels">
     </div>
 
+    <!-- Final touches -->
     <hr><h2>🎯 Final Touches</h2>
-    <label for="tone">Overall tone / style</label>
+    <label>Tone</label>
     <select id="tone"><option value="Professional">Professional</option><option value="Casual">Casual</option></select>
-    <label for="extra">Any additional context</label>
-    <textarea id="extra" rows="3"></textarea>
+    <label for="extra">Any extra notes</label>
+    <textarea id="extra" rows="2"></textarea>
 
     <div class="button-group">
-      <button id="craftBtn">✨ Craft My Ultimate Prompt</button>
-      <button id="clearBtn" class="secondary-btn">🗑️ Clear Form</button>
+      <button id="craftBtn">✨ Craft My Prompt</button>
+      <button id="clearBtn" class="secondary-btn">🗑️ Clear</button>
     </div>
-    <p id="status" aria-live="polite"></p>
+    <p id="status"></p>
   </section>
 
   <!-- Result -->
   <section class="card" id="resultCard" style="display: none;">
-    <h2>Your Complete, Production‑Ready Prompt</h2>
+    <h2>Your Prompt</h2>
     <div class="output" id="result"></div>
     <div class="button-group">
       <button id="copyBtn" class="secondary-btn">📋 Copy</button>
-      <button id="downloadBtn" class="secondary-btn">💾 Download .txt</button>
+      <button id="downloadBtn" class="secondary-btn">💾 Download</button>
       <button id="rateBtn" class="secondary-btn">🤖 Rate & Improve</button>
     </div>
     <div class="review-panel" id="reviewPanel">
       <span class="review-rating" id="reviewRating"></span>
-      <p class="review-feedback" id="reviewFeedback"></p>
+      <p id="reviewFeedback"></p>
       <button id="applyImprovementBtn" class="secondary-btn" style="display: none;">✨ Apply Improved Prompt</button>
     </div>
-  </section>
-
-  <!-- History -->
-  <section class="card">
-    <h2>📚 Recent Prompts</h2>
-    <div id="historyList">No saved prompts yet.</div>
   </section>
 
   <div class="toast" id="toast"></div>
 
   <script>
-    // ========== CONFIG ==========
     const SUPABASE_URL = "https://udlmyspetkjzcdkfshgl.supabase.co";
     const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkbG15c3BldGtqemNka2ZzaGdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxODIzMDksImV4cCI6MjA5NDc1ODMwOX0.oQL6hbwjQlU_2h4xcbD-v1yl7EubMz90VpIpTPBwEM4";
     const EDGE_URL = `${SUPABASE_URL}/functions/v1/api-key`;
 
-    // ========== DARK MODE ==========
     function toggleDark() {
       document.documentElement.classList.toggle('dark');
       localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     }
     if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
 
-    // ========== CONDITIONAL SECTIONS ==========
+    // Conditional sections
     const typeSelect = document.getElementById('type');
     const sections = {
       Website: document.getElementById('websiteQ'),
@@ -265,55 +279,50 @@
       Object.values(sections).forEach(s => s.classList.remove('show'));
       const type = typeSelect.value;
       if (sections[type]) sections[type].classList.add('show');
-      updateProgress();
     });
 
-    document.getElementById('webFeatures').addEventListener('input', function() {
-      const val = this.value.toLowerCase();
-      document.getElementById('bookingDetails').style.display = val.includes('booking') ? 'block' : 'none';
-      document.getElementById('galleryDetails').style.display = val.includes('gallery') ? 'block' : 'none';
-    });
+    // Helper to get checked checkbox values
+    function getChecked(name) {
+      return [...document.querySelectorAll(`#${name} input[type="checkbox"]:checked`)].map(cb => cb.value);
+    }
 
-    // ========== DATA COLLECTION ==========
     function getAnswers() {
-      const ids = [...document.querySelectorAll('input, select, textarea')].map(el => el.id).filter(Boolean);
+      const ids = [...document.querySelectorAll('input[type="text"], input[type="url"], select, textarea')].map(el => el.id).filter(Boolean);
       const ans = {};
       ids.forEach(id => {
         const el = document.getElementById(id);
         if (el && el.value.trim() !== '') ans[id] = el.value.trim();
       });
+      // Add checkbox groups
+      const audience = getChecked('audienceCheckboxes');
+      if (audience.length) ans.webAudience = audience.join(', ');
+      const pages = getChecked('pagesCheckboxes');
+      if (pages.length) ans.webPages = pages.join(', ');
+      const features = getChecked('featuresCheckboxes');
+      if (features.length) ans.webFeatures = features.join(', ');
+      // Social links
+      ['instagram','facebook','googleBusiness'].forEach(k => {
+        const val = document.getElementById(k)?.value?.trim();
+        if (val) ans[k] = val;
+      });
       return ans;
     }
 
-    // ========== SMART PROMPT BUILDERS ==========
+    // Smart prompt builder (Website)
     function buildWebsite(a) {
-      let p = `Act as a senior full‑stack web developer and UI/UX designer. Create a complete, production‑ready ${a.webType || 'portfolio'} website for "${a.webName || 'the business'}".\n\n`;
+      let p = `Act as a senior full‑stack web developer & UI/UX designer. Create a complete, responsive website for "${a.webName || 'the business'}".\n\n`;
       p += `**Business & Audience**\n- Name: ${a.webName || 'N/A'}\n`;
       if (a.webIndustry) p += `- Industry: ${a.webIndustry}\n`;
       if (a.webAudience) p += `- Target audience: ${a.webAudience}\n`;
       if (a.webLocation) p += `- Location: ${a.webLocation}\n`;
       if (a.webGoalAction) p += `- Primary goal: ${a.webGoalAction}\n`;
+      if (a.instagram) p += `- Instagram: ${a.instagram}\n`;
+      if (a.facebook) p += `- Facebook: ${a.facebook}\n`;
+      if (a.googleBusiness) p += `- Google Business: ${a.googleBusiness}\n`;
       p += '\n';
-      if (a.webTagline || a.webHeroHeadline || a.webCTAText) {
-        p += `**Branding**\n`;
-        if (a.webTagline) p += `- Tagline: "${a.webTagline}"\n`;
-        if (a.webHeroHeadline) p += `- Hero headline: "${a.webHeroHeadline}"\n`;
-        if (a.webCTAText) p += `- Main CTA: "${a.webCTAText}"\n`;
-        p += '\n';
-      }
-      const pagesRaw = a.webPages || 'Home, About, Contact';
-      const pages = pagesRaw === 'everything' ? 'Home, Gallery, Booking, About Us, Contact' : pagesRaw;
-      p += `**Pages / Sections**\n${pages}\n\n`;
-      if (a.webFeatures) {
-        p += `**Special Features**\n${a.webFeatures}\n`;
-        if (a.webFeatures.toLowerCase().includes('booking')) {
-          p += `  Booking: ${a.bookingWhat || 'appointment'} (fields: ${a.bookingFields || 'name, phone, date'}, confirmation: "${a.bookingConfirmation || 'Thank you!'}")\n`;
-        }
-        if (a.webFeatures.toLowerCase().includes('gallery')) {
-          p += `  Gallery: ${a.galleryLayout || 'masonry'}, ${a.galleryImages || '8'} images, filters: ${a.galleryFilters || 'none'}, lightbox: ${a.galleryLightbox || 'yes'}, alt: ${a.galleryAltText || 'product images'}\n`;
-        }
-        p += '\n';
-      }
+      if (a.webTagline) p += `**Tagline:** "${a.webTagline}"\n\n`;
+      if (a.webPages) p += `**Pages / Sections:** ${a.webPages}\n\n`;
+      if (a.webFeatures) p += `**Features:** ${a.webFeatures}\n\n`;
       if (a.webColors || a.webFonts || a.webInspiration) {
         p += `**Design System**\n`;
         if (a.webColors) p += `- Colors: ${a.webColors}\n`;
@@ -321,65 +330,26 @@
         if (a.webInspiration) p += `- Inspiration: ${a.webInspiration}\n`;
         p += `- Layout: ${a.webLayoutStructure || 'single-page'}\n\n`;
       }
-      p += `**Technical Requirements**\n- Responsive: ${a.webResponsive || 'mobile‑first, breakpoint 768px'}\n`;
-      if (a.webSEOTitle) p += `- SEO title: "${a.webSEOTitle}"\n`;
-      if (a.webSEODesc) p += `- Meta description: "${a.webSEODesc}"\n`;
-      if (a.webAccessibility) p += `- Accessibility: ${a.webAccessibility}\n`;
-      if (a.webPerformance) p += `- Performance: ${a.webPerformance}\n`;
+      p += `**Technical Requirements**\n- Responsive: ${a.webResponsive || 'mobile-first, 768px'}\n`;
       if (a.extra) p += `\n**Additional Notes**\n${a.extra}\n`;
-      p += `\nDeliver a single HTML file with embedded CSS and vanilla JavaScript. Use semantic HTML5, CSS custom properties, and a mobile‑first approach. Output only the complete code.`;
+      p += `\nDeliver a single HTML file with embedded CSS & vanilla JS. Use semantic HTML5 & CSS custom properties. Output only the complete code.`;
       return p;
     }
 
     function buildWebApp(a) {
-      let p = `Act as a senior full‑stack web developer. Build "${a.appName || 'the app'}".\n`;
-      if (a.appProblem) p += `**Problem:** ${a.appProblem}\n`;
-      if (a.appAudience) p += `**Audience:** ${a.appAudience}\n`;
-      if (a.appFeatures) p += `**Features:** ${a.appFeatures}\n`;
-      if (a.appPlatform) p += `**Platform:** ${a.appPlatform}\n`;
-      if (a.appDesign) p += `**Design:** ${a.appDesign}\n`;
-      if (a.appTech) p += `**Tech:** ${a.appTech}\n`;
-      if (a.appDataFlow) p += `**Data:** ${a.appDataFlow}\n`;
-      if (a.appAccessibility) p += `**Accessibility:** ${a.appAccessibility}\n`;
-      if (a.appSEO) p += `**SEO:** ${a.appSEO}\n`;
-      if (a.appExtra) p += `\n**Extra:** ${a.appExtra}\n`;
-      p += `\nCreate a functional single‑page app with only client‑side code. Output only the complete code.`;
-      return p;
+      return `Act as a full‑stack developer. Build "${a.appName || 'the app'}".\nProblem: ${a.appProblem}\nAudience: ${a.appAudience}\nFeatures: ${a.appFeatures}\nDesign: ${a.appDesign}\nTech: ${a.appTech}\nCreate a single‑page app with only client‑side code. Output only the complete code.`;
     }
 
     function buildVideo(a) {
-      let p = `Act as a scriptwriter. Write a ${a.videoCategory || 'promo'} script (${a.videoLength || '2 min'}) for: "${a.goal || ''}".\n`;
-      if (a.videoAudience) p += `**Audience:** ${a.videoAudience}\n`;
-      if (a.videoTone) p += `**Tone:** ${a.videoTone}\n`;
-      if (a.videoMessage) p += `**Message:** ${a.videoMessage}\n`;
-      if (a.videoStyle) p += `**Visuals:** ${a.videoStyle}\n`;
-      if (a.videoMusic) p += `**Music:** ${a.videoMusic}\n`;
-      if (a.videoVO) p += `**Voiceover:** ${a.videoVO}\n`;
-      if (a.videoPlatform) p += `**Platform:** ${a.videoPlatform}, aspect ${a.videoAspect || '16:9'}\n`;
-      if (a.videoCTA) p += `**CTA:** ${a.videoCTA}\n`;
-      if (a.videoCaptions === 'yes') p += 'Include subtitles.\n';
-      p += `\nStructure with timestamps and scene descriptions. Output only the full script.`;
-      return p;
+      return `Act as a scriptwriter. Write a ${a.videoCategory || 'promo'} script (${a.videoLength || '2 min'}) about: "${a.goal || ''}".\nTone: ${a.videoTone}\nMessage: ${a.videoMessage}\nOutput only the full script.`;
     }
 
     function buildImage(a) {
-      let p = `Act as an AI image prompt creator. Generate a detailed prompt for DALL·E/Midjourney.\n`;
-      if (a.imgType) p += `**Type:** ${a.imgType}\n`;
-      if (a.imgSubject) p += `**Subject:** ${a.imgSubject}\n`;
-      if (a.imgStyle) p += `**Style:** ${a.imgStyle}\n`;
-      if (a.imgColors) p += `**Colors:** ${a.imgColors}\n`;
-      if (a.imgText) p += `**Text:** "${a.imgText}"\n`;
-      if (a.imgSize) p += `**Size:** ${a.imgSize}\n`;
-      if (a.imgComposition) p += `**Composition:** ${a.imgComposition}\n`;
-      if (a.imgMood) p += `**Mood:** ${a.imgMood}\n`;
-      if (a.imgUsage) p += `**Usage:** ${a.imgUsage}\n`;
-      if (a.imgInspiration) p += `**Inspiration:** ${a.imgInspiration}\n`;
-      p += `\nInclude lighting, texture, style references. Output only the image prompt.`;
-      return p;
+      return `Act as an AI image prompt creator. Generate a DALL·E/Midjourney prompt.\nSubject: ${a.imgSubject}\nStyle: ${a.imgStyle}\nColors: ${a.imgColors}\nType: ${a.imgType}\nOutput only the image prompt.`;
     }
 
     function buildGeneric(a) {
-      return `Act as an expert prompt engineer. Create a detailed prompt for: "${a.goal || ''}". Include all details. Output only the final prompt.`;
+      return `Act as a prompt engineer. Create a detailed prompt for: "${a.goal || ''}". Output only the final prompt.`;
     }
 
     function buildPrompt(answers) {
@@ -393,19 +363,18 @@
       }
     }
 
-    // ========== CRAFT ==========
+    // Craft
     document.getElementById('craftBtn').addEventListener('click', () => {
       const answers = getAnswers();
-      if (!answers.type && !answers.goal) return alert('Please fill first two questions.');
+      if (!answers.type && !answers.goal) return alert('Please choose a type and write a goal.');
       const prompt = buildPrompt(answers);
       document.getElementById('result').textContent = prompt;
       document.getElementById('resultCard').style.display = 'block';
-      document.getElementById('status').textContent = '✅ Ultimate prompt ready!';
+      document.getElementById('status').textContent = '✅ Prompt ready!';
       saveToHistory(prompt);
-      window.scrollTo({ top: document.getElementById('resultCard').offsetTop, behavior: 'smooth' });
     });
 
-    // ========== COPY & DOWNLOAD ==========
+    // Copy & Download
     document.getElementById('copyBtn').addEventListener('click', () => {
       navigator.clipboard.writeText(document.getElementById('result').textContent).then(() => showToast('Copied!'));
     });
@@ -413,25 +382,24 @@
       const blob = new Blob([document.getElementById('result').textContent], { type: 'text/plain' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'prompt-crafter-prompt.txt';
+      a.download = 'prompt.txt';
       a.click();
       showToast('Downloaded!');
     });
 
-    // ========== RATE & IMPROVE (AI) ==========
+    // Rate & Improve (AI)
     let improvedPromptText = null;
     document.getElementById('rateBtn').addEventListener('click', async () => {
-      const originalPrompt = document.getElementById('result').textContent;
-      if (!originalPrompt) return;
+      const original = document.getElementById('result').textContent;
+      if (!original) return;
       const btn = document.getElementById('rateBtn');
       btn.disabled = true;
-      btn.innerHTML = '<span class="loader"></span> Reviewing...';
-      document.getElementById('status').textContent = 'AI is reviewing your prompt...';
+      btn.textContent = 'Reviewing...';
       try {
         const res = await fetch(EDGE_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ANON_KEY}`, 'apikey': ANON_KEY },
-          body: JSON.stringify({ mode: 'review', prompt: originalPrompt })
+          headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${ANON_KEY}`, 'apikey':ANON_KEY },
+          body: JSON.stringify({ mode:'review', prompt: original })
         });
         if (!res.ok) throw new Error(await res.text());
         const data = await res.json();
@@ -446,35 +414,31 @@
           applyBtn.style.display = 'none';
         }
         document.getElementById('reviewPanel').classList.add('show');
-        document.getElementById('status').textContent = '✅ Review complete.';
       } catch (err) {
-        document.getElementById('status').textContent = '❌ Review failed: ' + err.message;
+        showToast('Review failed: ' + err.message);
       } finally {
         btn.disabled = false;
         btn.textContent = '🤖 Rate & Improve';
       }
     });
-
     document.getElementById('applyImprovementBtn').addEventListener('click', () => {
       if (improvedPromptText) {
         document.getElementById('result').textContent = improvedPromptText;
         document.getElementById('reviewPanel').classList.remove('show');
-        document.getElementById('status').textContent = '✅ Improved prompt applied!';
         saveToHistory(improvedPromptText);
       }
     });
 
-    // ========== CLEAR ==========
+    // Clear
     document.getElementById('clearBtn').addEventListener('click', () => {
-      document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+      document.querySelectorAll('input[type="text"], input[type="url"], textarea').forEach(el => el.value = '');
       document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+      document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
       document.getElementById('resultCard').style.display = 'none';
-      document.getElementById('status').textContent = '';
       Object.values(sections).forEach(s => s.classList.remove('show'));
-      updateProgress();
     });
 
-    // ========== TOAST ==========
+    // Toast
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.textContent = msg;
@@ -482,41 +446,12 @@
       setTimeout(() => toast.classList.remove('show'), 2000);
     }
 
-    // ========== HISTORY ==========
+    // History
     function saveToHistory(prompt) {
       const history = JSON.parse(localStorage.getItem('promptHistory') || '[]');
       history.unshift({ date: new Date().toISOString(), prompt });
       localStorage.setItem('promptHistory', JSON.stringify(history.slice(0, 10)));
-      renderHistory();
     }
-    function renderHistory() {
-      const history = JSON.parse(localStorage.getItem('promptHistory') || '[]');
-      const container = document.getElementById('historyList');
-      if (history.length === 0) { container.innerHTML = 'No saved prompts yet.'; return; }
-      container.innerHTML = history.map((item, index) => `
-        <div class="history-item">
-          <div><small>${new Date(item.date).toLocaleString()}</small><pre style="white-space:pre-wrap;">${item.prompt.substring(0, 100)}...</pre></div>
-          <button onclick="loadHistoryItem(${index})">Load</button>
-        </div>
-      `).join('');
-    }
-    window.loadHistoryItem = function(index) {
-      const history = JSON.parse(localStorage.getItem('promptHistory') || '[]');
-      if (history[index]) {
-        document.getElementById('result').textContent = history[index].prompt;
-        document.getElementById('resultCard').style.display = 'block';
-        window.scrollTo({ top: document.getElementById('resultCard').offsetTop, behavior: 'smooth' });
-      }
-    };
-    renderHistory();
-
-    // ========== PROGRESS ==========
-    function updateProgress() {
-      const total = 25;
-      const filled = Object.values(getAnswers()).filter(v => v).length;
-      document.getElementById('progressFill').style.width = Math.min(100, (filled / total) * 100) + '%';
-    }
-    document.querySelectorAll('input, select, textarea').forEach(el => el.addEventListener('input', updateProgress));
   </script>
 </body>
 </html>
